@@ -20,13 +20,11 @@ namespace HRMS.Web.Controllers
 
         private readonly IAuditService _audit;
         private readonly IPasswordResetService _resetService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountController(IAuditService audit, IPasswordResetService resetService, UserManager<ApplicationUser> userManager)
+        public AccountController(IAuditService audit, IPasswordResetService resetService)
         {
             _audit = audit;
             _resetService = resetService;
-            _userManager = userManager;
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
@@ -141,13 +139,18 @@ namespace HRMS.Web.Controllers
 
             try
             {
-                var user = _userManager.GetLogins(userId.ToUpper());
+                var userManager = CreateUserManager();
+                var user = await userManager.FindByNameAsync(userId.ToUpper());
+                if(user == null)
+                {
+                    throw new Exception("Invalid user");
+                }
                 var link = await _resetService.GenerateResetLinkAsync(userId, baseUrl);
 
                 ViewBag.ResetLink = link; // No email → show directly
                 return View("ShowResetLink");
             }
-            catch(Exception ex)
+            catch
             {
                 ModelState.AddModelError("", "Invalid user");
                 return View();
