@@ -1,0 +1,144 @@
+@model IEnumerable<HRMS.Web.ViewModels.EmployeeViewModel>
+@{
+    /**/
+
+    ViewBag.Title = "Employees";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header">
+    <div>
+        <div class="page-title">Employees</div>
+        <div class="page-sub">@Model.Count() total records</div>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+    {
+        <a href="@Url.Action("Create")" class="btn btn-primary">+ Add Employee</a>
+    }
+</div>
+<!-- Filters -->
+@using (Html.BeginForm("Index", "Employee", FormMethod.Get))
+{
+    <div class="card" style="margin-bottom:20px;">
+        <div class="card-body" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:16px 20px;">
+            <div style="flex:1;min-width:200px;">
+                <label class="form-label">Search</label>
+                <input name="search" value="@ViewBag.Search" class="form-ctrl" placeholder="Name, email, code" />
+            </div>
+            <div style="min-width:160px;">
+                <label class="form-label">Department</label>
+                <select name="department" class="form-ctrl">
+                    <option value="All">All</option>
+                    @foreach (var d in Model.Select(x => new { x.DepartmentID, x.DepartmentName }).Distinct())
+                    {
+                        <option value="@d.DepartmentID" @(ViewBag.Department == d.DepartmentID ? "selected" : "")>
+                            @d.DepartmentName
+                        </option>
+                    }
+                </select>
+            </div>
+            <div style="min-width:120px;">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-ctrl">
+                    @foreach (var s in new[] { "All", "Active", "Inactive", "OnLeave", "Terminated" })
+                    {
+                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="@Url.Action("Index")" class="btn btn-ghost">Reset</a>
+            <button type="button" class="btn btn-ghost" onclick="openPdfPopup()">
+                &#8599; PDF
+            </button>
+            @*<a href="@Url.Action("Employee","Report",new{department=ViewBag.Department,status=ViewBag.Status})" target="_blank" class="btn btn-ghost" onclick="openPdfPopup()">&#8599; PDF</a>*@
+        </div>
+    </div>
+}
+<div class="card">
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Code</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No employees found.</td></tr>
+                }
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-12">
+                                <div class="emp-avatar"></div>
+                                <div>
+                                    <div style="font-weight:500;">@e.EmployeeName</div>
+                                    <div style="font-size:11px;color:var(--muted);">@e.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="mono" style="color:var(--muted);font-size:12px;">@e.EmployeeId</td>
+                        <td><span class="dept-badge">@e.DepartmentName</span></td>
+                        <td style="color:var(--muted);">@e.DesignationName</td>
+                        <td style="color:var(--muted);">@e.JoiningDate.ToString("dd MMM yyyy")</td>
+                        <td><span class="badge badge-@e.Status.ToLower()">@e.Status</span></td>
+                        <td>
+                            <div class="flex gap-12">
+                                <a href="@Url.Action("Details",new{id=e.EmployeeId})" class="btn btn-ghost btn-sm">View</a>
+                                @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+                                {
+                                    <a href="@Url.Action("Edit",new{id=e.EmployeeId})" class="btn btn-ghost btn-sm">Edit</a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div id="pdfPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999;">
+        <div style="background:#131620;padding:20px;border-radius:10px;width:300px;">
+            <h3 style="margin-bottom:10px;">Export PDF</h3>
+            <p>Do you want to group by Department?</p>
+            <div style="margin-top:15px;display:flex;gap:10px;">
+                <button onclick="exportPdf(true)" class="btn btn-primary">Yes</button>
+                <button onclick="exportPdf(false)" class="btn btn-ghost">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function openPdfPopup() {
+        document.getElementById("pdfPopup").style.display = "flex";
+    }
+
+    function closePdfPopup() {
+        document.getElementById("pdfPopup").style.display = "none";
+    }
+
+    function exportPdf(groupBy) {
+
+        closePdfPopup();
+
+        var search = document.querySelector('input[name="search"]').value;
+        var department = document.querySelector('select[name="department"]').value;
+        var status = document.querySelector('select[name="status"]').value;
+
+        var url = '@Url.Action("ExportToPdf", "Employee")'
+            + '?search=' + encodeURIComponent(search)
+            + '&department=' + encodeURIComponent(department)
+            + '&status=' + encodeURIComponent(status)
+            + '&groupBy=' + groupBy;
+
+        window.location.href = url;
+    }
+</script>

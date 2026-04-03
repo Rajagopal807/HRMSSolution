@@ -1,0 +1,172 @@
+@model HRMS.Web.ViewModels.EmployeeViewModel
+@{
+    ViewBag.Title = Model.EmployeeName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string dept = Model.DepartmentName;
+    string avatarInitials = "";
+    if (!string.IsNullOrEmpty(Model.EmployeeName)) { avatarInitials += Model.EmployeeName[0]; }
+    //if (!string.IsNullOrEmpty(Model.LastName))  avatarInitials += Model.LastName[0];
+}
+
+<!-- ── Back ──────────────────────────────────────────────────────────────── -->
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index", "Employee")" class="btn btn-ghost btn-sm">
+        &#8592;&nbsp;Back to Employees
+    </a>
+</div>
+
+<!-- ── Page Header ───────────────────────────────────────────────────────── -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Employee Details</div>
+        <div class="page-sub">@Model.EmployeeId &middot; @Model.DesignationName</div>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+    {
+        <div style="display:flex;gap:8px;">
+            <a href="@Url.Action("Edit", new { id = Model.EmployeeId })" class="btn btn-ghost">
+                &#9998;&nbsp;Edit
+            </a>
+            @using (Html.BeginForm("Delete", "Employee", new { id = Model.EmployeeId }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Permanently delete @Model.EmployeeName? This cannot be undone.')">
+                    &#128465;&nbsp;Delete
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<!-- ── Main Grid ─────────────────────────────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+
+    <!-- ── Left: Profile Card ──────────────────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="card">
+            <div class="card-body" style="text-align:center;padding:32px 24px;">
+
+                <!-- Avatar -->
+                <div style="width:80px;height:80px;border-radius:50%;
+                            background:rgba(91,110,245,.15);
+                            border:2px solid rgba(91,110,245,.4);
+                            display:inline-flex;align-items:center;justify-content:center;
+                            font-size:28px;font-weight:700;color:var(--accent);
+                            font-family:'Syne',sans-serif;margin-bottom:16px;">
+                    @avatarInitials
+                </div>
+
+                <!-- Name & Role -->
+                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;
+                            color:var(--text);margin-bottom:4px;">
+                    @Model.EmployeeName
+                </div>
+                <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+                    @Model.DesignationName
+                </div>
+
+                <!-- Dept badge + status -->
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                    <span class="dept-badge">@dept</span>
+                    <span class="badge badge-@Model.Status.ToLower()">@Model.Status</span>
+                </div>
+
+                <!-- Divider -->
+                <div style="margin:20px 0;border-top:1px solid var(--border);"></div>
+
+                <!-- Contact info rows -->
+                <div style="display:flex;flex-direction:column;gap:12px;text-align:left;">
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Code</span>
+                        <span class="mono" style="color:var(--text);">@Model.EmployeeId</span>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;gap:8px;">
+                        <span style="color:var(--muted);flex-shrink:0;">Email</span>
+                        <span style="color:var(--accent);font-size:12px;
+                                     overflow:hidden;text-overflow:ellipsis;
+                                     white-space:nowrap;">
+                            @Model.Email
+                        </span>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Phone</span>
+                        <span class="mono" style="color:var(--text);">@Model.Phone</span>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Date of Birth</span>
+                        <span>@Model.DateOfBirth.ToString("dd MMM yyyy")</span>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Joined</span>
+                        <span>@Model.JoiningDate.ToString("dd MMM yyyy")</span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <div style="font-size:13px;">
+                            <div style="color:var(--muted);margin-bottom:3px;">Address</div>
+                            <div style="color:var(--text);line-height:1.5;">@Model.Address</div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Right: Detail Cards ─────────────────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Job Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Job Information</div>
+                <div class="card-sub">Role and department details</div>
+            </div>
+            <div class="card-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+
+                    @{
+                        var fields = new[]
+                        {
+                            new { Label = "Department",   Value = dept },
+                            new { Label = "Designation",  Value = Model.DesignationName },
+                            new { Label = "Employee Code",Value = Model.EmployeeId },
+                            new { Label = "Status",       Value = Model.Status },
+                            new { Label = "Joining Date", Value = Model.JoiningDate.ToString("dd MMMM yyyy") },
+                            new { Label = "Date of Birth",Value = Model.DateOfBirth.ToString("dd MMMM yyyy") },
+                        };
+                    }
+
+                    @foreach (var f in fields)
+                    {
+                        <div style="padding:14px 0;border-bottom:1px solid var(--border);
+                                    margin:0 16px;display:flex;flex-direction:column;gap:4px;">
+                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+                                        color:var(--muted);font-weight:600;">
+                                @f.Label
+                            </div>
+                            <div style="font-size:14px;font-weight:500;color:var(--text);">
+                                @f.Value
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,110 @@
+﻿@model HRMS.Web.ViewModels.LoginViewModel
+@{
+    Layout = null;
+    ViewBag.Title = "Sign In";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HRMS – Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#0c0e14; --surface:#131620; --border:#1e2333; --accent:#5b6ef5; --text:#e8eaf6; --muted:#6b7394; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+
+        .login-bg { position:fixed; inset:0; overflow:hidden; z-index:0; }
+        .login-bg::before {
+            content:''; position:absolute; top:-30%; left:-10%;
+            width:60vw; height:60vw; border-radius:50%;
+            background:radial-gradient(circle, rgba(91,110,245,0.12) 0%, transparent 70%);
+        }
+        .login-bg::after {
+            content:''; position:absolute; bottom:-20%; right:-10%;
+            width:50vw; height:50vw; border-radius:50%;
+            background:radial-gradient(circle, rgba(52,211,153,0.07) 0%, transparent 70%);
+        }
+
+        .login-card {
+            position:relative; z-index:1;
+            width:100%; max-width:400px;
+            background:var(--surface);
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:40px;
+        }
+
+        .login-logo { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+        .logo-icon  { width:42px; height:42px; background:var(--accent); border-radius:10px; display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:white; }
+        .logo-name  { font-family:'Syne',sans-serif; font-weight:700; font-size:20px; }
+
+        h1 { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; margin-bottom:4px; }
+        .sub { font-size:13px; color:var(--muted); margin-bottom:28px; }
+
+        .form-group { margin-bottom:16px; }
+        label { display:block; font-size:11px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+        input[type=email], input[type=password] {
+            width:100%; background:var(--bg); border:1px solid var(--border);
+            border-radius:8px; padding:11px 14px; color:var(--text);
+            font-family:'DM Sans',sans-serif; font-size:14px; outline:none;
+            transition:border .15s;
+        }
+        input:focus { border-color:var(--accent); }
+        input::placeholder { color:var(--muted); }
+
+        .remember { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); margin-bottom:24px; }
+        .remember input { width:auto; }
+
+        .btn-login {
+            width:100%; background:var(--accent); color:white; border:none;
+            border-radius:8px; padding:12px; font-family:'DM Sans',sans-serif;
+            font-size:14px; font-weight:600; cursor:pointer; transition:background .15s;
+        }
+        .btn-login:hover { background:#4a5de0; }
+
+        .err-box { background:#7f1d1d33; border:1px solid #b91c1c; border-radius:8px; padding:10px 14px; color:#fca5a5; font-size:13px; margin-bottom:16px; }
+
+        .hint { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+        .hint-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:10px; }
+        .hint-row { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:3px 0; }
+        .hint-row span:last-child { font-family:monospace; color:var(--text); }
+    </style>
+</head>
+<body>
+<div class="login-bg"></div>
+<div class="login-card">
+    <div class="login-logo">
+        <div class="logo-icon">H</div>
+        <span class="logo-name">HRMS Portal</span>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="sub">Sign in to access the HR dashboard</p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="err-box">@Html.ValidationSummary(true)</div>
+    }
+
+    @using (Html.BeginForm("Login","Account", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewBag.ReturnUrl as string)
+
+        <div class="form-group">
+            <label>User ID</label>
+            @Html.TextBoxFor(m => m.Userid, new { @class="", placeholder="userid" })
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            @Html.PasswordFor(m => m.Password, new { placeholder="••••••••" })
+        </div>
+        <div class="remember">
+            @Html.CheckBoxFor(m => m.RememberMe) Remember me for 60 days
+        </div>
+        <button type="submit" class="btn-login">Sign In &rarr;</button>
+    }
+</div>
+</body>
+</html>

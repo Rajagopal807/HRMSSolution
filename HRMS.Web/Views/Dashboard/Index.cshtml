@@ -1,0 +1,215 @@
+@model HRMS.Web.ViewModels.DashboardViewModel
+@using System.Linq
+@{
+                /**/
+
+                ViewBag.Title = "Dashboard";
+                Layout = "~/Views/Shared/_Layout.cshtml";
+
+                // Build JSON-safe chart data server-side
+                var deptLabels = string.Join(",", Model.DepartmentHeadcount.Keys.Select(k => "'" + (k == "HumanResources" ? "HR" : k) + "'"));
+                var deptValues = string.Join(",", Model.DepartmentHeadcount.Values);
+                var salLabels = string.Join(",", Model.SalaryByDepartment.Keys.Select(k => "'" + (k == "HumanResources" ? "HR" : k) + "'"));
+                var salValues = string.Join(",", Model.SalaryByDepartment.Values);
+                var leaveLabels = string.Join(",", Model.LeaveByType.Keys.Select(k => "'" + k + "'"));
+                var leaveValues = string.Join(",", Model.LeaveByType.Values);
+
+                // Derived
+                int inactiveCount = Model.TotalEmployees - Model.ActiveEmployees;
+                double activeRate = Model.TotalEmployees > 0
+                    ? System.Math.Round((double)Model.ActiveEmployees / Model.TotalEmployees * 100, 1)
+                    : 0;
+}
+<!-- ── KPI Cards ──────────────────────────────────────────────────────────── -->
+<div class="kpi-grid">
+    <div class="kpi-card blue">
+        <div class="kpi-label">Total Employees</div>
+        <div class="kpi-value">@Model.TotalEmployees</div>
+        <div class="kpi-sub">
+            @Model.ActiveEmployees active &middot; @inactiveCount inactive
+        </div>
+    </div>
+    <div class="kpi-card red">
+        <div class="kpi-label">New Hires</div>
+        <div class="kpi-value">@Model.NewHiresThisMonth</div>
+        <div class="kpi-sub">Joined this month</div>
+    </div>
+</div>
+<!-- ── Recent Hires ───────────────────────────────────────────────────────── -->
+<div class="card mt-16">
+    <div class="card-header"
+         style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <div class="card-title">Recent Hires</div>
+            <div class="card-sub">Latest additions to the team</div>
+        </div>
+        <a href="@Url.Action("Index", "Employee")" class="btn btn-ghost btn-sm">
+            All Employees
+        </a>
+    </div>
+    <div class="card-body tbl-wrap" style="padding-top:8px;">
+        @if (Model.RecentHires != null && Model.RecentHires.Any())
+        {
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Code</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.RecentHires)
+                    {
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div class="emp-avatar">
+                                        @(e.EmployeeName.Length > 0 ? e.EmployeeName[0].ToString() : "E")
+                                    </div>
+                                    <span style="font-weight:500;">@e.EmployeeName</span>
+                                </div>
+                            </td>
+                            <td class="mono"
+                                style="color:var(--muted);font-size:12px;">
+                                @e.EmployeeId
+                            </td>
+                            <td>
+                                <span class="dept-badge">
+                                    @e.DepartmentName
+                                </span>
+                            </td>
+                            <td style="color:var(--muted);font-size:13px;">@e.DesignationName</td>
+                            <td style="color:var(--muted);font-size:13px;white-space:nowrap;">
+                                @e.JoiningDate.ToString("dd MMM yyyy")
+                            </td>
+                            <td>
+                                <span class="badge badge-@e.Status.ToLower()">@e.Status</span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", "Employee", new { id = e.EmployeeId })"
+                                   class="btn btn-ghost btn-sm">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">
+                No recent hires to display.
+            </div>
+        }
+    </div>
+</div>
+@section scripts {
+    <script>
+(function () {
+    var palette   = ['#5b6ef5','#34d399','#f59e42','#ef4444','#a78bfa','#60a5fa','#fb923c'];
+    var gridColor = 'rgba(30,35,51,0.8)';
+    var textColor = '#6b7394';
+
+    Chart.defaults.color       = textColor;
+    Chart.defaults.borderColor = gridColor;
+
+    // ── Headcount bar chart ──────────────────────────────────────────────────
+    var deptEl = document.getElementById('deptChart');
+    if (deptEl) {
+        new Chart(deptEl, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(deptLabels)],
+                datasets: [{
+                    data: [@Html.Raw(deptValues)],
+                    backgroundColor: palette,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { stepSize: 1, precision: 0 },
+                        beginAtZero: true
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── Payroll bar chart ────────────────────────────────────────────────────
+    var salEl = document.getElementById('salChart');
+    if (salEl) {
+        new Chart(salEl, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(salLabels)],
+                datasets: [{
+                    data: [@Html.Raw(salValues)],
+                    backgroundColor: palette.map(function(c) { return c + 'aa'; }),
+                    borderColor: palette,
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: gridColor },
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(v) {
+                                return v >= 100000
+                                    ? '\u20b9' + (v / 100000).toFixed(1) + 'L'
+                                    : '\u20b9' + (v / 1000).toFixed(0) + 'K';
+                            }
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── Leave doughnut ───────────────────────────────────────────────────────
+    var leaveEl = document.getElementById('leaveChart');
+    if (leaveEl) {
+        new Chart(leaveEl, {
+            type: 'doughnut',
+            data: {
+                labels: [@Html.Raw(leaveLabels)],
+                datasets: [{
+                    data: [@Html.Raw(leaveValues)],
+                    backgroundColor: palette,
+                    borderWidth: 2,
+                    borderColor: '#131620'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, padding: 16, color: textColor }
+                    }
+                },
+                cutout: '68%'
+            }
+        });
+    }
+}());
+    </script>
+}

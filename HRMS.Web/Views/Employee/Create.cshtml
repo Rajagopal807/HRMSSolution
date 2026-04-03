@@ -1,0 +1,216 @@
+@model HRMS.Web.ViewModels.CreateEmployeeViewModel
+@{
+    /**/
+
+    ViewBag.Title = "Add Employee";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- ── Back ──────────────────────────────────────────────────────────────── -->
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index", "Employee")" class="btn btn-ghost btn-sm">
+        &#8592;&nbsp;Back to Employees
+    </a>
+</div>
+<!-- ── Page Header ───────────────────────────────────────────────────────── -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Add Employee</div>
+        <div class="page-sub">Create a new employee record</div>
+    </div>
+</div>
+@using (Html.BeginForm("Create", "Employee", FormMethod.Post, new { id = "employeeForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    <!-- Validation Summary -->
+    if (!ViewData.ModelState.IsValid)
+    {
+        <div style="background:#7f1d1d33;border:1px solid #b91c1c;border-radius:8px;
+                    padding:12px 16px;margin-bottom:20px;color:#fca5a5;font-size:13px;">
+            <strong>Please fix the following errors:</strong>
+            @Html.ValidationSummary(true, "", new { style = "margin:6px 0 0;padding-left:16px;" })
+        </div>
+    }
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+        <!-- ── Left: Personal Information ─────────────────────────────── -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Personal Information</div>
+                <div class="card-sub">Basic contact and identity details</div>
+            </div>
+            <div class="card-body">
+                <!-- First Name + Last Name -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.EmployeeID, "Employee ID *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.EmployeeID, new { @class = "form-ctrl", placeholder = "e.g. Arjun" })
+                        @Html.ValidationMessageFor(m => m.EmployeeID, "",
+                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.EmployeeName, "Employee Name *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.EmployeeName, new { @class = "form-ctrl", placeholder = "e.g. Sharma" })
+                        @Html.ValidationMessageFor(m => m.EmployeeName, "",
+                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+                </div>
+                <!-- Email -->
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Email, "Email Address *", new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-ctrl", type = "email",
+                        placeholder = "arjun@company.com" })
+                    @Html.ValidationMessageFor(m => m.Email, "",
+                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                </div>
+                <!-- Phone -->
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Phone, "Phone Number", new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Phone, new { @class = "form-ctrl", placeholder = "9876543210" })
+                    @Html.ValidationMessageFor(m => m.Phone, "",
+                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                </div>
+                <!-- Date of Birth -->
+                <div class="form-group">
+                    @Html.LabelFor(m => m.DateOfBirth, "Date of Birth *", new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}",
+                        new { @class = "form-ctrl", type = "date" })
+                    @Html.ValidationMessageFor(m => m.DateOfBirth, "",
+                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                </div>
+                <!-- Address -->
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Address, "Address", new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.Address,
+                        new { @class = "form-ctrl", rows = "3", placeholder = "Street, City, State" })
+                </div>
+            </div>
+        </div>
+        <!-- ── Right: Job + Compensation ──────────────────────────────── -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- Job Information -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Job Information</div>
+                    <div class="card-sub">Role, department and joining details</div>
+                </div>
+                <div class="card-body">
+                    <!-- Department -->
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Department, "Department *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Department,
+                                Model.DepartmentOptions,
+                                "-- Select Department --",
+                                new { @class = "form-ctrl" })
+                        @Html.ValidationMessageFor(m => m.Department, "",
+                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+                    <!-- Designation -->
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Designation, "Designation *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Designation,
+                                Model.DesignationOptions,
+                                "-- Select Designation --",
+                                new { @class = "form-ctrl" })
+                        @Html.ValidationMessageFor(m => m.Designation, "",
+                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+                    <!-- Joining Date -->
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.JoiningDate, "Joining Date *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.JoiningDate, "{0:yyyy-MM-dd}",
+                            new { @class = "form-ctrl", type = "date" })
+                        @Html.ValidationMessageFor(m => m.JoiningDate, "",
+                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+                </div>
+            </div>
+            <!-- Compensation -->
+            @*<div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Compensation</div>
+                        <div class="card-sub">Monthly salary details</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Basic Salary -->
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.BasicSalary, "Basic Salary (&#8377;) *", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.BasicSalary,
+                                new { @class = "form-ctrl", type = "number", min = "0", placeholder = "50000", id = "basicSalary" })
+                            @Html.ValidationMessageFor(m => m.BasicSalary, "",
+                                new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                        </div>
+                        <!-- Allowances -->
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Allowances, "Allowances (&#8377;)", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Allowances,
+                                new { @class = "form-ctrl", type = "number", min = "0", placeholder = "10000", id = "allowances" })
+                            @Html.ValidationMessageFor(m => m.Allowances, "",
+                                new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                        </div>
+                        <!-- Gross Salary (computed) -->
+                        <div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);
+                                    border-radius:8px;padding:14px 16px;
+                                    display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+                                            color:var(--accent2);font-weight:600;">
+                                    Gross Salary
+                                </div>
+                                <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                                    Basic + Allowances
+                                </div>
+                            </div>
+                            <span class="mono" id="grossDisplay"
+                                  style="font-size:20px;font-weight:700;color:var(--accent2);">
+                                &#8377;0
+                            </span>
+                        </div>
+                    </div>
+                </div>*@
+            <!-- Form Actions -->
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    &#10003;&nbsp;Create Employee
+                </button>
+                <a href="@Url.Action("Index", "Employee")" class="btn btn-ghost">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+}
+@section scripts {
+    <script>
+        (function () {
+            var basicEl = document.getElementById('basicSalary');
+            var allowEl = document.getElementById('allowances');
+            var grossEl = document.getElementById('grossDisplay');
+
+            function updateGross() {
+                var basic = parseFloat(basicEl.value) || 0;
+                var allow = parseFloat(allowEl.value) || 0;
+                var gross = basic + allow;
+                grossEl.textContent = '\u20b9' + gross.toLocaleString('en-IN');
+            }
+
+            if (basicEl) basicEl.addEventListener('input', updateGross);
+            if (allowEl) allowEl.addEventListener('input', updateGross);
+            updateGross();
+        }());
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var empInput = document.getElementById("EmployeeID");
+
+            empInput.addEventListener("blur", function () {
+                var value = empInput.value.trim();
+
+                if (value !== "") {
+                    empInput.value = value.padStart(11, '0'); // ✅ auto fill
+                }
+            });
+        });
+    </script>
+}

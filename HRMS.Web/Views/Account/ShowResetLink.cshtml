@@ -1,0 +1,80 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "Reset Link Generated";
+}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AMS – Reset Link</title>
+
+    @Styles.Render("~/Content/css")
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-bg"></div>
+
+    <div class="login-card">
+
+        <div class="login-logo">
+            <div class="logo-icon">AMS</div>
+            <span class="logo-name">AMS Portal</span>
+        </div>
+
+        <h1>Reset Link Ready</h1>
+        <p class="sub">Use the link below to reset your password</p>
+
+        <div class="input-wrapper" style="padding:10px;">
+            <input type="text" value="@ViewBag.ResetLink" readonly class="form-input" />
+            <i class="bi bi-link-45deg input-icon"></i>
+        </div>
+
+        <button class="btn-login" onclick="copyLink()">Copy Link</button>
+
+        <div class="forgot-password" style="text-align:center; margin-top:15px;">
+            @Html.ActionLink("Back to Login", "Login", "Account")
+        </div>
+    </div>
+
+    <script>
+        const html = document.documentElement;
+        const toggle = document.getElementById("themeToggle");
+        const icon = document.getElementById("themeIcon");
+
+        function applyTheme(theme) {
+            html.setAttribute("data-theme", theme);
+
+            // Sync toggle
+            toggle.checked = theme === "dark";
+
+            // FIX ICON LOGIC
+            if (theme === "dark") {
+                icon.className = "bi bi-moon-fill"; // 🌙
+            } else {
+                icon.className = "bi bi-sun-fill";  // ☀️
+            }
+        }
+
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        applyTheme(savedTheme);
+
+        toggle.addEventListener("change", function () {
+            const newTheme = toggle.checked ? "dark" : "light";
+
+            applyTheme(newTheme);
+            localStorage.setItem("theme", newTheme);
+        });
+
+        function copyLink() {
+            const input = document.querySelector("input");
+            input.select();
+            document.execCommand("copy");
+            alert("Link copied!");
+        }
+    </script>
+</body>
+</html>

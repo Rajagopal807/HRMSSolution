@@ -1,0 +1,135 @@
+﻿/* ================= LIGHT THEME (Default) ================= */
+body.light-theme {
+    background-color: #f5f6fa;
+    color: #222;
+}
+
+.light-theme .panel,
+.light-theme .card,
+.light-theme .navbar {
+    background-color: #ffffff;
+    color: #222;
+}
+
+/* ================= DARK THEME ================= */
+body.dark-theme {
+    background-color: #0b0f19;
+    color: #e5e7eb;
+}
+
+.dark-theme .panel,
+.dark-theme .card,
+.dark-theme .navbar {
+    background-color: #111827;
+    color: #e5e7eb;
+    border-color: #1f2937;
+}
+
+/* Bootstrap Overrides */
+.dark-theme .table {
+    background-color: #111827;
+    color: #e5e7eb;
+}
+
+.dark-theme .table-bordered > tbody > tr > td,
+.dark-theme .table-bordered > thead > tr > th {
+    border-color: #1f2937;
+}
+
+.dark-theme .btn-primary {
+    background-color: #6366f1;
+    border-color: #4f46e5;
+}
+
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+
+/******************************************Theme Change Container*******************************************/
+/* ================= THEME TOGGLE (CLEAN VERSION) ================= */
+
+.theme-toggle {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+}
+
+    /* Hide checkbox */
+    .theme-toggle input {
+        display: none;
+    }
+
+/* Track */
+.toggle-track {
+    width: 70px;
+    height: 36px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* Glass effect */
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Thumb */
+.toggle-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #facc15, #f59e0b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Move thumb */
+.theme-toggle input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(34px);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
+
+/* Icon */
+.toggle-thumb i {
+    font-size: 14px;
+    color: #fff;
+}
+
+/* Light theme tweak */
+[data-theme="light"] .toggle-track {
+    background: rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Hover */
+.toggle-track:hover {
+    box-shadow: 0 0 15px rgba(99,102,241,0.4);
+}
+/******************************************Theme Change Container*******************************************/
