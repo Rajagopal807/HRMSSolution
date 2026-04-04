@@ -38,6 +38,8 @@ namespace HRMS.Infrastructure.Data
         public DbSet<Designation> Designations { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Muster> Muster { get; set; }
+        public DbSet<DailyTransactions> DailyTransactions { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

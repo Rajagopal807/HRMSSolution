@@ -9,7 +9,7 @@ using HRMS.Domain.Enums;
 using HRMS.Domain.Interfaces;
 using HRMS.Infrastructure.Data;
 
-namespace HRMS.Infrastructure.Repositories
+namespace HRMS.Infrastructure.Reports
 {
     // ─── Generic Repository ───────────────────────────────────────────────────
     public class Repository<T> : IRepository<T> where T : BaseEntity
@@ -139,6 +139,39 @@ namespace HRMS.Infrastructure.Repositories
             => _set.FirstOrDefault(e => e.DesignationID == designationID && !e.IsDeleted);
     }
 
+    // ─── Attendance Report Repository ─────────────────────────────────────────────────────
+    /// <summary>
+    /// OCP: New repository added by extension — Repositories.cs untouched.
+    /// </summary>
+    public class AttendanceRepository : Repository<Muster>, IAttendanceRepository
+    {
+        public AttendanceRepository(ApplicationDbContext ctx) : base(ctx) { }
+
+        public IEnumerable<Muster> GetByDateRange(DateTime from, DateTime to)
+        {
+            return _set
+                .Include(a => a.Employee)
+                .Where(a => !a.IsDeleted && a.TDate  >= from && a.TDate  <= to)
+                .OrderBy(a => a.Employee.EmployeeId)
+                .ThenBy(a => a.TDate )
+                .ToList();
+        }
+
+        public IEnumerable<Muster> GetByEmployee(
+            int employeeId, DateTime from, DateTime to)
+        {
+            return _set
+                .Include(a => a.Employee)
+                .Where(a => !a.IsDeleted
+                         && a.EmployeeId == employeeId
+                         && a.TDate  >= from
+                         && a.TDate  <= to)
+                .OrderBy(a => a.TDate )
+                .ToList();
+        }
+    }
+
+
     // ─── Leave Repository ─────────────────────────────────────────────────────
     public class AuditRepository : Repository<AuditLog>, IAuditService
     {
@@ -195,6 +228,7 @@ namespace HRMS.Infrastructure.Repositories
         private DepartmentRepository _departments;
         private DesignationRepository _designations;
         private AuditRepository _auditRepository;
+        private AttendanceRepository _attendanceRepository;
 
         public UnitOfWork(ApplicationDbContext ctx) { _ctx = ctx; }
 
@@ -221,6 +255,11 @@ namespace HRMS.Infrastructure.Repositories
         public IAuditService Log
         {
             get { return _auditRepository ?? (_auditRepository = new AuditRepository(_ctx)); }
+        }
+
+        public IAttendanceRepository Attendace
+        {
+            get { return _attendanceRepository ?? (_attendanceRepository = new AttendanceRepository(_ctx)); }
         }
 
         public int SaveChanges() => _ctx.SaveChanges();

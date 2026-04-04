@@ -57,6 +57,18 @@ namespace HRMS.Domain.Interfaces
         void Log(string action, string module, string details = null);
     }
 
+    public interface IAttendanceRepository : IRepository<Muster>
+    {
+        /// <summary>
+        /// Returns all punch records for every employee within the date range.
+        /// Used to build the attendance register grid.
+        /// </summary>
+        IEnumerable<Muster> GetByDateRange(DateTime from, DateTime to);
+
+        /// <summary>Returns punch records for one employee within the date range.</summary>
+        IEnumerable<Muster> GetByEmployee(int employeeId, DateTime from, DateTime to);
+    }
+
     public interface IUnitOfWork : IDisposable
     {
         IEmployeeRepository Employees { get; }
@@ -64,6 +76,7 @@ namespace HRMS.Domain.Interfaces
         IDesignationRepository Designations { get; }
         ILeaveRepository Leaves { get; }
         IAuditService Log { get; }
+        IAttendanceRepository Attendace { get; }
         int SaveChanges();
     }
 }

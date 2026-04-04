@@ -6,6 +6,7 @@ using HRMS.Domain.Enums;
 
 namespace HRMS.Domain.Entities
 {
+    [Table("TblEmpMast")]
     public class Employee : BaseEntity
     {
         [Key] // Primary Key

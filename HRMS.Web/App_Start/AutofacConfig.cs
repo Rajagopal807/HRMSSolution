@@ -2,12 +2,13 @@ using System.Reflection;
 using System.Web.Mvc;
 using Autofac;
 using Autofac.Integration.Mvc;
+using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Application.Services;
 using HRMS.Domain.Interfaces;
 using HRMS.Infrastructure.Data;
 using HRMS.Infrastructure.Identity;
-using HRMS.Infrastructure.Repositories;
+using HRMS.Infrastructure.Reports;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 
@@ -40,7 +41,21 @@ namespace HRMS.Web.App_Start
             builder.RegisterType<UserManager<ApplicationUser>>().AsSelf().InstancePerRequest();
             builder.RegisterType<IdentityService>().As<IIdentityService>().InstancePerRequest();
             builder.RegisterType<SecureTokenService>().As<IPasswordResetService>().InstancePerRequest();
+            builder.RegisterType<AttendancePdfReport>()
+                   .Named<IReportGenerator<AttendanceReportDto>>("pdf")
+                   .InstancePerRequest();
 
+            builder.RegisterType<AttendanceExcelReport>()
+                   .Named<IReportGenerator<AttendanceReportDto>>("excel")
+                   .InstancePerRequest();
+
+            // ── Attendance Report Service ─────────────────────────────────────
+            builder.Register(c => new AttendanceReportService(
+                    c.Resolve<IUnitOfWork>(),
+                    c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("pdf"),
+                    c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("excel")))
+                   .As<IAttendanceReportService>()
+                   .InstancePerRequest();
 
             // Crystal Report Service — pass report folder path at registration
             //builder.Register(c => new CrystalReportService(

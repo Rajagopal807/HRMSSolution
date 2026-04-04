@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace HRMS.Domain.Entities
 {
+    [Table("TblDepartment")]
     public class Department : BaseEntity
     {
         [Key] // Primary Key

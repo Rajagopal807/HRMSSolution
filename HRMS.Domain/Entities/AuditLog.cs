@@ -1,7 +1,8 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HRMS.Domain.Entities
 {
+    [Table("TblAuditLog")]
     public class AuditLog : BaseEntity
     {
         public string UserId { get; set; }
