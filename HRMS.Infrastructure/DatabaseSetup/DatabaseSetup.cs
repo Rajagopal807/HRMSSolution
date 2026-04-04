@@ -27,7 +27,7 @@ public class DatabaseSetup
                 cmd = new SqlCommand(sql, con);
                 cmd.ExecuteNonQuery();
             }
-            catch(Exception ex)
+            catch
             {
                 canContinue = false;
             }
@@ -48,7 +48,7 @@ public class DatabaseSetup
                             cmd.ExecuteNonQuery();
                         }
             }
-            catch(Exception ex)
+            catch
             {
                 sql = @"
             -- Drop Database

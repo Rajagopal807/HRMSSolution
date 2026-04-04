@@ -9,6 +9,7 @@ namespace HRMS.Domain.Entities
     public class DailyTransactions : BaseEntity
     {
         [Key, Column(Order = 0)]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)] //Important (no auto increment)
         [StringLength(11)]
         public string EmpId { get; set; }
 
@@ -42,5 +43,7 @@ namespace HRMS.Domain.Entities
 
         [StringLength(2)]
         public string ReasonCode { get; set; }
+
+        public virtual Employee Employee { get; set; }
     }
 }

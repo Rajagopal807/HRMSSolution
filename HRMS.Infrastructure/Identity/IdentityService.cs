@@ -4,6 +4,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,18 +37,16 @@ namespace HRMS.Infrastructure.Identity
 
         public async Task<bool> IsTokenValidAsync(string token)
         {
-            var user = _userManager.Users
-                .FirstOrDefault(x => x.ResetToken == token && x.TokenExpiry > DateTime.Now);
-
-            return user != null;
+            return await _userManager.Users
+                .AnyAsync(x => x.ResetToken == token && x.TokenExpiry > DateTime.Now);
         }
 
         public async Task<string> GetUserIdByTokenAsync(string token)
         {
-            return _userManager.Users
+            return await _userManager.Users
                 .Where(x => x.ResetToken == token)
                 .Select(x => x.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
         }
 
         public async Task<bool> ResetPasswordAsync(string userId, string newPassword)

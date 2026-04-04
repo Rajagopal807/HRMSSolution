@@ -158,7 +158,7 @@ namespace HRMS.Infrastructure.Reports
         }
 
         public IEnumerable<Muster> GetByEmployee(
-            int employeeId, DateTime from, DateTime to)
+            string employeeId, DateTime from, DateTime to)
         {
             return _set
                 .Include(a => a.Employee)

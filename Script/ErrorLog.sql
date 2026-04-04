@@ -1,0 +1,9 @@
+CREATE TABLE ErrorLog
+(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FileNum SMALLINT,
+    EmpCode VARCHAR(11),
+    LogDate DATETIME,
+    Message VARCHAR(500),
+    CreatedOn DATETIME DEFAULT GETDATE()
+);

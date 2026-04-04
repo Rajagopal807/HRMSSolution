@@ -66,7 +66,7 @@ namespace HRMS.Domain.Interfaces
         IEnumerable<Muster> GetByDateRange(DateTime from, DateTime to);
 
         /// <summary>Returns punch records for one employee within the date range.</summary>
-        IEnumerable<Muster> GetByEmployee(int employeeId, DateTime from, DateTime to);
+        IEnumerable<Muster> GetByEmployee(string employeeId, DateTime from, DateTime to);
     }
 
     public interface IUnitOfWork : IDisposable

@@ -49,7 +49,7 @@ namespace HRMS.Infrastructure.Reports
             foreach (var emp in employees.OrderBy(e => e.EmployeeId))
             {
                 var empLogs = logs
-                    .Where(l => l.EmployeeId == emp.Id)
+                    .Where(l => l.EmployeeId == emp.EmployeeId)
                     .ToLookup(l => l.TDate .Day);
 
                 var row = new AttendanceRowDto
