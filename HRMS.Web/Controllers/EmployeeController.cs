@@ -250,9 +250,96 @@ namespace HRMS.Web.Controllers
 
                 doc.Close();
 
-                string fileName = BuildFileName(search, department, status);
+                string fileName = BuildFileName(search, department, status, "PDF");
 
                 return File(ms.ToArray(), "application/pdf", fileName);
+            }
+        }
+
+        public ActionResult ExportToExcel(string search, string department, string status, bool groupBy = false)
+        {
+            var employees = _employeeService.Search(search, department, status);
+
+            using (var wb = new ClosedXML.Excel.XLWorkbook())
+            {
+                var ws = wb.Worksheets.Add("Employees");
+
+                int row = 1;
+
+                if (groupBy)
+                {
+                    var grouped = employees.GroupBy(x => x.DepartmentName);
+
+                    foreach (var dept in grouped)
+                    {
+                        // Department Header
+                        ws.Cell(row, 1).Value = dept.Key;
+                        ws.Range(row, 1, row, 6).Merge().Style
+                            .Font.SetBold()
+                            .Fill.SetBackgroundColor(ClosedXML.Excel.XLColor.LightGray);
+
+                        row++;
+
+                        // Table Header
+                        ws.Cell(row, 1).Value = "Employee";
+                        ws.Cell(row, 2).Value = "Code";
+                        ws.Cell(row, 3).Value = "Designation";
+                        ws.Cell(row, 4).Value = "Joined";
+                        ws.Cell(row, 5).Value = "Status";
+
+                        ws.Range(row, 1, row, 5).Style.Font.SetBold();
+                        row++;
+
+                        foreach (var e in dept)
+                        {
+                            ws.Cell(row, 1).Value = e.EmployeeName;
+                            ws.Cell(row, 2).Value = e.EmployeeId;
+                            ws.Cell(row, 3).Value = e.DesignationName;
+                            ws.Cell(row, 4).Value = e.JoiningDate.ToString("dd MMM yyyy");
+                            ws.Cell(row, 5).Value = e.Status;
+                            row++;
+                        }
+
+                        row++; // space between groups
+                    }
+                }
+                else
+                {
+                    // Header
+                    ws.Cell(1, 1).Value = "Employee";
+                    ws.Cell(1, 2).Value = "Code";
+                    ws.Cell(1, 3).Value = "Department";
+                    ws.Cell(1, 4).Value = "Designation";
+                    ws.Cell(1, 5).Value = "Joined";
+                    ws.Cell(1, 6).Value = "Status";
+
+                    ws.Range(1, 1, 1, 6).Style.Font.SetBold();
+
+                    int rowData = 2;
+
+                    foreach (var e in employees)
+                    {
+                        ws.Cell(rowData, 1).Value = e.EmployeeName;
+                        ws.Cell(rowData, 2).Value = e.EmployeeId;
+                        ws.Cell(rowData, 3).Value = e.DepartmentName;
+                        ws.Cell(rowData, 4).Value = e.DesignationName;
+                        ws.Cell(rowData, 5).Value = e.JoiningDate.ToString("dd MMM yyyy");
+                        ws.Cell(rowData, 6).Value = e.Status;
+                        rowData++;
+                    }
+                }
+
+                ws.Columns().AdjustToContents();
+
+                string fileName = BuildFileName(search, department, status, "EXCEL");
+
+                using (var stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    return File(stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        fileName);
+                }
             }
         }
 
@@ -326,9 +413,11 @@ namespace HRMS.Web.Controllers
         }
 
         // ================= FILE NAME BUILDER =================
-        private string BuildFileName(string search, string department, string status)
+        private string BuildFileName(string search, string department, string status, string exporttype)
         {
             string file = "Employees";
+
+            string fileType = exporttype.ToUpper() == "PDF" ? "pdf" : "xlsx";
 
             if (!string.IsNullOrWhiteSpace(department) && department != "All")
                 file += $"_{department}";
@@ -339,7 +428,7 @@ namespace HRMS.Web.Controllers
             if (!string.IsNullOrWhiteSpace(search))
                 file += "_Search";
 
-            file += $"_{DateTime.Now:yyyyMMdd}.pdf";
+            file += $"_{DateTime.Now:yyyyMMdd}.{fileType}";
 
             return file.Replace(" ", "_");
         }

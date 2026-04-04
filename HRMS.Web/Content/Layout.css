@@ -9,6 +9,11 @@
     --text: #e8eaf6;
     --muted: #6b7394;
     --sidebar-w: 240px;
+    --popup-bg: #131620;
+    --popup-text: #e5e7eb;
+    --popup-subtext: #9ca3af;
+    --popup-border: #2a2f3a;
+    --popup-overlay: rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="light"] {
@@ -18,6 +23,11 @@
     --accent: #4f46e5;
     --text: #1e293b;
     --muted: #6b7280;
+    --popup-bg: #ffffff;
+    --popup-text: #1f2937;
+    --popup-subtext: #6b7280;
+    --popup-border: #e5e7eb;
+    --popup-overlay: rgba(0, 0, 0, 0.25);
 }
 
 
@@ -402,16 +412,28 @@ table.tbl {
     font-weight: 600;
 }
 
-.badge-active {
+[data-theme="dark"] .badge-active {
     background: #14532d33;
     color: var(--accent2);
     border: 1px solid #14532d;
 }
 
-.badge-inactive {
+[data-theme="dark"] .badge-inactive {
     background: #7f1d1d33;
     color: #fca5a5;
     border: 1px solid #7f1d1d;
+}
+
+[data-theme="light"] .badge-active {
+    background: rgba(34, 197, 94, 0.12); /* soft green */
+    color: #15803d; /* readable green */
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+[data-theme="light"] .badge-inactive {
+    background: rgba(239, 68, 68, 0.12); /* soft red */
+    color: #b91c1c; /* readable red */
+    border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .badge-pending {
@@ -432,7 +454,7 @@ table.tbl {
     border: 1px solid #7f1d1d;
 }
 
-.dept-badge {
+[data-theme="dark"] .dept-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 20px;
@@ -440,6 +462,16 @@ table.tbl {
     font-weight: 500;
     background: rgba(91,110,245,0.15);
     color: #a5b4fc;
+}
+
+[data-theme="light"] .dept-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(91,110,245,0.15);
+    color: #5B6EF5;
 }
 
 /* ── Buttons ── */
@@ -683,3 +715,48 @@ select.form-ctrl option {
     box-shadow: 0 0 15px rgba(99,102,241,0.4);
 }
 /******************************************Theme Change Container*******************************************/
+#pdfPopup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--popup-overlay);
+    backdrop-filter: blur(4px); /* 🔥 modern glass effect */
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.popup-card {
+    background: var(--popup-bg);
+    color: var(--popup-text);
+    width: 340px;
+    padding: 22px;
+    border-radius: 14px;
+    border: 1px solid var(--popup-border);
+    /* ✨ smooth elevation */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    animation: popupFade 0.2s ease;
+}
+
+.popup-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.popup-text {
+    font-size: 13px;
+    color: var(--popup-subtext);
+}
+
+@keyframes popupFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
