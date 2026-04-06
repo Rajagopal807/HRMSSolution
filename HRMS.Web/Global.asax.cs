@@ -12,15 +12,14 @@ namespace HRMS.Web
     {
         protected void Application_Start()
         {
-
-            DatabaseSetup.Initialize();
-            
-            // EF: Use DatabaseSeeder to create + seed tables on first run
-             Database.SetInitializer(new DatabaseSeeder());
-
             using (var ctx = new ApplicationDbContext())
             {
-                ctx.Database.Initialize(true);
+                if (!ctx.Database.Exists())
+                {
+                    DatabaseSetup.Initialize();
+                    Database.SetInitializer(new DatabaseSeeder());
+                    ctx.Database.Initialize(true);
+                }
             }
 
             AreaRegistration.RegisterAllAreas();

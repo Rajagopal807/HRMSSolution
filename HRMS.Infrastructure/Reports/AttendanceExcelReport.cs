@@ -38,8 +38,10 @@ namespace HRMS.Infrastructure.Reports
         // ── Sheet Builder ─────────────────────────────────────────────────────
         private static void BuildSheet(IXLWorksheet ws, AttendanceReportDto data)
         {
-            int days = data.DaysInMonth;
-            int totalCols = 2 + 31 + 1;   // EmpID + Name + 31 days + WorkDays
+            int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
+            int days = totalDays; //data.DaysInMonth;
+            //int totalCols = 2 + 31 + 1;   // EmpID + Name + 31 days + WorkDays
+            int totalCols = 2 + days; //2 + 31;   // EmpID + Name + 31 days
 
             // ── Row 1: Company name ───────────────────────────────────────────
             ws.Cell(1, 1).Value = data.CompanyName;
@@ -74,9 +76,9 @@ namespace HRMS.Infrastructure.Reports
 
             SetHeader(ws.Cell(headerRow, 1), "Emp ID");
             SetHeader(ws.Cell(headerRow, 2), "Employee Name");
-            for (int d = 1; d <= 31; d++)
+            for (int d = 1; d <= days; d++)
                 SetHeader(ws.Cell(headerRow, 2 + d), d.ToString());
-            SetHeader(ws.Cell(headerRow, totalCols), "Work Days");
+            //SetHeader(ws.Cell(headerRow, totalCols), "Work Days");
 
             // Freeze panes: keep EmpID + Name visible when scrolling right
             ws.SheetView.FreezeColumns(2);
@@ -114,7 +116,7 @@ namespace HRMS.Infrastructure.Reports
                     .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
 
                 // Day columns 1–31
-                for (int d = 0; d < 31; d++)
+                for (int d = 0; d < days; d++)
                 {
                     var dayDto = row.Days[d];
                     int col = 3 + d;
@@ -139,7 +141,7 @@ namespace HRMS.Infrastructure.Reports
                     // AA / HH / WO
                     if (!string.IsNullOrEmpty(dayDto.AttId)
                         && dayDto.AttId != "00"
-                        && !string.IsNullOrEmpty(dayDto.FirstIn))
+                        && string.IsNullOrEmpty(dayDto.FirstIn))
                     {
                         cell.Value = dayDto.AttId;
                         cell.Style.Font.SetBold(true).Font.SetFontColor(XLColor.DarkBlue);
@@ -147,10 +149,10 @@ namespace HRMS.Infrastructure.Reports
                     }
 
                     // In/Out times
-                    if (string.IsNullOrEmpty(dayDto.FirstIn))
+                    if (!string.IsNullOrEmpty(dayDto.FirstIn))
                     {
                         string inStr = dayDto.FirstIn;
-                        string outStr = string.IsNullOrEmpty(dayDto.Lastout)
+                        string outStr = !string.IsNullOrEmpty(dayDto.Lastout)
                             ? dayDto.Lastout
                             : "--:--";
                         cell.Value = inStr + "\n" + outStr;
@@ -163,16 +165,16 @@ namespace HRMS.Infrastructure.Reports
                 }
 
                 // Work Days
-                var wdCell = ws.Cell(currentRow, totalCols);
-                wdCell.Value = row.WorkDays;
-                wdCell.Style
-                    .Font.SetBold(true)
-                    .Font.SetFontSize(8)
-                    .Fill.SetBackgroundColor(rowBg)
-                    .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
-                    .Border.SetOutsideBorderColor(XLColor.Gray)
-                    .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
-                    .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+                //var wdCell = ws.Cell(currentRow, totalCols);
+                //wdCell.Value = row.WorkDays;
+                //wdCell.Style
+                //    .Font.SetBold(true)
+                //    .Font.SetFontSize(8)
+                //    .Fill.SetBackgroundColor(rowBg)
+                //    .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                //    .Border.SetOutsideBorderColor(XLColor.Gray)
+                //    .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                //    .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
 
                 // Row height to accommodate two-line time cells
                 ws.Row(currentRow).Height = 22;

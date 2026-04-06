@@ -20,9 +20,9 @@ SELECT
     [IOFlag],
     [ActualIOFlag],
     [OPFlag],
-    DATEADD(YEAR, 5, [PunchedTime]),
-    DATEADD(YEAR, 5, [TransTime]),
-    DATEADD(YEAR, 5, [AttendanceDate]),
+    DATEADD(MONTH, 3, DATEADD(YEAR, 5, [PunchedTime])),
+    DATEADD(MONTH, 3, DATEADD(YEAR, 5, [TransTime])),
+    DATEADD(MONTH, 3, DATEADD(YEAR, 5, [AttendanceDate])),
     [BOutPassHrs],
     [Remarks],
     [BadgeReaderNo],
@@ -31,25 +31,35 @@ SELECT
     GETDATE(),
     0
 FROM [stars].[dbo].[TblDailyTransactions]
-WHERE EmpId IN ('00000000017', '00000000024')
-  AND AttendanceDate >= '2021-01-01'
-  AND AttendanceDate <  '2022-01-01';
+WHERE EmpId IN ('00000000047', '00000000042')
+  AND AttendanceDate >= '2020-12-01'
+  AND AttendanceDate <  '2020-12-31';  
 
-UPDATE [HRMS_DB].[dbo].TblDailyTransactions set empid = '00000012134' WHERE empid='00000000024'
-UPDATE [HRMS_DB].[dbo].TblDailyTransactions set empid = '00000011255' WHERE empid='00000000017'
+UPDATE [HRMS_DB].[dbo].TblDailyTransactions set empid = '00000012134' WHERE empid='00000000042'
+UPDATE [HRMS_DB].[dbo].TblDailyTransactions set empid = '00000011255' WHERE empid='00000000047'
 
-UPDATE [HRMS_DB].[dbo].TblDailyTransactions
-SET TransTime = DATEADD(MONTH, 2, TransTime)
-WHERE EmpId IN ('00000011255', '00000012134');
+INSERT INTO TblShifts Values ('AG', 'General Shift');
 
-UPDATE [HRMS_DB].[dbo].TblDailyTransactions
-SET PunchedTime = DATEADD(MONTH, 2, PunchedTime)
-WHERE EmpId IN ('00000011255', '00000012134');
+INSERT INTO TblshiftDetails values ('AG', 1, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 2, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 3, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 4, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 5, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 6, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
+INSERT INTO TblshiftDetails values ('AG', 7, '1899-12-30 09:00:00.000', '1899-12-30 20:00:00.000', '1899-12-30 13:00:00.000', '1899-12-30 14:00:00.000');
 
-UPDATE [HRMS_DB].[dbo].TblDailyTransactions
-SET AttendanceDate = DATEADD(MONTH, 2, AttendanceDate)
-WHERE EmpId IN ('00000011255', '00000012134');
+--EXEC CreateMusterServiceProc '2026-03-01',''
+
+--EXEC ComputeAttendanceFor '00000011255','03/01/2026','03/31/2026','STAFF',0
 
 ---------------Delete Below---------------------------
-SELECt * FROM TblDailyTransactions
-SELECT * FROM TblMuster
+SELECt * FROM TblDailyTransactions WHERE Empid='00000011255';
+DELETE FROM TblDailyTransactions;
+SELECT * FROM TblMuster WHERE EmployeeId='00000011255';
+SELECT * FROM Tblshifts;
+SELECT * FROM TblshiftDetails;
+
+SELECT CAST('03/01/2026' as DATE);
+
+
+SELECT TRY_CONVERT(DATE, '03/01/2026', 101)

@@ -42,7 +42,7 @@ namespace HRMS.Infrastructure.Reports
             {
                 // A3 landscape for 31 day columns + ID + Name + WorkDays
                 var pageSize = new Rectangle(PageSize.A3.Height, PageSize.A3.Width); // landscape
-                var doc = new Document(pageSize, 20f, 20f, 30f, 20f);
+                var doc = new Document(pageSize, 20f, 20f, 60f, 20f);
                 var writer = PdfWriter.GetInstance(doc, ms);
 
                 // Page event for header/footer on every page
@@ -59,16 +59,18 @@ namespace HRMS.Infrastructure.Reports
         // ── Content ───────────────────────────────────────────────────────────
         private void BuildContent(Document doc, PdfWriter writer, AttendanceReportDto data)
         {
-            int days = data.DaysInMonth;
+            int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
+            int days = totalDays; // data.DaysInMonth;
 
             // Total columns: EmpID + Name + day1..31 + WorkDays
             // Widths: EmpID=40, Name=70, each day=18, WorkDays=25
-            int totalCols = 2 + 31 + 1;
+            //int totalCols = 2 + 31 + 1;
+            int totalCols = 2 + totalDays;
             float[] widths = new float[totalCols];
             widths[0] = 40f;   // Emp ID
             widths[1] = 70f;   // Employee Name
-            for (int i = 2; i < 33; i++) widths[i] = 18f;  // Day 1–31
-            widths[33] = 25f;  // Work Days
+            for (int i = 2; i < days; i++) widths[i] = 18f;  // Day 1–31
+            //widths[33] = 25f;  // Work Days
 
             var table = new PdfPTable(totalCols)
             {
@@ -82,9 +84,9 @@ namespace HRMS.Infrastructure.Reports
             // ── Header Row ────────────────────────────────────────────────────
             AddHeaderCell(table, "Emp ID");
             AddHeaderCell(table, "Employee Name");
-            for (int d = 1; d <= 31; d++)
+            for (int d = 1; d <= days; d++)
                 AddHeaderCell(table, d.ToString());
-            AddHeaderCell(table, "Work Days");
+            //AddHeaderCell(table, "Work Days");
 
             // ── Data Rows ─────────────────────────────────────────────────────
             bool alternate = false;
@@ -96,7 +98,7 @@ namespace HRMS.Infrastructure.Reports
                 AddDataCell(table, row.EmployeeCode, _fontCellBold, rowBg, Element.ALIGN_LEFT);
                 AddDataCell(table, row.EmployeeName, _fontCell, rowBg, Element.ALIGN_LEFT);
 
-                for (int d = 0; d < 31; d++)
+                for (int d = 0; d < days; d++)
                 {
                     var day = row.Days[d];
 
@@ -111,15 +113,15 @@ namespace HRMS.Infrastructure.Reports
                     string line2 = "";
 
                     if (!string.IsNullOrEmpty(day.AttId) && day.AttId != "00"
-                        && !string.IsNullOrEmpty(day.FirstIn))
+                        && string.IsNullOrEmpty(day.FirstIn))
                     {
                         // AA / HH / WO — centred single value
                         line1 = day.AttId;
                     }
-                    else if (string.IsNullOrEmpty(day.FirstIn))
+                    else if (!string.IsNullOrEmpty(day.FirstIn))
                     {
                         line1 = day.FirstIn;
-                        line2 = string.IsNullOrEmpty(day.Lastout)
+                        line2 = !string.IsNullOrEmpty(day.Lastout)
                             ? day.Lastout
                             : "--:--";
                     }
@@ -150,8 +152,8 @@ namespace HRMS.Infrastructure.Reports
                 }
 
                 // Work Days
-                AddDataCell(table, row.WorkDays.ToString(),
-                    _fontCellBold, rowBg, Element.ALIGN_CENTER);
+                //AddDataCell(table, row.WorkDays.ToString(),
+                    //_fontCellBold, rowBg, Element.ALIGN_CENTER);
             }
 
             doc.Add(table);

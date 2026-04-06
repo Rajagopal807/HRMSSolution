@@ -65,7 +65,7 @@
     </div>
 </div>
 <!-- ── Report Preview Info ────────────────────────────────────────────────── -->
-<div class="card" style="max-width:640px;margin-top:16px;
+@*<div class="card" style="max-width:640px;margin-top:16px;
      border-color:rgba(91,110,245,0.25);background:rgba(91,110,245,0.04);">
     <div class="card-body" style="display:flex;gap:14px;align-items:flex-start;padding:18px 20px;">
         <div style="font-size:22px;margin-top:2px;">&#128161;</div>
@@ -90,24 +90,7 @@
             </div>
         </div>
     </div>
-</div>
-<!-- ── NuGet Reminder ─────────────────────────────────────────────────────── -->
-<div class="card" style="max-width:640px;margin-top:16px;
-     border-color:rgba(245,158,66,0.25);background:rgba(245,158,66,0.04);">
-    <div class="card-body" style="padding:16px 20px;">
-        <div style="font-size:12px;font-weight:600;text-transform:uppercase;
-                    letter-spacing:.5px;color:#f59e42;margin-bottom:10px;">
-            &#9888;&nbsp; Required NuGet Packages
-        </div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
-            Run in Package Manager Console (Default project = HRMS.Infrastructure):
-            <pre style="background:var(--bg);border-radius:6px;padding:10px 14px;
-                        margin-top:8px;font-size:11px;color:var(--accent2);
-                        overflow-x:auto;">Install-Package iTextSharp -Version 5.5.13.3
-Install-Package ClosedXML -Version 0.102.2</pre>
-        </div>
-    </div>
-</div>
+</div>*@
 @section scripts {
     <script>
 (function () {
@@ -149,8 +132,8 @@ Install-Package ClosedXML -Version 0.102.2</pre>
         }
 
         var action = type === 'pdf' ? 'DownloadPdf' : 'DownloadExcel';
-        var url    = '@Url.Action("Index", "Attendance")'.replace('Index', action)
-                   + '?from=' + from + '&to=' + to;
+        var url = type === 'pdf' ? '@Url.Action("DownloadPdf", "Attendance")' : '@Url.Action("DownloadExcel", "Attendance")';
+            url += '?from=' + from + '&to=' + to;
 
         window.location.href = url;
     }
