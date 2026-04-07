@@ -98,4 +98,16 @@ namespace HRMS.Application.Interfaces
         Task<bool> IsTokenValidAsync(string token);
         Task InvalidateTokenAsync(string userId);
     }
+
+    public interface IReportScreenService
+    {
+        /// <summary>Returns all data needed to render the report filter screen.</summary>
+        ReportScreenDto GetScreenData();
+
+        /// <summary>
+        /// Generates the report bytes for the given filter.
+        /// Returns (bytes, contentType, fileName).
+        /// </summary>
+        (byte[] Bytes, string ContentType, string FileName) Generate(ReportFilterDto filter);
+    }
 }

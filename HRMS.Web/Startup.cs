@@ -17,7 +17,7 @@ namespace HRMS.Web
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath          = new PathString("/Account/Login"),
                 LogoutPath         = new PathString("/Account/Logout"),
-                ExpireTimeSpan     = TimeSpan.FromMinutes(10),
+                ExpireTimeSpan     = TimeSpan.FromMinutes(20),
                 SlidingExpiration  = true,
                 CookieName         = "HRMS.Auth"
             });

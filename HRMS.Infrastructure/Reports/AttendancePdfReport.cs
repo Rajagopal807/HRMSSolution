@@ -65,11 +65,18 @@ namespace HRMS.Infrastructure.Reports
             // Total columns: EmpID + Name + day1..31 + WorkDays
             // Widths: EmpID=40, Name=70, each day=18, WorkDays=25
             //int totalCols = 2 + 31 + 1;
-            int totalCols = 2 + totalDays;
+            int totalCols = 2 + (totalDays * 2);
             float[] widths = new float[totalCols];
             widths[0] = 40f;   // Emp ID
             widths[1] = 70f;   // Employee Name
-            for (int i = 2; i < days; i++) widths[i] = 18f;  // Day 1–31
+
+            int colIndex = 2;
+            for (int d = 0; d < totalDays; d++)
+            {
+                widths[colIndex++] = 18f; // In
+                widths[colIndex++] = 18f; // Out
+            }
+            //for (int i = 2; i < days; i++) widths[i] = 18f;  // Day 1–31
             //widths[33] = 25f;  // Work Days
 
             var table = new PdfPTable(totalCols)
@@ -85,7 +92,28 @@ namespace HRMS.Infrastructure.Reports
             AddHeaderCell(table, "Emp ID");
             AddHeaderCell(table, "Employee Name");
             for (int d = 1; d <= days; d++)
-                AddHeaderCell(table, d.ToString());
+            {
+                var cell = new PdfPCell(new Phrase(d.ToString(), _fontHeader))
+                {
+                    Colspan = 2,
+                    HorizontalAlignment = Element.ALIGN_CENTER,
+                    BackgroundColor = _headerBg
+                };
+                table.AddCell(cell);
+            }
+
+            AddHeaderCell(table, "");
+            AddHeaderCell(table, "");
+
+            for (int d = 1; d <= days; d++)
+            {
+                AddHeaderCell(table, "In");
+                AddHeaderCell(table, "Out");
+            }
+
+            table.HeaderRows = 2;
+
+            //AddHeaderCell(table, d.ToString());
             //AddHeaderCell(table, "Work Days");
 
             // ── Data Rows ─────────────────────────────────────────────────────
@@ -102,53 +130,67 @@ namespace HRMS.Infrastructure.Reports
                 {
                     var day = row.Days[d];
 
+                    string inVal = "";
+                    string outVal = "";
+
                     if (day.IsPadDay)
                     {
+                        AddDataCell(table, "", _fontCell, rowBg, Element.ALIGN_CENTER);
                         AddDataCell(table, "", _fontCell, rowBg, Element.ALIGN_CENTER);
                         continue;
                     }
 
                     // Build two-line cell: InTime on top, OutTime below
-                    string line1 = "";
-                    string line2 = "";
+                    //string line1 = "";
+                    //string line2 = "";
 
                     if (!string.IsNullOrEmpty(day.AttId) && day.AttId != "00"
                         && string.IsNullOrEmpty(day.FirstIn))
                     {
-                        // AA / HH / WO — centred single value
-                        line1 = day.AttId;
+                        var attCell = new PdfPCell(new Phrase(day.AttId, _fontCellBold))
+                        {
+                            Colspan = 2,
+                            HorizontalAlignment = Element.ALIGN_CENTER,
+                            VerticalAlignment = Element.ALIGN_MIDDLE,
+                            BackgroundColor = rowBg
+                        };
+
+                        table.AddCell(attCell);
+                        continue;
                     }
                     else if (!string.IsNullOrEmpty(day.FirstIn))
                     {
-                        line1 = day.FirstIn;
-                        line2 = !string.IsNullOrEmpty(day.Lastout)
-                            ? day.Lastout
-                            : "--:--";
+                        inVal = day.FirstIn;
+                        outVal = !string.IsNullOrEmpty(day.Lastout) ? day.Lastout : "--:--";
                     }
                     else
                     {
-                        line1 = "00";
+                        inVal = "00";
+                        outVal = "00";
                     }
 
-                    var cell = new PdfPCell
-                    {
-                        BackgroundColor = rowBg,
-                        Border = Rectangle.BOX,
-                        BorderColor = new BaseColor(200, 200, 200),
-                        BorderWidth = 0.3f,
-                        HorizontalAlignment = Element.ALIGN_CENTER,
-                        VerticalAlignment = Element.ALIGN_MIDDLE,
-                        Padding = 1.5f
-                    };
+                    //var cell = new PdfPCell
+                    //{
+                    //    BackgroundColor = rowBg,
+                    //    Border = Rectangle.BOX,
+                    //    BorderColor = new BaseColor(200, 200, 200),
+                    //    BorderWidth = 0.3f,
+                    //    HorizontalAlignment = Element.ALIGN_CENTER,
+                    //    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    //    Padding = 1.5f
+                    //};
 
-                    var phrase = new Phrase();
-                    phrase.Add(new Chunk(line1, _fontSmall));
-                    if (!string.IsNullOrEmpty(line2))
-                    {
-                        phrase.Add(new Chunk("\n" + line2, _fontSmall));
-                    }
-                    cell.AddElement(new Paragraph(phrase) { Alignment = Element.ALIGN_CENTER });
-                    table.AddCell(cell);
+                    AddDataCell(table, inVal, _fontSmall, rowBg, Element.ALIGN_CENTER);
+                    AddDataCell(table, outVal, _fontSmall, rowBg, Element.ALIGN_CENTER);
+
+                    //var phrase = new Phrase();
+                    //phrase.Add(new Chunk(inVal, _fontSmall));
+                    //if (!string.IsNullOrEmpty(line2))
+                    //{
+                    //    phrase.Add(new Chunk("\n" + line2, _fontSmall));
+                    //}
+                    //cell.AddElement(new Paragraph(phrase) { Alignment = Element.ALIGN_CENTER });
+                    //table.AddCell(cell);
                 }
 
                 // Work Days

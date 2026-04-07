@@ -44,17 +44,17 @@ namespace HRMS.Web.App_Start
             builder.RegisterType<AttendancePdfReport>()
                    .Named<IReportGenerator<AttendanceReportDto>>("pdf")
                    .InstancePerRequest();
-
             builder.RegisterType<AttendanceExcelReport>()
                    .Named<IReportGenerator<AttendanceReportDto>>("excel")
                    .InstancePerRequest();
-
-            // ── Attendance Report Service ─────────────────────────────────────
             builder.Register(c => new AttendanceReportService(
                     c.Resolve<IUnitOfWork>(),
                     c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("pdf"),
                     c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("excel")))
                    .As<IAttendanceReportService>()
+                   .InstancePerRequest();
+            builder.RegisterType<ReportScreenService>()
+                   .As<IReportScreenService>()
                    .InstancePerRequest();
 
             // Crystal Report Service — pass report folder path at registration

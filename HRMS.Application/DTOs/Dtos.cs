@@ -158,4 +158,101 @@ namespace HRMS.Application.DTOs
             get { return DateTime.DaysInMonth(FromDate.Year, FromDate.Month); }
         }
     }
+
+    /// <summary>
+    /// Carries every filter the user selected on the report screen.
+    /// Passed straight to IReportGenerator.Generate().
+    /// </summary>
+    public class ReportFilterDto
+    {
+        // ── Grouping ──────────────────────────────────────────────────────────
+        public ReportGrouping Grouping { get; set; } = ReportGrouping.EmployeeWise;
+
+        // ── Selected items (employee codes / dept names / cadre names) ────────
+        public List<string> SelectedItems { get; set; } = new List<string>();
+
+        // ── Duration ──────────────────────────────────────────────────────────
+        public ReportDuration Duration { get; set; } = ReportDuration.Monthly;
+
+        /// <summary>Used when Duration = Daily.</summary>
+        public DateTime? DailyDate { get; set; }
+
+        /// <summary>Used when Duration = Monthly  (year + month only).</summary>
+        public int? Month { get; set; }
+        public int? Year { get; set; }
+
+        /// <summary>Used when Duration = Periodic.</summary>
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+
+        // ── Report type (dropdown value) ──────────────────────────────────────
+        public string ReportType { get; set; }
+        public string ExportType { get; set; }
+
+        // ── Convenience: resolved date range ─────────────────────────────────
+        public DateTime ResolvedFrom
+        {
+            get
+            {
+                switch (Duration)
+                {
+                    case ReportDuration.Daily:
+                        return DailyDate ?? DateTime.Today;
+                    case ReportDuration.Monthly:
+                        return new DateTime(Year ?? DateTime.Now.Year,
+                                            Month ?? DateTime.Now.Month, 1);
+                    default:
+                        return FromDate ?? DateTime.Today.AddMonths(-1);
+                }
+            }
+        }
+
+        public DateTime ResolvedTo
+        {
+            get
+            {
+                switch (Duration)
+                {
+                    case ReportDuration.Daily:
+                        return DailyDate ?? DateTime.Today;
+                    case ReportDuration.Monthly:
+                        int y = Year ?? DateTime.Now.Year;
+                        int m = Month ?? DateTime.Now.Month;
+                        return new DateTime(y, m,
+                                            DateTime.DaysInMonth(y, m));
+                    default:
+                        return ToDate ?? DateTime.Today;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// One item shown in the Available Items listbox.
+    /// Value  = the code / key sent back on submit.
+    /// Display = what the user sees.
+    /// </summary>
+    public class AvailableItemDto
+    {
+        public string Value { get; set; }
+        public string Display { get; set; }
+    }
+
+    /// <summary>
+    /// Everything the Report screen View needs to render.
+    /// </summary>
+    public class ReportScreenDto
+    {
+        public List<AvailableItemDto> AvailableEmployees { get; set; } = new List<AvailableItemDto>();
+        public List<AvailableItemDto> AvailableDepartments { get; set; } = new List<AvailableItemDto>();
+        public List<AvailableItemDto> AvailableCadres { get; set; } = new List<AvailableItemDto>();
+
+        public List<string> ReportTypes { get; set; } = new List<string>
+        {
+            "Attendance Register",
+            //"Employee Directory",
+            //"Leave Summary",
+            //"Payroll Summary"
+        };
+    }
 }

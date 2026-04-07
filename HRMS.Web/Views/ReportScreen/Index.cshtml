@@ -1,0 +1,526 @@
+﻿@model HRMS.Application.DTOs.ReportScreenDto
+@{
+    ViewBag.Title = "Attendance Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+
+    .rs-wrap {
+        max-width: 860px;
+    }
+
+    /* ── Section box ── */
+    .rs-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+    }
+
+    .rs-box-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+        margin-bottom: 14px;
+    }
+
+    /* ── Radio group ── */
+    .radio-group {
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+
+    .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: var(--text);
+        padding: 6px 14px;
+        border-radius: 7px;
+        border: 1.5px solid var(--border);
+        transition: all 0.15s;
+        user-select: none;
+    }
+
+        .radio-item:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .radio-item input[type=radio] {
+            accent-color: var(--accent);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        .radio-item.checked {
+            border-color: var(--accent);
+            background: rgba(91,110,245,0.08);
+            color: var(--accent);
+        }
+
+    /* ── Dual listbox panel ── */
+    .list-panel {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .list-col-title {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 6px;
+    }
+
+    .list-box {
+        width: 100%;
+        height: 200px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        padding: 4px;
+        outline: none;
+        resize: none;
+        transition: border-color 0.15s;
+    }
+
+        .list-box:focus {
+            border-color: var(--accent);
+        }
+
+        .list-box option {
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .list-box option:checked {
+                background: var(--accent);
+                color: white;
+            }
+
+    /* ── Transfer buttons ── */
+    .transfer-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+        padding-top: 22px;
+    }
+
+    .transfer-btn {
+        width: 36px;
+        height: 30px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+        .transfer-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            transform: translateX(1px);
+        }
+
+    /* ── Duration section ── */
+    .duration-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .dur-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .dur-row label {
+            font-size: 13.5px;
+            color: var(--text);
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .dur-row input[type=radio] {
+            accent-color: var(--accent);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+    /* ── Main layout grid ── */
+    .rs-main-grid {
+        display: grid;
+        grid-template-columns: 1fr 240px;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    /* ── Bottom bar ── */
+    .rs-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 16px;
+        padding: 16px 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .rs-report-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 6px;
+    }
+
+    .report-select-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+</style>
+<!-- ── Page Header ───────────────────────────────────────────────────────── -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Attendance Reports</div>
+        <div class="page-sub">Select grouping, items, duration and report type</div>
+    </div>
+</div>
+@if (TempData["Error"] != null)
+{
+    <div style="background:#7f1d1d33;border:1px solid #b91c1c;border-radius:8px;
+                padding:12px 16px;margin-bottom:16px;color:#fca5a5;font-size:13px;">
+        &#9888;&nbsp;@TempData["Error"]
+    </div>
+}
+@using (Html.BeginForm("Generate", "ReportScreen", FormMethod.Post, new { id = "reportForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="rs-wrap" style="align-content:center;">
+        <!-- ── Grouping ─────────────────────────────────────────────────── -->
+        <div class="rs-box">
+            <div class="rs-box-title">Grouping</div>
+            <div class="radio-group" id="groupingGroup">
+                <label class="radio-item checked" id="lbl-grp-1">
+                    <input type="radio" name="Grouping" value="1"
+                           checked onchange="onGroupingChange(1)" />
+                    Employee Wise
+                </label>
+                <label class="radio-item" id="lbl-grp-2">
+                    <input type="radio" name="Grouping" value="2"
+                           onchange="onGroupingChange(2)" />
+                    Department Wise
+                </label>
+                <label class="radio-item" id="lbl-grp-3">
+                    <input type="radio" name="Grouping" value="3"
+                           onchange="onGroupingChange(3)" />
+                    Cadre Wise
+                </label>
+            </div>
+        </div>
+        <!-- ── Main: Listboxes + Duration ───────────────────────────────── -->
+        <div class="rs-main-grid">
+            <!-- Dual listbox -->
+            <div class="rs-box">
+                <div class="list-panel">
+                    <!-- Available Items -->
+                    <div>
+                        <div class="list-col-title">Available Items</div>
+                        <select id="availableList" class="list-box" multiple size="12">
+                            @foreach (var item in Model.AvailableEmployees)
+                            {
+                                <option value="@item.Value">@item.Display</option>
+                            }
+                        </select>
+                    </div>
+                    <!-- Transfer buttons -->
+                    <div class="transfer-btns">
+                        <button type="button" class="transfer-btn"
+                                title="Move selected right" onclick="moveRight()">
+                            &rsaquo;
+                        </button>
+                        <button type="button" class="transfer-btn"
+                                title="Move all right" onclick="moveAllRight()">
+                            &raquo;
+                        </button>
+                        <button type="button" class="transfer-btn"
+                                title="Move selected left" onclick="moveLeft()">
+                            &lsaquo;
+                        </button>
+                        <button type="button" class="transfer-btn"
+                                title="Move all left" onclick="moveAllLeft()">
+                            &laquo;
+                        </button>
+                    </div>
+                    <!-- Selected Items -->
+                    <div>
+                        <div class="list-col-title">
+                            Selected Items
+                            <span id="selCount"
+                                  style="color:var(--accent);margin-left:4px;font-weight:600;"></span>
+                        </div>
+                        <select id="selectedList" class="list-box" multiple size="12"></select>
+                    </div>
+                </div>
+                <!-- Hidden inputs — populated on submit -->
+                <div id="hiddenInputs"></div>
+            </div>
+            <!-- Duration -->
+            <div class="rs-box">
+                <div class="rs-box-title">Duration</div>
+                <div class="duration-options">
+                    <!-- Daily -->
+                    <div class="dur-row">
+                        <input type="radio" id="dur-daily" name="Duration" value="1"
+                               onchange="onDurationChange('daily')" />
+                        <label for="dur-daily">Daily</label>
+                    </div>
+                    <div id="daily-fields" style="display:none;margin-left:24px;">
+                        <label class="form-label" style="font-size:11px;">Date</label>
+                        <input type="date" name="DailyDate" id="dailyDate"
+                               class="form-ctrl"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <!-- Monthly -->
+                    <div class="dur-row" style="margin-top:6px;">
+                        <input type="radio" id="dur-monthly" name="Duration" value="2"
+                               checked onchange="onDurationChange('monthly')" />
+                        <label for="dur-monthly">Monthly</label>
+                    </div>
+                    <div id="monthly-fields" style="margin-left:24px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div>
+                                <label class="form-label" style="font-size:11px;">Month</label>
+                                <select name="Month" class="form-ctrl">
+                                    @for (int m = 1; m <= 12; m++)
+                                    {
+                                        var sel = m == DateTime.Now.Month ? "selected" : "";
+                                        <option value="@m" @sel>
+                                            @(new DateTime(2000, m, 1).ToString("MMM"))
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size:11px;">Year</label>
+                                <select name="Year" class="form-ctrl">
+                                    @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 4; y--)
+                                    {
+                                        <option value="@y">@y</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Periodic -->
+                    <div class="dur-row" style="margin-top:6px;">
+                        <input type="radio" id="dur-periodic" name="Duration" value="3"
+                               onchange="onDurationChange('periodic')" />
+                        <label for="dur-periodic">Periodic</label>
+                    </div>
+                    <div id="periodic-fields" style="display:none;margin-left:24px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-size:11px;">From</label>
+                            <input type="date" name="FromDate" class="form-ctrl"
+                                   value="@DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size:11px;">To</label>
+                            <input type="date" name="ToDate" class="form-ctrl"
+                                   value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="rs-box-title">Export To</div>
+                <div class="dur-row">
+                    <input type="radio" id="dur-daily" name="ExportType" value="PDF" checked  />
+                    <label for="dur-daily">PDF</label>
+                </div>
+                <div class="dur-row" style="margin-top:6px;">
+                    <input type="radio" id="dur-monthly" name="ExportType" value="EXCEL"/>
+                    <label for="dur-monthly">Excel</label>
+                </div>
+            </div>
+        </div>
+        <!-- ── Bottom: Report type + Actions ────────────────────────────── -->
+        <div class="rs-bottom">
+            <div style="flex:1;">
+                <div class="rs-report-label">Report</div>
+                <div class="report-select-wrap">
+                    <select name="ReportType" class="form-ctrl" style="min-width:280px;">
+                        <option value="">-- Select Report Type --</option>
+                        @foreach (var rt in Model.ReportTypes)
+                        {
+                            <option value="@rt">@rt</option>
+                        }
+                    </select>
+                    <span id="exportLabel" style="font-size:12px;color:var(--muted);">
+                        (PDF)
+                    </span>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:100px;">
+                <button type="submit" id="generateBtn" class="btn btn-primary"
+                        onclick="prepareSubmit()">
+                    &#9654;&nbsp;Generate
+                </button>
+                <a href="@Url.Action("Index", "Dashboard")" class="btn btn-ghost"
+                   style="text-align:center;">
+                    Close
+                </a>
+            </div>
+        </div>
+    </div>
+}
+@section scripts {
+    <script>
+(function () {
+
+    // ── Employee / Dept / Cadre data from server ──────────────────────────────
+    var allData = {
+        1: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+               Model.AvailableEmployees.Select(e => new { value = e.Value, display = e.Display }))),
+        2: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+               Model.AvailableDepartments.Select(d => new { value = d.Value, display = d.Display }))),
+        3: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+               Model.AvailableCadres.Select(c => new { value = c.Value, display = c.Display })))
+    };
+
+    var availList = document.getElementById('availableList');
+    var selList   = document.getElementById('selectedList');
+
+    // ── Grouping change ───────────────────────────────────────────────────────
+    window.onGroupingChange = function (val) {
+        // Update label styles
+        [1, 2, 3].forEach(function (i) {
+            var lbl = document.getElementById('lbl-grp-' + i);
+            lbl.classList.toggle('checked', i === val);
+        });
+
+        // Reload available list, clear selected
+        var items = allData[val] || [];
+        availList.innerHTML = '';
+        selList.innerHTML   = '';
+        items.forEach(function (item) {
+            var opt = document.createElement('option');
+            opt.value       = item.value;
+            opt.textContent = item.display;
+            availList.appendChild(opt);
+        });
+        updateCount();
+    };
+
+    // ── Duration change ───────────────────────────────────────────────────────
+    window.onDurationChange = function (type) {
+        document.getElementById('daily-fields').style.display    = (type === 'daily')    ? 'block' : 'none';
+        document.getElementById('monthly-fields').style.display  = (type === 'monthly')  ? 'block' : 'none';
+        document.getElementById('periodic-fields').style.display = (type === 'periodic') ? 'block' : 'none';
+    };
+
+    // ── Transfer helpers ──────────────────────────────────────────────────────
+    window.moveRight = function () {
+        moveOptions(availList, selList, true);
+    };
+
+    window.moveAllRight = function () {
+        moveOptions(availList, selList, false);
+    };
+
+    window.moveLeft = function () {
+        moveOptions(selList, availList, true);
+    };
+
+    window.moveAllLeft = function () {
+        moveOptions(selList, availList, false);
+    };
+
+    function moveOptions(from, to, selectedOnly) {
+        var opts = selectedOnly
+            ? Array.from(from.selectedOptions)
+            : Array.from(from.options);
+
+        opts.forEach(function (opt) {
+            from.removeChild(opt);
+            opt.selected = false;
+            to.appendChild(opt);
+        });
+        updateCount();
+    }
+
+    // Also allow double-click to move items
+    availList.addEventListener('dblclick', window.moveRight);
+    selList.addEventListener('dblclick', window.moveLeft);
+
+    // ── Count badge ───────────────────────────────────────────────────────────
+    function updateCount() {
+        var n   = selList.options.length;
+        var el  = document.getElementById('selCount');
+        el.textContent = n > 0 ? '(' + n + ')' : '';
+    }
+
+    // ── Before submit: select all options in selectedList & inject hidden inputs
+    window.prepareSubmit = function () {
+        // Select all so they get serialised
+        Array.from(selList.options).forEach(function (o) { o.selected = true; });
+
+        // Inject hidden inputs for SelectedItems[]
+        var container = document.getElementById('hiddenInputs');
+        container.innerHTML = '';
+        Array.from(selList.options).forEach(function (o) {
+            var input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = 'SelectedItems';
+            input.value = o.value;
+            container.appendChild(input);
+        });
+    };
+
+    // ── Keyboard shortcuts ────────────────────────────────────────────────────
+    document.addEventListener('keydown', function (e) {
+        if (e.target === availList && e.key === 'Enter') { window.moveRight(); e.preventDefault(); }
+        if (e.target === selList   && e.key === 'Delete') { window.moveLeft(); e.preventDefault(); }
+    });
+
+    document.querySelectorAll("input[name='ExportType']")
+        .forEach(r => {
+            r.addEventListener("change", function () {
+                document.getElementById("exportLabel").textContent =
+                    "(" + this.value + ")";
+            });
+        });
+
+}());
+    </script>
+}

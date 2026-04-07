@@ -15,8 +15,15 @@ namespace HRMS.Web.Filters
         {
             // Skip login page
             var url = httpContext.Request.Url.AbsolutePath.ToLower();
-            if (url.Contains("/account/login") || url.Contains("/account/forgotpassword") || url.Contains("/account/resetpassword"))
+            var routeData = httpContext.Request.RequestContext.RouteData;
+            var controller = routeData.Values["controller"]?.ToString().ToLower();
+            var action = routeData.Values["action"]?.ToString().ToLower();
+
+            if (controller == "account" && (action == "index" || action == "login" || action == "forgotpassword" || action == "resetpassword"))
                 return true;
+
+            //if (url.Contains("/account/login") || url.Contains("/account/forgotpassword") || url.Contains("/account/resetpassword"))
+            //    return true;
 
             // Identity check first
             if (!httpContext.User.Identity.IsAuthenticated)
@@ -52,7 +59,16 @@ namespace HRMS.Web.Filters
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {
-            filterContext.Result = new RedirectResult("~/Account/Login?sessionExpired=true");
+            filterContext.HttpContext.GetOwinContext().Authentication.SignOut();
+            filterContext.Result = new RedirectToRouteResult(
+                new System.Web.Routing.RouteValueDictionary(
+                    new
+                    {
+                        controller = "Account",
+                        action = "Login",
+                        sessionExpired = true
+                    })
+            );
         }
     }
 }

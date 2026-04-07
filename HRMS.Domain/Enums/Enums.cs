@@ -31,4 +31,18 @@
         Approved = 2,
         Rejected = 3
     }
+
+    public enum ReportGrouping
+    {
+        EmployeeWise = 1,
+        DepartmentWise = 2,
+        CadreWise = 3
+    }
+
+    public enum ReportDuration
+    {
+        Daily = 1,
+        Monthly = 2,
+        Periodic = 3
+    }
 }

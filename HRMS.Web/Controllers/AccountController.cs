@@ -95,7 +95,7 @@ namespace HRMS.Web.Controllers
             session.Create(user.UserID, user.UserName, user.Role.ToString());
 
             // Redirect to returnUrl if local, otherwise Dashboard
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/\"")
                 return Redirect(returnUrl);
 
             _audit.Log("Login", "Account", $"User {user.UserName} logged in");
