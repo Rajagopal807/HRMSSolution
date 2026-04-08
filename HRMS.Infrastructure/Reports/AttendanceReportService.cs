@@ -220,11 +220,27 @@ namespace HRMS.Infrastructure.Reports
                 })
                 .ToList();
 
-            var departments = _uow.Employees.GetDepartmentHeadcount()
-                .Keys
-                .OrderBy(d => d)
-                .Select(d => new AvailableItemDto { Value = d, Display = d })
+            var departments = _uow.Employees.GetActiveEmployees()
+                .Where(e => e.Department != null)
+                .Select(e => new
+                {
+                    e.Department.DepartmentId,
+                    e.Department.DepartmentName
+                })
+                .Distinct()
+                .OrderBy(d => d.DepartmentName)
+                .Select(d => new AvailableItemDto
+                {
+                    Value = d.DepartmentId,
+                    Display = d.DepartmentName
+                })
                 .ToList();
+
+            //var departments = _uow.Employees.GetDepartmentHeadcount()
+            //    .Keys
+            //    .OrderBy(d => d)
+            //    .Select(d => new AvailableItemDto { Value = d, Display = d })
+            //    .ToList();
 
             // Cadre = distinct Designations in this implementation
             var cadres = _uow.Employees.GetActiveEmployees()

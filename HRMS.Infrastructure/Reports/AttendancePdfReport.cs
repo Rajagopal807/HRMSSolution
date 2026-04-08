@@ -60,11 +60,8 @@ namespace HRMS.Infrastructure.Reports
         private void BuildContent(Document doc, PdfWriter writer, AttendanceReportDto data)
         {
             int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
-            int days = totalDays; // data.DaysInMonth;
+            int days = totalDays;
 
-            // Total columns: EmpID + Name + day1..31 + WorkDays
-            // Widths: EmpID=40, Name=70, each day=18, WorkDays=25
-            //int totalCols = 2 + 31 + 1;
             int totalCols = 2 + (totalDays * 2);
             float[] widths = new float[totalCols];
             widths[0] = 40f;   // Emp ID
@@ -76,8 +73,6 @@ namespace HRMS.Infrastructure.Reports
                 widths[colIndex++] = 18f; // In
                 widths[colIndex++] = 18f; // Out
             }
-            //for (int i = 2; i < days; i++) widths[i] = 18f;  // Day 1–31
-            //widths[33] = 25f;  // Work Days
 
             var table = new PdfPTable(totalCols)
             {
@@ -96,8 +91,13 @@ namespace HRMS.Infrastructure.Reports
                 var cell = new PdfPCell(new Phrase(d.ToString(), _fontHeader))
                 {
                     Colspan = 2,
+                    BackgroundColor = _headerBg,
                     HorizontalAlignment = Element.ALIGN_CENTER,
-                    BackgroundColor = _headerBg
+                    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    Border = Rectangle.BOX,
+                    BorderColor = new BaseColor(160, 160, 160),
+                    BorderWidth = 0.5f,
+                    Padding = 2.5f
                 };
                 table.AddCell(cell);
             }
@@ -113,8 +113,6 @@ namespace HRMS.Infrastructure.Reports
 
             table.HeaderRows = 2;
 
-            //AddHeaderCell(table, d.ToString());
-            //AddHeaderCell(table, "Work Days");
 
             // ── Data Rows ─────────────────────────────────────────────────────
             bool alternate = false;
@@ -140,19 +138,19 @@ namespace HRMS.Infrastructure.Reports
                         continue;
                     }
 
-                    // Build two-line cell: InTime on top, OutTime below
-                    //string line1 = "";
-                    //string line2 = "";
-
                     if (!string.IsNullOrEmpty(day.AttId) && day.AttId != "00"
                         && string.IsNullOrEmpty(day.FirstIn))
                     {
                         var attCell = new PdfPCell(new Phrase(day.AttId, _fontCellBold))
                         {
                             Colspan = 2,
+                            BackgroundColor = _headerBg,
                             HorizontalAlignment = Element.ALIGN_CENTER,
                             VerticalAlignment = Element.ALIGN_MIDDLE,
-                            BackgroundColor = rowBg
+                            Border = Rectangle.BOX,
+                            BorderColor = new BaseColor(160, 160, 160),
+                            BorderWidth = 0.5f,
+                            Padding = 2.5f
                         };
 
                         table.AddCell(attCell);
@@ -165,37 +163,26 @@ namespace HRMS.Infrastructure.Reports
                     }
                     else
                     {
-                        inVal = "00";
-                        outVal = "00";
+                        var attCell = new PdfPCell(new Phrase("00", _fontCellBold))
+                        {
+                            Colspan = 2,
+                            BackgroundColor = rowBg,
+                            HorizontalAlignment = Element.ALIGN_CENTER,
+                            VerticalAlignment = Element.ALIGN_MIDDLE,
+                            Border = Rectangle.BOX,
+                            BorderColor = new BaseColor(160, 160, 160),
+                            BorderWidth = 0.5f,
+                            Padding = 2.5f
+                        };
+
+                        table.AddCell(attCell);
+                        continue;
                     }
 
-                    //var cell = new PdfPCell
-                    //{
-                    //    BackgroundColor = rowBg,
-                    //    Border = Rectangle.BOX,
-                    //    BorderColor = new BaseColor(200, 200, 200),
-                    //    BorderWidth = 0.3f,
-                    //    HorizontalAlignment = Element.ALIGN_CENTER,
-                    //    VerticalAlignment = Element.ALIGN_MIDDLE,
-                    //    Padding = 1.5f
-                    //};
 
                     AddDataCell(table, inVal, _fontSmall, rowBg, Element.ALIGN_CENTER);
                     AddDataCell(table, outVal, _fontSmall, rowBg, Element.ALIGN_CENTER);
-
-                    //var phrase = new Phrase();
-                    //phrase.Add(new Chunk(inVal, _fontSmall));
-                    //if (!string.IsNullOrEmpty(line2))
-                    //{
-                    //    phrase.Add(new Chunk("\n" + line2, _fontSmall));
-                    //}
-                    //cell.AddElement(new Paragraph(phrase) { Alignment = Element.ALIGN_CENTER });
-                    //table.AddCell(cell);
                 }
-
-                // Work Days
-                //AddDataCell(table, row.WorkDays.ToString(),
-                    //_fontCellBold, rowBg, Element.ALIGN_CENTER);
             }
 
             doc.Add(table);

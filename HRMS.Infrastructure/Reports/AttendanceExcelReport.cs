@@ -40,8 +40,7 @@ namespace HRMS.Infrastructure.Reports
         {
             int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
             int days = totalDays; //data.DaysInMonth;
-            //int totalCols = 2 + 31 + 1;   // EmpID + Name + 31 days + WorkDays
-            int totalCols = 2 + days; //2 + 31;   // EmpID + Name + 31 days
+            int totalCols = 2 + (days * 2); // EmpID + Name + 31 days * 2(In/Out)
 
             // ── Row 1: Company name ───────────────────────────────────────────
             ws.Cell(1, 1).Value = data.CompanyName;
@@ -73,19 +72,77 @@ namespace HRMS.Infrastructure.Reports
 
             // ── Row 5: Column headers ─────────────────────────────────────────
             int headerRow = 5;
+            int subHeaderRow = headerRow + 1;
 
-            SetHeader(ws.Cell(headerRow, 1), "Emp ID");
-            SetHeader(ws.Cell(headerRow, 2), "Employee Name");
+            // ── FULL HEADER RANGE (apply border once)
+            var fullHeader = ws.Range(headerRow, 1, subHeaderRow, totalCols);
+            fullHeader.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            fullHeader.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+
+            // ── Emp ID (MERGED VERTICALLY)
+            var empRange = ws.Range(headerRow, 1, subHeaderRow, 1);
+            empRange.Merge();
+            ws.Cell(headerRow, 1).Value = "Emp ID";
+            SetHeader(ws.Cell(headerRow, 1));
+
+            // 🔥 FIX: remove right border to avoid double line
+            empRange.Style.Border.RightBorder = XLBorderStyleValues.Thin;
+            empRange.Style.Border.RightBorderColor = XLColor.Gray;
+
+
+            // ── Employee Name (MERGED VERTICALLY)
+            var nameRange = ws.Range(headerRow, 2, subHeaderRow, 2);
+            nameRange.Merge();
+            ws.Cell(headerRow, 2).Value = "Employee Name";
+            SetHeader(ws.Cell(headerRow, 2));
+
+            // 🔥 FIX: remove left border to avoid double line
+            nameRange.Style.Border.LeftBorder = XLBorderStyleValues.None;
+
+
+            // ── Day Headers
+            int col = 3;
+
             for (int d = 1; d <= days; d++)
-                SetHeader(ws.Cell(headerRow, 2 + d), d.ToString());
-            //SetHeader(ws.Cell(headerRow, totalCols), "Work Days");
+            {
+                var dayRange = ws.Range(headerRow, col, headerRow, col + 1);
+                dayRange.Merge();
 
-            // Freeze panes: keep EmpID + Name visible when scrolling right
+                SetHeader(ws.Cell(headerRow, col), d.ToString());
+
+                // 🔥 FIX: avoid double line between header & subheader
+                dayRange.Style.Border.BottomBorder = XLBorderStyleValues.None;
+                dayRange.Style.Border.TopBorderColor = XLColor.Gray;
+                dayRange.Style.Border.RightBorderColor = XLColor.Gray;
+
+                col += 2;
+            }
+
+
+            // ── Sub Header (In / Out)
+            col = 3;
+
+            for (int d = 1; d <= days; d++)
+            {
+                var inCell = ws.Cell(subHeaderRow, col++);
+                var outCell = ws.Cell(subHeaderRow, col++);
+
+                SetHeader(inCell, "In");
+                SetHeader(outCell, "Out");
+
+                // Ensure proper border (only here)
+                inCell.Style.Border.TopBorder = XLBorderStyleValues.Thin;
+                outCell.Style.Border.TopBorder = XLBorderStyleValues.Thin;
+            }
+
+
+            // Freeze panes
             ws.SheetView.FreezeColumns(2);
-            ws.SheetView.FreezeRows(headerRow);
+            ws.SheetView.FreezeRows(subHeaderRow);
 
             // ── Data rows ─────────────────────────────────────────────────────
-            int currentRow = headerRow + 1;
+            int currentRow = headerRow + 2;
 
             foreach (var row in data.Rows)
             {
@@ -119,10 +176,15 @@ namespace HRMS.Infrastructure.Reports
                 for (int d = 0; d < days; d++)
                 {
                     var dayDto = row.Days[d];
-                    int col = 3 + d;
-                    var cell = ws.Cell(currentRow, col);
 
-                    cell.Style
+                    col = 3 + (d * 2);
+                    var inCell = ws.Cell(currentRow, col);
+                    var outCell = ws.Cell(currentRow, col + 1);
+
+                    var range = ws.Range(currentRow, col, currentRow, col + 1);
+
+                    // Style
+                    range.Style
                         .Fill.SetBackgroundColor(rowBg)
                         .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
                         .Border.SetOutsideBorderColor(XLColor.LightGray)
@@ -133,8 +195,9 @@ namespace HRMS.Infrastructure.Reports
 
                     if (dayDto.IsPadDay)
                     {
-                        cell.Value = "";
-                        cell.Style.Fill.SetBackgroundColor(XLColor.FromArgb(230, 230, 230));
+                        range.Merge();
+                        inCell.Value = "";
+                        range.Style.Fill.SetBackgroundColor(XLColor.FromArgb(230, 230, 230));
                         continue;
                     }
 
@@ -143,41 +206,33 @@ namespace HRMS.Infrastructure.Reports
                         && dayDto.AttId != "00"
                         && string.IsNullOrEmpty(dayDto.FirstIn))
                     {
-                        cell.Value = dayDto.AttId;
-                        cell.Style.Font.SetBold(true).Font.SetFontColor(XLColor.DarkBlue);
+                        range.Merge();
+                        inCell.Value = dayDto.AttId;
+                        range.Style.Font.SetBold(true).Font.SetFontColor(XLColor.DarkBlue);
+                        range.Style.Border.RightBorderColor = XLColor.Gray;
                         continue;
                     }
 
                     // In/Out times
                     if (!string.IsNullOrEmpty(dayDto.FirstIn))
                     {
-                        string inStr = dayDto.FirstIn;
-                        string outStr = !string.IsNullOrEmpty(dayDto.Lastout)
+                        inCell.Value = dayDto.FirstIn;
+                        outCell.Value = !string.IsNullOrEmpty(dayDto.Lastout)
                             ? dayDto.Lastout
                             : "--:--";
-                        cell.Value = inStr + "\n" + outStr;
+                        range.Style.Border.RightBorder = XLBorderStyleValues.Thin;
+                        range.Style.Border.RightBorderColor = XLColor.Gray;
                         continue;
                     }
 
                     // Absent
-                    cell.Value = "00";
-                    cell.Style.Font.SetFontColor(XLColor.Gray);
+                    range.Merge();
+                    inCell.Value = "00";
+                    inCell.Style.Font.SetFontColor(XLColor.Gray);
+                    inCell.Style.Border.RightBorder = XLBorderStyleValues.Thin;
+                    inCell.Style.Border.RightBorderColor = XLColor.Gray;
                 }
-
-                // Work Days
-                //var wdCell = ws.Cell(currentRow, totalCols);
-                //wdCell.Value = row.WorkDays;
-                //wdCell.Style
-                //    .Font.SetBold(true)
-                //    .Font.SetFontSize(8)
-                //    .Fill.SetBackgroundColor(rowBg)
-                //    .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
-                //    .Border.SetOutsideBorderColor(XLColor.Gray)
-                //    .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
-                //    .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-
-                // Row height to accommodate two-line time cells
-                ws.Row(currentRow).Height = 22;
+                ws.Row(currentRow).Height = 26;
 
                 currentRow++;
             }
@@ -185,9 +240,13 @@ namespace HRMS.Infrastructure.Reports
             // ── Column widths ─────────────────────────────────────────────────
             ws.Column(1).Width = 12;   // Emp ID
             ws.Column(2).Width = 22;   // Employee Name
-            for (int d = 1; d <= 31; d++)
-                ws.Column(2 + d).Width = 7;   // Day columns
-            ws.Column(totalCols).Width = 9;   // Work Days
+
+            int colIndex = 3;
+            for (int d = 0; d < days; d++)
+            {
+                ws.Column(colIndex++).Width = 7; // In
+                ws.Column(colIndex++).Width = 7; // Out
+            }
 
             // ── Print settings ────────────────────────────────────────────────
             ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
@@ -200,6 +259,19 @@ namespace HRMS.Infrastructure.Reports
         private static void SetHeader(IXLCell cell, string text)
         {
             cell.Value = text;
+            cell.Style
+                .Font.SetBold(true)
+                .Font.SetFontSize(8)
+                .Fill.SetBackgroundColor(XLColor.FromArgb(200, 200, 200))
+                .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetOutsideBorderColor(XLColor.Gray)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                .Alignment.SetVertical(XLAlignmentVerticalValues.Center)
+                .Alignment.SetWrapText(true);
+        }
+
+        private static void SetHeader(IXLCell cell)
+        {
             cell.Style
                 .Font.SetBold(true)
                 .Font.SetFontSize(8)

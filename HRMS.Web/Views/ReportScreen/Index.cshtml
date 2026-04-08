@@ -218,8 +218,7 @@
 </div>
 @if (TempData["Error"] != null)
 {
-    <div style="background:#7f1d1d33;border:1px solid #b91c1c;border-radius:8px;
-                padding:12px 16px;margin-bottom:16px;color:#fca5a5;font-size:13px;">
+    <div id="errordisplay" class="rpt-err-box">
         &#9888;&nbsp;@TempData["Error"]
     </div>
 }
@@ -362,15 +361,16 @@
                         </div>
                     </div>
                 </div>
+                <!-- Export To -->
                 <div>&nbsp;</div>
                 <div class="rs-box-title">Export To</div>
                 <div class="dur-row">
-                    <input type="radio" id="dur-daily" name="ExportType" value="PDF" checked  />
-                    <label for="dur-daily">PDF</label>
+                    <input type="radio" id="exp-pdf" name="ExportType" value="PDF" checked />
+                    <label for="exp-pdf">PDF</label>
                 </div>
                 <div class="dur-row" style="margin-top:6px;">
-                    <input type="radio" id="dur-monthly" name="ExportType" value="EXCEL"/>
-                    <label for="dur-monthly">Excel</label>
+                    <input type="radio" id="exp-excel" name="ExportType" value="EXCEL" />
+                    <label for="exp-excel">Excel</label>
                 </div>
             </div>
         </div>
@@ -520,6 +520,14 @@
                     "(" + this.value + ")";
             });
         });
+
+    document.querySelectorAll("select[name='ReportType']").forEach(r => {
+        r.addEventListener("change", function () {
+            var error = document.getElementById("errordisplay");
+            error.innerHTML = '';
+            error.style.display = "none"; // hide div
+        });
+    });
 
 }());
     </script>
