@@ -5,6 +5,7 @@
 }
 <style>
 
+
     .rs-wrap {
         max-width: 860px;
     }
@@ -288,6 +289,12 @@
                             Selected Items
                             <span id="selCount"
                                   style="color:var(--accent);margin-left:4px;font-weight:600;"></span>
+                            <span id="groupingBadge"
+                                  style="margin-left:6px;font-size:10px;padding:2px 7px;
+                                         border-radius:10px;background:rgba(91,110,245,0.15);
+                                         color:var(--accent);font-weight:600;">
+                                Employee Wise
+                            </span>
                         </div>
                         <select id="selectedList" class="list-box" multiple size="12"></select>
                     </div>
@@ -393,7 +400,7 @@
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;min-width:100px;">
                 <button type="submit" id="generateBtn" class="btn btn-primary"
-                        onclick="prepareSubmit()">
+                        onclick="return prepareSubmit()">
                     &#9654;&nbsp;Generate
                 </button>
                 <a href="@Url.Action("Index", "Dashboard")" class="btn btn-ghost"
@@ -422,12 +429,18 @@
     var selList   = document.getElementById('selectedList');
 
     // ── Grouping change ───────────────────────────────────────────────────────
+    var groupingLabels = { 1: 'Employee Wise', 2: 'Department Wise', 3: 'Cadre Wise' };
+
     window.onGroupingChange = function (val) {
-        // Update label styles
+        // Update radio label styles
         [1, 2, 3].forEach(function (i) {
             var lbl = document.getElementById('lbl-grp-' + i);
             lbl.classList.toggle('checked', i === val);
         });
+
+        // Update the grouping badge next to Selected Items
+        var badge = document.getElementById('groupingBadge');
+        if (badge) badge.textContent = groupingLabels[val] || 'Employee Wise';
 
         // Reload available list, clear selected
         var items = allData[val] || [];
@@ -490,21 +503,48 @@
         el.textContent = n > 0 ? '(' + n + ')' : '';
     }
 
-    // ── Before submit: select all options in selectedList & inject hidden inputs
+    // ── Before submit ─────────────────────────────────────────────────────────
     window.prepareSubmit = function () {
-        // Select all so they get serialised
-        Array.from(selList.options).forEach(function (o) { o.selected = true; });
-
-        // Inject hidden inputs for SelectedItems[]
         var container = document.getElementById('hiddenInputs');
         container.innerHTML = '';
-        Array.from(selList.options).forEach(function (o) {
-            var input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = 'SelectedItems';
-            input.value = o.value;
-            container.appendChild(input);
+
+        // 1. Determine active grouping value (1=Employee, 2=Department, 3=Cadre)
+        var groupingVal = 1;
+        document.querySelectorAll('input[name="Grouping"]').forEach(function (r) {
+            if (r.checked) groupingVal = parseInt(r.value);
         });
+
+        // 2. For Department/Cadre wise, at least one item must be selected
+        if (groupingVal !== 1 && selList.options.length === 0) {
+            var label = groupingVal === 2 ? 'Department' : 'Cadre';
+            alert('Please select at least one ' + label + ' from the Selected Items list.');
+            return false;  // prevent form submission
+        }
+
+        // 3. Select all options in selectedList so the browser posts them
+        Array.from(selList.options).forEach(function (o) { o.selected = true; });
+
+        // 4. Inject hidden inputs for SelectedItems[] (belt-and-suspenders)
+        Array.from(selList.options).forEach(function (o) {
+            var inp = document.createElement('input');
+            inp.type  = 'hidden';
+            inp.name  = 'SelectedItems';
+            inp.value = o.value;
+            container.appendChild(inp);
+        });
+
+        // 5. Inject the active ExportType in case the radio value wasn't posted
+        var exportVal = 'PDF';
+        document.querySelectorAll('input[name="ExportType"]').forEach(function (r) {
+            if (r.checked) exportVal = r.value;
+        });
+        var expInp = document.createElement('input');
+        expInp.type  = 'hidden';
+        expInp.name  = 'ExportType';
+        expInp.value = exportVal;
+        container.appendChild(expInp);
+
+        return true;
     };
 
     // ── Keyboard shortcuts ────────────────────────────────────────────────────

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using HRMS.Application.DTOs;
+using HRMS.Domain.Enums;
+using System;
+using System.Collections.Generic;
 
 namespace HRMS.Application.Interfaces
 {
@@ -45,13 +48,21 @@ namespace HRMS.Application.Interfaces
     public interface IAttendanceReportService
     {
         /// <summary>Builds the attendance data DTO from the database.</summary>
-        HRMS.Application.DTOs.AttendanceReportDto GetReportData(
-            DateTime from, DateTime to, string companyName = "HRMS Company");
+        AttendanceReportDto GetReportData(DateTime from, DateTime to, List<string> selectedItems, string companyName = "Zeith Software Pvt Ltd.");
 
         /// <summary>Generates and returns PDF bytes.</summary>
-        byte[] GeneratePdf(DateTime from, DateTime to);
+        byte[] GenerateEmployeePdf(DateTime from, DateTime to, List<string> selectedItem, out string fileName);
+
+        byte[] GenerateDepartmentPdf(DateTime from, DateTime to, IList<string> selectedDepartments, out string fileName);
+
+        byte[] GenerateCadrePdf(DateTime from, DateTime to, IList<string> selectedCadres, out string fileName);
 
         /// <summary>Generates and returns Excel bytes.</summary>
-        byte[] GenerateExcel(DateTime from, DateTime to);
+        byte[] GenerateEmployeeExcel(DateTime from, DateTime to, List<string> selectedItems);
+
+        byte[] GenerateDepartmentExcel(DateTime from, DateTime to, IList<string> selectedDepartments);
+
+        byte[] GenerateCadreExcel(DateTime from, DateTime to, IList<string> selectedCadres);
+
     }
 }

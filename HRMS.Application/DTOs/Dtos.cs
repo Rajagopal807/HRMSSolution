@@ -159,6 +159,67 @@ namespace HRMS.Application.DTOs
         }
     }
 
+    // ── Grouped report extensions ─────────────────────────────────────────────
+    // OCP: existing AttendanceReportDto is untouched.
+    // GroupedAttendanceReportDto wraps it with grouping metadata.
+
+    /// <summary>
+    /// One group (a Department or a Cadre) containing its rows and a summary.
+    /// </summary>
+    public class AttendanceGroupDto
+    {
+        /// <summary>Group label — dept name or cadre name shown as section header.</summary>
+        public string GroupName { get; set; }
+
+        /// <summary>All employee rows belonging to this group.</summary>
+        public List<AttendanceRowDto> Rows { get; set; } = new List<AttendanceRowDto>();
+
+        /// <summary>Total work-days across all employees in the group.</summary>
+        public int TotalWorkDays
+        {
+            get
+            {
+                int total = 0;
+                foreach (var r in Rows) total += r.WorkDays;
+                return total;
+            }
+        }
+
+        public int EmployeeCount { get { return Rows.Count; } }
+    }
+
+    /// <summary>
+    /// Full grouped attendance report — passed to GroupedPdfReport / GroupedExcelReport.
+    /// Extends the same base metadata as AttendanceReportDto.
+    /// </summary>
+    public class GroupedAttendanceReportDto
+    {
+        public string CompanyName { get; set; }
+        public System.DateTime FromDate { get; set; }
+        public System.DateTime ToDate { get; set; }
+        public System.DateTime PrintedOn { get; set; }
+
+        /// <summary>"Department" or "Cadre"</summary>
+        public string GroupingLabel { get; set; }
+
+        public List<AttendanceGroupDto> Groups { get; set; }= new List<AttendanceGroupDto>();
+
+        public int DaysInMonth
+        {
+            get { return System.DateTime.DaysInMonth(FromDate.Year, FromDate.Month); }
+        }
+
+        public int TotalEmployees
+        {
+            get
+            {
+                int n = 0;
+                foreach (var g in Groups) n += g.EmployeeCount;
+                return n;
+            }
+        }
+    }
+
     /// <summary>
     /// Carries every filter the user selected on the report screen.
     /// Passed straight to IReportGenerator.Generate().
@@ -188,6 +249,16 @@ namespace HRMS.Application.DTOs
         // ── Report type (dropdown value) ──────────────────────────────────────
         public string ReportType { get; set; }
         public string ExportType { get; set; }
+
+        /// <summary>True when user selected Excel output.</summary>
+        public bool IsExcel
+        {
+            get
+            {
+                return string.Equals(ExportType, "EXCEL",
+                    System.StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         // ── Convenience: resolved date range ─────────────────────────────────
         public DateTime ResolvedFrom

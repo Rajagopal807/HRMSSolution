@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Entities;
+using HRMS.Domain.Enums;
 using HRMS.Domain.Interfaces;
 
 namespace HRMS.Infrastructure.Reports
@@ -18,23 +20,24 @@ namespace HRMS.Infrastructure.Reports
         private readonly IUnitOfWork _uow;
         private readonly IReportGenerator<AttendanceReportDto> _pdfGenerator;
         private readonly IReportGenerator<AttendanceReportDto> _excelGenerator;
+        private readonly IReportGenerator<GroupedAttendanceReportDto> _groupPdfGenerator;
+        private readonly IReportGenerator<GroupedAttendanceReportDto> _groupExcelGenerator;
 
-        public AttendanceReportService(
-            IUnitOfWork uow,
-            IReportGenerator<AttendanceReportDto> pdfGenerator,
-            IReportGenerator<AttendanceReportDto> excelGenerator)
+        public AttendanceReportService(IUnitOfWork uow, IReportGenerator<AttendanceReportDto> pdfGenerator,
+            IReportGenerator<AttendanceReportDto> excelGenerator, IReportGenerator<GroupedAttendanceReportDto> groupPdfGenerator,
+            IReportGenerator<GroupedAttendanceReportDto> groupExcelGenerator)
         {
             _uow = uow;
             _pdfGenerator = pdfGenerator;
             _excelGenerator = excelGenerator;
+            _groupPdfGenerator = groupPdfGenerator;
+            _groupExcelGenerator = groupExcelGenerator;
         }
 
-        // ── Build DTO ─────────────────────────────────────────────────────────
-        public AttendanceReportDto GetReportData(
-            DateTime from, DateTime to, string companyName = "Zeith Software Pvt Ltd.")
+        #region Employee Report
+        public AttendanceReportDto GetReportData(DateTime from, DateTime to, List<string> selectedItems, string companyName = "Zeith Software Pvt Ltd.")
         {
             var logs = _uow.Attendace.GetByDateRange(from, to).ToList();
-            var employees = _uow.Employees.GetActiveEmployees().ToList();
 
             var dto = new AttendanceReportDto
             {
@@ -46,11 +49,15 @@ namespace HRMS.Infrastructure.Reports
 
             int daysInMonth = DateTime.DaysInMonth(from.Year, from.Month);
 
-            foreach (var emp in employees.OrderBy(e => e.EmployeeId))
+
+
+            foreach (string item in selectedItems)
             {
+                var emp = _uow.Employees.GetByEmployeeID(item);
+
                 var empLogs = logs
                     .Where(l => l.EmployeeId == emp.EmployeeId)
-                    .ToLookup(l => l.TDate .Day);
+                    .ToLookup(l => l.TDate.Day);
 
                 var row = new AttendanceRowDto
                 {
@@ -97,7 +104,7 @@ namespace HRMS.Infrastructure.Reports
                     attendanceDayDto.ShiftId = first.ShiftId;
 
                     row.Days.Add(attendanceDayDto);
-                }
+                } 
 
                 row.WorkDays = workDays;
                 dto.Rows.Add(row);
@@ -105,20 +112,188 @@ namespace HRMS.Infrastructure.Reports
 
             return dto;
         }
+        #endregion
 
-        // ── Generate PDF ──────────────────────────────────────────────────────
-        public byte[] GeneratePdf(DateTime from, DateTime to)
+        #region Department grouped report
+        public GroupedAttendanceReportDto GetDepartmentReportData(DateTime from, DateTime to, IList<string> selectedDepartments, string companyName = "Zeith Software Pvt Ltd.")
         {
-            var data = GetReportData(from, to);
+            var logs = _uow.Attendace.GetByDateRange(from, to).ToList();
+            var employees = _uow.Employees.GetActiveEmployees()
+                .Where(e => selectedDepartments.Contains(e.Department.DepartmentId.ToString(), StringComparer.OrdinalIgnoreCase))
+                .OrderBy(e => e.Department.ToString())
+                .ThenBy(e => e.EmployeeId)
+                .ToList();
+
+            var dto = new GroupedAttendanceReportDto
+            {
+                CompanyName = companyName,
+                FromDate = from,
+                ToDate = to,
+                PrintedOn = DateTime.Now,
+                GroupingLabel = "Department"
+            };
+
+            // Group employees by department
+            var byDept = employees
+                .GroupBy(e => e.Department)
+                .OrderBy(g => g.Key.DepartmentId);
+
+            foreach (var deptGroup in byDept)
+            {
+                var group = new AttendanceGroupDto { GroupName = deptGroup.Where(e=> selectedDepartments.Contains(e.Department.DepartmentId.ToString(), StringComparer.OrdinalIgnoreCase))
+                                                                .Select(d=> d.Department.DepartmentName)
+                                                                .Distinct().FirstOrDefault() };
+
+                foreach (var emp in deptGroup)
+                    group.Rows.Add(BuildRow(emp, logs, from, to));
+
+                dto.Groups.Add(group);
+            }
+
+            return dto;
+        }
+        #endregion
+
+        #region Cadre grouped report
+        public GroupedAttendanceReportDto GetCadreReportData(DateTime from, DateTime to, IList<string> selectedCadres, string companyName = "Zeith Software Pvt Ltd.")
+        {
+            var logs = _uow.Attendace.GetByDateRange(from, to).ToList();
+            var employees = _uow.Employees.GetActiveEmployees()
+                .Where(e => selectedCadres.Contains(e.Designation.DesignationID, StringComparer.OrdinalIgnoreCase))
+                .OrderBy(e => e.Designation.DesignationID)
+                .ThenBy(e => e.EmployeeId)
+                .ToList();
+
+            var dto = new GroupedAttendanceReportDto
+            {
+                CompanyName = companyName,
+                FromDate = from,
+                ToDate = to,
+                PrintedOn = DateTime.Now,
+                GroupingLabel = "Cadre"
+            };
+
+            // Group employees by designation (cadre)
+            var byCadre = employees
+                .GroupBy(e => e.Designation)
+                .OrderBy(g => g.Key.DesignationID);
+
+            foreach (var cadreGroup in byCadre)
+            {
+                var group = new AttendanceGroupDto
+                {
+                    GroupName = cadreGroup.Where(e => selectedCadres.Contains(e.Designation.DesignationID.ToString(), StringComparer.OrdinalIgnoreCase))
+                                                .Select(d => d.Designation.DesignationName)
+                                                .Distinct().FirstOrDefault()
+                };
+
+                foreach (var emp in cadreGroup)
+                    group.Rows.Add(BuildRow(emp, logs, from, to));
+
+                dto.Groups.Add(group);
+            }
+
+            return dto;
+        }
+        #endregion
+
+        #region Generate PDF 
+        public byte[] GenerateEmployeePdf(DateTime from, DateTime to, List<string> selectedItems, out string fileName)
+        {
+            var data = GetReportData(from, to, selectedItems);
+            fileName = _pdfGenerator.GetFileName(data);
             return _pdfGenerator.Generate(data);
         }
 
-        // ── Generate Excel ────────────────────────────────────────────────────
-        public byte[] GenerateExcel(DateTime from, DateTime to)
+        public byte[] GenerateDepartmentPdf(DateTime from, DateTime to, IList<string> selectedDepartments, out string fileName)
         {
-            var data = GetReportData(from, to);
+            var data = GetDepartmentReportData(from, to, selectedDepartments);
+            fileName = _groupPdfGenerator.GetFileName(data);
+            return _groupPdfGenerator.Generate(data);
+        }
+
+        public byte[] GenerateCadrePdf(DateTime from, DateTime to, IList<string> selectedCadres, out string fileName)
+        {
+            var data = GetCadreReportData(from, to, selectedCadres);
+            fileName = _groupPdfGenerator.GetFileName(data);
+            return _groupPdfGenerator.Generate(data);
+        }
+        #endregion
+
+        #region Generate Excel
+        public byte[] GenerateEmployeeExcel(DateTime from, DateTime to, List<string> selectedItems)
+        {
+            var data = GetReportData(from, to, selectedItems);
             return _excelGenerator.Generate(data);
         }
+
+        public byte[] GenerateDepartmentExcel(DateTime from, DateTime to, IList<string> selectedDepartments)
+        {
+            var data = GetDepartmentReportData(from, to, selectedDepartments);
+            return _groupExcelGenerator.Generate(data);
+        }
+
+        public byte[] GenerateCadreExcel(DateTime from, DateTime to, IList<string> selectedCadres)
+        {
+            var data = GetCadreReportData(from, to, selectedCadres);
+            return _groupExcelGenerator.Generate(data);
+        }
+        #endregion
+
+        #region Shared: build one AttendanceRowDto for an employee
+        private static AttendanceRowDto BuildRow(
+            Employee emp,
+            IList<Muster> allLogs,
+            DateTime from, DateTime to)
+        {
+            int daysInMonth = DateTime.DaysInMonth(from.Year, from.Month);
+
+            var empLogs = allLogs
+                .Where(l => l.EmployeeId == emp.EmployeeId)
+                .ToLookup(l => l.TDate.Day);
+
+            var row = new AttendanceRowDto
+            {
+                EmployeeCode = emp.EmployeeId,
+                EmployeeName = emp.EmployeeName
+            };
+
+            int workDays = 0;
+
+            for (int day = 1; day <= 31; day++)
+            {
+                if (day > daysInMonth)
+                {
+                    row.Days.Add(new AttendanceDayDto { Day = day, IsPadDay = true });
+                    continue;
+                }
+
+                var dayLogs = empLogs[day].ToList();
+
+                if (!dayLogs.Any())
+                {
+                    row.Days.Add(new AttendanceDayDto { Day = day, AttId = "00" });
+                    continue;
+                }
+
+                var first = dayLogs.First();
+                var last = dayLogs.Last();
+
+                if (!string.IsNullOrEmpty(first.FirstIn)) workDays++;
+
+                row.Days.Add(new AttendanceDayDto
+                {
+                    Day = day,
+                    FirstIn = first.FirstIn,
+                    Lastout = last.LastOut,
+                    AttId = first.AttId
+                });
+            }
+
+            row.WorkDays = workDays;
+            return row;
+        }
+        #endregion
     }
 
     /// <summary>
@@ -135,12 +310,13 @@ namespace HRMS.Infrastructure.Reports
         private readonly Dictionary<string,
             Func<ReportFilterDto, (byte[], string, string)>> _generators;
 
-        public ReportScreenService(
-            IUnitOfWork uow,
-            IAttendanceReportService attendanceService)
+        public ReportScreenService(IUnitOfWork uow, IAttendanceReportService attendanceService)
         {
             _uow = uow;
             _attendanceService = attendanceService;
+
+            byte[] bytes = new byte[0];
+            string fileName = string.Empty;
 
             // Register each report type here.
             // To add a new report: add one entry — nothing else changes.
@@ -148,67 +324,51 @@ namespace HRMS.Infrastructure.Reports
                 Func<ReportFilterDto, (byte[], string, string)>>(
                     StringComparer.OrdinalIgnoreCase)
             {
+
                 ["Attendance Register"] = filter =>
                 {
-                    if (filter.ExportType == "EXCEL")
+                    if(filter.Grouping == ReportGrouping.EmployeeWise)
                     {
-                        var bytes = _attendanceService.GenerateExcel(
-                            filter.ResolvedFrom, filter.ResolvedTo);
-
-                        var fileName = $"AttendanceRegister_{filter.ResolvedFrom:MMMMyyyy}.xlsx";
-
-                        return (bytes,
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            fileName);
+                         bytes = _attendanceService.GenerateEmployeePdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
+                        //fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
+                    }
+                    else if(filter.Grouping == ReportGrouping.DepartmentWise)
+                    {
+                        bytes = _attendanceService.GenerateDepartmentPdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
+                        //fileName = string.Format("AttendanceRegister_DepartmentWise_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
                     }
                     else
                     {
-                        var bytes = _attendanceService.GeneratePdf(
-                            filter.ResolvedFrom, filter.ResolvedTo);
-
-                        var fileName = $"AttendanceRegister_{filter.ResolvedFrom:MMMMyyyy}.pdf";
-
-                        return (bytes, "application/pdf", fileName);
+                        bytes = _attendanceService.GenerateCadrePdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
+                        //fileName = string.Format("AttendanceRegister_DesignationWise_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
                     }
+                    return (bytes, "application/pdf", fileName);
                 },
-                //["Attendance Register"] = filter =>
-                //{
-                //    var bytes = _attendanceService.GeneratePdf(
-                //                       filter.ResolvedFrom, filter.ResolvedTo);
-                //    var fileName = string.Format(
-                //                       "AttendanceRegister_{0:MMMMyyyy}.pdf",
-                //                       filter.ResolvedFrom);
-                //    return (bytes, "application/pdf", fileName);
-                //},
 
-                //["Attendance Register Excel"] = filter =>
-                //{
-                //    var bytes = _attendanceService.GenerateExcel(
-                //                       filter.ResolvedFrom, filter.ResolvedTo);
-                //    var fileName = string.Format(
-                //                       "AttendanceRegister_{0:MMMMyyyy}.xlsx",
-                //                       filter.ResolvedFrom);
-                //    return (bytes,
-                //        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                //        fileName);
-                //},
+                ["Attendance Register Excel"] = filter =>
+                {
+                    if (filter.Grouping == ReportGrouping.EmployeeWise)
+                    {
+                        bytes = _attendanceService.GenerateEmployeeExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
+                        fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                    }
+                    else if (filter.Grouping == ReportGrouping.DepartmentWise)
+                    {
+                        bytes = _attendanceService.GenerateDepartmentExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
+                        fileName = string.Format("AttendanceRegister_DepartmentWise_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                    }
+                    else
+                    {
+                        bytes = _attendanceService.GenerateCadreExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
+                        fileName = string.Format("AttendanceRegister_DesignationWise_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                    }
+                    return (bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                },
 
-                // ── Placeholders — wire up when those generators are built ────
-                //["Employee Directory"] = filter =>
-                //    throw new NotImplementedException(
-                //        "Employee Directory report generator not yet registered."),
-
-                //["Leave Summary"] = filter =>
-                //    throw new NotImplementedException(
-                //        "Leave Summary report generator not yet registered."),
-
-                //["Payroll Summary"] = filter =>
-                //    throw new NotImplementedException(
-                //        "Payroll Summary report generator not yet registered."),
             };
         }
 
-        // ── Screen data ───────────────────────────────────────────────────────
+        #region ── Screen data ───────────────────────────────────────────────────────
         public ReportScreenDto GetScreenData()
         {
             var employees = _uow.Employees.GetActiveEmployees()
@@ -236,12 +396,6 @@ namespace HRMS.Infrastructure.Reports
                 })
                 .ToList();
 
-            //var departments = _uow.Employees.GetDepartmentHeadcount()
-            //    .Keys
-            //    .OrderBy(d => d)
-            //    .Select(d => new AvailableItemDto { Value = d, Display = d })
-            //    .ToList();
-
             // Cadre = distinct Designations in this implementation
             var cadres = _uow.Employees.GetActiveEmployees()
                 .Where(e => e.Designation != null)
@@ -266,10 +420,10 @@ namespace HRMS.Infrastructure.Reports
                 AvailableCadres = cadres
             };
         }
+        #endregion
 
-        // ── Generate ──────────────────────────────────────────────────────────
-        public (byte[] Bytes, string ContentType, string FileName)
-            Generate(ReportFilterDto filter)
+        #region ── Generate ──────────────────────────────────────────────────────────
+        public (byte[] Bytes, string ContentType, string FileName) Generate(ReportFilterDto filter)
         {
             if (string.IsNullOrEmpty(filter.ReportType))
                 throw new ArgumentException("Report type must be selected.");
@@ -280,5 +434,6 @@ namespace HRMS.Infrastructure.Reports
 
             return generator(filter);
         }
+        #endregion
     }
 }

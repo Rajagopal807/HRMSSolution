@@ -37,7 +37,8 @@ namespace HRMS.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            var bytes = _reportService.GeneratePdf(from, to);
+            //var bytes = _reportService.GenerateEmployeePdf(from, to);
+            var bytes = new byte[0];
             var fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.pdf", from);
             return File(bytes, "application/pdf", fileName);
         }
@@ -52,7 +53,8 @@ namespace HRMS.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            var bytes = _reportService.GenerateExcel(from, to);
+            //var bytes = _reportService.GenerateExcel(from, to);
+            var bytes = new byte[0];
             var fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.xlsx", from);
             return File(bytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -41,18 +41,23 @@ namespace HRMS.Web.App_Start
             builder.RegisterType<UserManager<ApplicationUser>>().AsSelf().InstancePerRequest();
             builder.RegisterType<IdentityService>().As<IIdentityService>().InstancePerRequest();
             builder.RegisterType<SecureTokenService>().As<IPasswordResetService>().InstancePerRequest();
-            builder.RegisterType<AttendancePdfReport>()
-                   .Named<IReportGenerator<AttendanceReportDto>>("pdf")
-                   .InstancePerRequest();
-            builder.RegisterType<AttendanceExcelReport>()
-                   .Named<IReportGenerator<AttendanceReportDto>>("excel")
-                   .InstancePerRequest();
-            builder.Register(c => new AttendanceReportService(
-                    c.Resolve<IUnitOfWork>(),
+            builder.RegisterType<AttendancePdfReport>().Named<IReportGenerator<AttendanceReportDto>>("pdf").InstancePerRequest();
+            builder.RegisterType<AttendanceExcelReport>().Named<IReportGenerator<AttendanceReportDto>>("excel").InstancePerRequest();
+            builder.RegisterType<GroupedAttendancePdfReport>().Named<IReportGenerator<GroupedAttendanceReportDto>>("grouped-pdf").InstancePerRequest();
+            builder.RegisterType<GroupedAttendanceExcelReport>().Named<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel").InstancePerRequest();
+            builder.Register(c => new AttendanceReportService(c.Resolve<IUnitOfWork>(),
                     c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("pdf"),
-                    c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("excel")))
+                    c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("excel"),
+                     c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-pdf"),
+                     c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel")))
                    .As<IAttendanceReportService>()
                    .InstancePerRequest();
+            //builder.Register(c => new GroupedAttendanceReportService(
+            //        c.Resolve<IUnitOfWork>(),
+            //        c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-pdf"),
+            //        c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel")))
+            //       .As<IGroupedAttendanceReportService>()
+            //       .InstancePerRequest();
             builder.RegisterType<ReportScreenService>()
                    .As<IReportScreenService>()
                    .InstancePerRequest();

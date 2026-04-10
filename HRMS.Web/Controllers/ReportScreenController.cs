@@ -18,30 +18,49 @@ namespace HRMS.Web.Controllers
             _reportScreenService = reportScreenService;
         }
 
-        // GET: /ReportScreen
+        // ── GET: /ReportScreen ────────────────────────────────────────────────
         public ActionResult Index()
         {
             var screenData = _reportScreenService.GetScreenData();
             return View(screenData);
         }
 
-        // POST: /ReportScreen/Generate
+        // ── POST: /ReportScreen/Generate ──────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Generate(ReportFilterDto filter)
         {
-            if (string.IsNullOrEmpty(filter.ReportType))
+            // ── Validation ────────────────────────────────────────────────────
+            if (string.IsNullOrWhiteSpace(filter.ReportType))
             {
                 TempData["Error"] = "Please select a report type.";
                 return RedirectToAction("Index");
             }
 
-            if (filter.SelectedItems == null || filter.SelectedItems.Count == 0)
+            // Employee Wise allows empty selection (generates for all employees).
+            // Department Wise and Cadre Wise REQUIRE at least one selected item.
+            if (filter.Grouping != ReportGrouping.EmployeeWise
+                && (filter.SelectedItems == null || filter.SelectedItems.Count == 0))
             {
-                TempData["Error"] = "Please select at least one item from the list.";
+                TempData["Error"] = filter.Grouping == ReportGrouping.DepartmentWise
+                    ? "Please select at least one Department from the list."
+                    : "Please select at least one Cadre from the list.";
                 return RedirectToAction("Index");
             }
 
+            // ── Build effective ReportType key ────────────────────────────────
+            // ReportScreenService._generators uses keys like:
+            //   "Attendance Register"       → PDF
+            //   "Attendance Register Excel" → Excel
+            // We append " Excel" when the user chose the Excel radio button.
+            string effectiveReportType = filter.IsExcel
+                ? filter.ReportType + " Excel"
+                : filter.ReportType;
+
+            // Store effective type back so the service sees it
+            filter.ReportType = effectiveReportType;
+
+            // ── Generate ──────────────────────────────────────────────────────
             try
             {
                 var (bytes, contentType, fileName) =
@@ -51,7 +70,7 @@ namespace HRMS.Web.Controllers
             }
             catch (NotImplementedException ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["Error"] = "This report type is not yet available: " + ex.Message;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -61,8 +80,8 @@ namespace HRMS.Web.Controllers
             }
         }
 
-        // GET: /ReportScreen/GetItems?grouping=1
-        // Called via AJAX when the user switches the Grouping radio
+        // ── GET: /ReportScreen/GetItems?grouping=1 ────────────────────────────
+        // Called via AJAX when the Grouping radio is switched.
         public JsonResult GetItems(int grouping)
         {
             var screenData = _reportScreenService.GetScreenData();
@@ -70,11 +89,14 @@ namespace HRMS.Web.Controllers
             switch ((ReportGrouping)grouping)
             {
                 case ReportGrouping.DepartmentWise:
-                    return Json(screenData.AvailableDepartments, JsonRequestBehavior.AllowGet);
+                    return Json(screenData.AvailableDepartments,
+                                JsonRequestBehavior.AllowGet);
                 case ReportGrouping.CadreWise:
-                    return Json(screenData.AvailableCadres, JsonRequestBehavior.AllowGet);
-                default:
-                    return Json(screenData.AvailableEmployees, JsonRequestBehavior.AllowGet);
+                    return Json(screenData.AvailableCadres,
+                                JsonRequestBehavior.AllowGet);
+                default: // EmployeeWise
+                    return Json(screenData.AvailableEmployees,
+                                JsonRequestBehavior.AllowGet);
             }
         }
     }
