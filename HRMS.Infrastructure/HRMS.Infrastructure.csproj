@@ -166,6 +166,8 @@
     <Compile Include="Reports\AttendanceExcelReport.cs" />
     <Compile Include="Reports\AttendancePdfReport.cs" />
     <Compile Include="Reports\AttendanceReportService.cs" />
+    <Compile Include="Reports\GroupedAttendanceExcelReport.cs" />
+    <Compile Include="Reports\GroupedAttendancePdfReport.cs" />
     <Compile Include="Repositories\Repositories.cs" />
   </ItemGroup>
   <ItemGroup>

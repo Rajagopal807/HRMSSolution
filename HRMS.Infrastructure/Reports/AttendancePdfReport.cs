@@ -84,8 +84,8 @@ namespace HRMS.Infrastructure.Reports
             table.SetWidths(widths);
 
             // ── Header Row ────────────────────────────────────────────────────
-            AddHeaderCell(table, "Emp ID");
-            AddHeaderCell(table, "Employee Name");
+            AddHeaderCell(table, "Emp ID", 2);
+            AddHeaderCell(table, "Employee Name", 2);
             for (int d = 1; d <= days; d++)
             {
                 var cell = new PdfPCell(new Phrase(d.ToString(), _fontHeader))
@@ -102,8 +102,8 @@ namespace HRMS.Infrastructure.Reports
                 table.AddCell(cell);
             }
 
-            AddHeaderCell(table, "");
-            AddHeaderCell(table, "");
+            //AddHeaderCell(table, "");
+            //AddHeaderCell(table, "");
 
             for (int d = 1; d <= days; d++)
             {
@@ -189,18 +189,37 @@ namespace HRMS.Infrastructure.Reports
         }
 
         // ── Cell Helpers ──────────────────────────────────────────────────────
-        private static void AddHeaderCell(PdfPTable table, string text)
+        private static void AddHeaderCell(PdfPTable table, string text, int rowSpan = 0)
         {
-            var cell = new PdfPCell(new Phrase(text, _fontHeader))
+            PdfPCell cell = null;
+            if(rowSpan !=0 )
             {
-                BackgroundColor = _headerBg,
-                HorizontalAlignment = Element.ALIGN_CENTER,
-                VerticalAlignment = Element.ALIGN_MIDDLE,
-                Border = Rectangle.BOX,
-                BorderColor = new BaseColor(160, 160, 160),
-                BorderWidth = 0.5f,
-                Padding = 2.5f
-            };
+                cell = new PdfPCell(new Phrase(text, _fontHeader))
+                {
+                    Rowspan = rowSpan,
+                    BackgroundColor = _headerBg,
+                    HorizontalAlignment = Element.ALIGN_CENTER,
+                    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    Border = Rectangle.BOX,
+                    BorderColor = new BaseColor(160, 160, 160),
+                    BorderWidth = 0.5f,
+                    Padding = 2.5f
+                };
+            }
+            else
+            {
+                cell = new PdfPCell(new Phrase(text, _fontHeader))
+                {
+                    BackgroundColor = _headerBg,
+                    HorizontalAlignment = Element.ALIGN_CENTER,
+                    VerticalAlignment = Element.ALIGN_MIDDLE,
+                    Border = Rectangle.BOX,
+                    BorderColor = new BaseColor(160, 160, 160),
+                    BorderWidth = 0.5f,
+                    Padding = 2.5f
+                };
+            }
+
             table.AddCell(cell);
         }
 
