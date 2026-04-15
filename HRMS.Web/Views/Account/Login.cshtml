@@ -40,7 +40,7 @@
             <div class="form-group full-width">
                 @Html.LabelFor(m => m.Userid)
                 <div class="input-wrapper">
-                    @Html.TextBoxFor(m => m.Userid, new { @class = "form-input", placeholder = "User ID" })
+                    @Html.TextBoxFor(m => m.Userid, new { @class = "form-input", placeholder = "User ID", autocomplete = "off" })
                     <i class="bi bi-person input-icon"></i>
                 </div>
                 @Html.ValidationMessageFor(m => m.Userid)
@@ -49,7 +49,7 @@
             <div class="form-group full-width">
                 @Html.LabelFor(m => m.Password)
                 <div class="input-wrapper">
-                    @Html.PasswordFor(m => m.Password, new { @class = "form-input", id = "passwordInput", placeholder = "Password" })
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-input", id = "passwordInput", placeholder = "Password", autocomplete = "new-password" })
                     <i class="bi bi-eye input-icon clickable" id="togglePassword"></i>
                 </div>
                 @Html.ValidationMessageFor(m => m.Password)
@@ -95,6 +95,16 @@
 
             applyTheme(newTheme);
             localStorage.setItem("theme", newTheme);
+        });
+
+        document.getElementById("togglePassword").addEventListener("click", function () {
+            var password = document.getElementById("passwordInput");
+
+            if (password.type === "password") {
+                password.type = "text";
+            } else {
+                password.type = "password";
+            }
         });
     </script>
     

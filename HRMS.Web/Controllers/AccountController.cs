@@ -147,8 +147,16 @@ namespace HRMS.Web.Controllers
                 }
                 var link = await _resetService.GenerateResetLinkAsync(userId, baseUrl);
 
-                ViewBag.ResetLink = link; // No email → show directly
-                return View("ShowResetLink");
+                //ViewBag.ResetLink = link; // No email → show directly
+                //return View("ShowResetLink");
+                if (!string.IsNullOrEmpty(link))
+                {
+                    return Redirect(link);
+                }
+                else
+                {
+                    return View();
+                }
             }
             catch
             {

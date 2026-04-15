@@ -330,17 +330,14 @@ namespace HRMS.Infrastructure.Reports
                     if(filter.Grouping == ReportGrouping.EmployeeWise)
                     {
                          bytes = _attendanceService.GenerateEmployeePdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
-                        //fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
                     }
                     else if(filter.Grouping == ReportGrouping.DepartmentWise)
                     {
                         bytes = _attendanceService.GenerateDepartmentPdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
-                        //fileName = string.Format("AttendanceRegister_DepartmentWise_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
                     }
                     else
                     {
                         bytes = _attendanceService.GenerateCadrePdf(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems, out fileName);
-                        //fileName = string.Format("AttendanceRegister_DesignationWise_{0:MMMMyyyy}.pdf", filter.ResolvedFrom);
                     }
                     return (bytes, "application/pdf", fileName);
                 },
