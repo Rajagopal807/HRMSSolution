@@ -196,27 +196,71 @@ namespace HRMS.Infrastructure.Reports
         }
     }
 
-        // ─── Leave Repository ─────────────────────────────────────────────────────
-        public class LeaveRepository : Repository<LeaveRequest>, ILeaveRepository
+    // ── Leave Type Master Repository ──────────────────────────────────────────
+    public class LeaveTypeMasterRepository
+        : Repository<LeaveTypeMaster>, ILeaveTypeMasterRepository
     {
-        public LeaveRepository(ApplicationDbContext ctx) : base(ctx) {}
+        public LeaveTypeMasterRepository(ApplicationDbContext ctx) : base(ctx) { }
 
-        public IEnumerable<LeaveRequest> GetByEmployee(string employeeId)
+        public IEnumerable<LeaveTypeMaster> GetActive()
+            => _set.Where(l => !l.IsDeleted && l.IsActive)
+                   .OrderBy(l => l.Name)
+                   .ToList();
+
+        public LeaveTypeMaster GetByCode(string code)
+            => _set.FirstOrDefault(l => !l.IsDeleted
+                                     && l.LeaveTypeID == code.ToUpper().Trim());
+
+        public bool CodeExists(string code, string excludeId = "0")
+            => _set.Any(l => !l.IsDeleted
+                          && l.LeaveTypeID == code.ToUpper().Trim()
+                          && l.LeaveTypeID != excludeId);
+
+        public LeaveTypeMaster GetByLeaveTypeID(string leaveTypeID) => _set.FirstOrDefault(e => e.LeaveTypeID == leaveTypeID && !e.IsDeleted);
+
+        public void DeleteLeaveTypeID(string leaveTypeID)
+        {
+            var entity = GetByLeaveTypeID(leaveTypeID);
+            if (entity != null)
+            {
+                entity.IsDeleted = true;
+                entity.UpdatedAt = DateTime.UtcNow;
+                Update(entity);
+            }
+        }
+    }
+
+    // ── Leave Application Repository ──────────────────────────────────────────
+    public class LeaveApplicationRepository
+        : Repository<LeaveApplication>, ILeaveApplicationRepository
+    {
+        public LeaveApplicationRepository(ApplicationDbContext ctx) : base(ctx) { }
+
+        public IEnumerable<LeaveApplication> GetByEmployee(string employeeId)
             => _set.Include(l => l.Employee)
-                   .Where(l => !l.IsDeleted && l.EmployeeId == employeeId).ToList();
+                   .Include(l => l.LeaveTypeMaster)
+                   .Where(l => !l.IsDeleted && l.EmployeeId == employeeId)
+                   .OrderByDescending(l => l.CreatedAt)
+                   .ToList();
 
-        public IEnumerable<LeaveRequest> GetPending()
+        public IEnumerable<LeaveApplication> GetPending()
             => _set.Include(l => l.Employee)
-                   .Where(l => !l.IsDeleted && l.Status == LeaveStatus.Pending).ToList();
+                   .Include(l => l.LeaveTypeMaster)
+                   .Where(l => !l.IsDeleted && l.Status == LeaveStatus.Pending)
+                   .OrderBy(l => l.CreatedAt)
+                   .ToList();
 
-        public IEnumerable<LeaveRequest> GetByDateRange(DateTime from, DateTime to)
+        public IEnumerable<LeaveApplication> GetAll()
             => _set.Include(l => l.Employee)
-                   .Where(l => !l.IsDeleted && l.FromDate >= from && l.ToDate <= to).ToList();
+                   .Include(l => l.LeaveTypeMaster)
+                   .Where(l => !l.IsDeleted)
+                   .OrderByDescending(l => l.CreatedAt)
+                   .ToList();
 
-        public IDictionary<string, int> GetLeaveCountByType()
-            => _set.Where(l => !l.IsDeleted)
-                   .GroupBy(l => l.LeaveType)
-                   .ToDictionary(g => g.Key.ToString(), g => g.Count());
+        public LeaveApplication GetByLeaveTypeID(string leaveTypeID)
+            => _set.Include(l => l.Employee)
+                   .Include(l => l.LeaveTypeMaster)
+                   .FirstOrDefault(l => !l.IsDeleted && l.Id.ToString() == leaveTypeID);
     }
 
     // ─── Unit of Work ─────────────────────────────────────────────────────────
@@ -224,7 +268,8 @@ namespace HRMS.Infrastructure.Reports
     {
         private readonly ApplicationDbContext _ctx;
         private EmployeeRepository _employees;
-        private LeaveRepository    _leaves;
+        private LeaveTypeMasterRepository _leaveTypeMasters;
+        private LeaveApplicationRepository _leaveApplications;
         private DepartmentRepository _departments;
         private DesignationRepository _designations;
         private AuditRepository _auditRepository;
@@ -237,9 +282,14 @@ namespace HRMS.Infrastructure.Reports
             get { return _employees ?? (_employees = new EmployeeRepository(_ctx)); }
         }
 
-        public ILeaveRepository Leaves
+        public ILeaveTypeMasterRepository LeaveTypesMasters
         {
-            get { return _leaves ?? (_leaves = new LeaveRepository(_ctx)); }
+            get { return _leaveTypeMasters ?? (_leaveTypeMasters = new LeaveTypeMasterRepository(_ctx)); }
+        }
+
+        public ILeaveApplicationRepository LeaveApplications
+        {
+            get { return _leaveApplications ?? (_leaveApplications = new LeaveApplicationRepository(_ctx)); }
         }
 
         public IDepartmentRepository Departments

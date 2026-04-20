@@ -1,0 +1,101 @@
+@model IEnumerable<HRMS.Application.DTOs.LeaveApplicationDto>
+@{
+    ViewBag.Title = "Leave Applications";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Leave Applications</div>
+        <div class="page-sub">@Model.Count() records</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+        @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+        {
+            <a href="@Url.Action("Pending")" class="btn btn-ghost">
+                &#9200;&nbsp;Pending Approvals
+            </a>
+        }
+        <a href="@Url.Action("Apply")" class="btn btn-primary">
+            + Apply for Leave
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Session</th>
+                    <th style="text-align:center;">Days</th>
+                    <th>Reason</th>
+                    <th>Applied On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" style="text-align:center;padding:48px;color:var(--muted);">
+                            <div style="font-size:32px;margin-bottom:10px;opacity:.4;">&#128197;</div>
+                            <div style="font-weight:600;margin-bottom:4px;">No leave applications found</div>
+                            <a href="@Url.Action("Apply")" style="font-size:13px;color:var(--accent);">
+                                Apply for Leave
+                            </a>
+                        </td>
+                    </tr>
+                }
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td>
+                            <div style="font-weight:500;color:var(--text);">@a.EmployeeName</div>
+                            <div style="font-size:11px;color:var(--muted);" class="mono">@a.EmployeeId</div>
+                        </td>
+                        <td>
+                            <span class="dept-badge">@a.LeaveTypeCode</span>
+                            <span style="font-size:12px;color:var(--muted);margin-left:5px;">@a.LeaveTypeName</span>
+                        </td>
+                        <td class="mono" style="font-size:12px;white-space:nowrap;">
+                            @a.FromDate.ToString("dd MMM yyyy")
+                        </td>
+                        <td class="mono" style="font-size:12px;white-space:nowrap;">
+                            @a.ToDate.ToString("dd MMM yyyy")
+                        </td>
+                        <td>
+                            @{
+                                string sessionIcon = a.Session == "FirstHalf"  ? "&#9728;" :
+                                                     a.Session == "SecondHalf" ? "&#9790;" : "&#11835;";
+                                string sessionLabel = a.Session == "FirstHalf"  ? "First Half"  :
+                                                      a.Session == "SecondHalf" ? "Second Half" : "Full Day";
+                            }
+                            <span style="font-size:12px;">
+                                @Html.Raw(sessionIcon) @sessionLabel
+                            </span>
+                        </td>
+                        <td class="mono" style="text-align:center;font-weight:600;">
+                            @a.TotalDays
+                        </td>
+                        <td style="color:var(--muted);font-size:12px;max-width:160px;
+                                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                            title="@a.Reason">
+                            @a.Reason
+                        </td>
+                        <td style="font-size:12px;color:var(--muted);white-space:nowrap;">
+                            @a.CreatedAt.ToString("dd MMM yyyy")
+                        </td>
+                        <td>
+                            <span class="badge badge-@a.Status.ToLower()">@a.Status</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

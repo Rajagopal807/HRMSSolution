@@ -15,7 +15,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HRMS.Web</RootNamespace>
     <AssemblyName>HRMS.Web</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
@@ -148,9 +148,9 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
@@ -213,6 +213,8 @@
     <Compile Include="Controllers\AttendanceController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
+    <Compile Include="Controllers\LeaveApplicationController.cs" />
+    <Compile Include="Controllers\LeaveTypeMasterController.cs" />
     <Compile Include="Controllers\ReportScreenController.cs" />
     <Compile Include="Filters\RoleAuthorizeAttribute.cs" />
     <Compile Include="Filters\SessionAuthorizeAttribute.cs" />
@@ -275,10 +277,16 @@
     <Content Include="Views\Account\ShowResetLink.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Views\ReportScreen\Index.cshtml" />
+    <Content Include="Views\LeaveApplication\Index.cshtml" />
+    <Content Include="Views\LeaveTypeMaster\Index.cshtml" />
+    <Content Include="Views\LeaveApplication\Apply.cshtml" />
+    <Content Include="Views\LeaveApplication\Pending.cshtml" />
+    <Content Include="Views\LeaveTypeMaster\Create.cshtml" />
+    <Content Include="Views\LeaveTypeMaster\Edit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Leave\" />
+    <Folder Include="Models\" />
     <Folder Include="Views\Report\" />
   </ItemGroup>
   <ItemGroup>

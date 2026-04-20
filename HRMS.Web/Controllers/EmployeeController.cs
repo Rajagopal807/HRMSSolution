@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web.Mvc;
+using DocumentFormat.OpenXml.VariantTypes;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Enums;
@@ -49,22 +50,33 @@ namespace HRMS.Web.Controllers
         [RoleAuthorize("Admin", "HRManager")]
         public ActionResult Create()
         {
+            CreateEmployeeViewModel vm = new CreateEmployeeViewModel();
 
-            var vm = new CreateEmployeeViewModel
+
+            vm.DepartmentOptions = _departmentService.GetAll().Select(d => new SelectListItem
             {
-                DepartmentOptions = _departmentService.GetAll().Select(d => new SelectListItem
-                {
-                    Value = d.DepartmentID,
-                    Text = d.DepartmentName
-                }).ToList(),
+                Value = d.DepartmentID,
+                Text = d.DepartmentName
+            }).ToList();
 
-                DesignationOptions = _designationService.GetAll().Select(de => new SelectListItem
-                {
-                    Value = de.DesignationID,
-                    Text = de.DesignationName
+            vm.DesignationOptions = _designationService.GetAll().Select(de => new SelectListItem
+            {
+                Value = de.DesignationID,
+                Text = de.DesignationName
+            }).ToList();    
 
-                }).ToList()
-            };
+            vm.WeekOffOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Sunday", Value = "1" },
+                new SelectListItem { Text = "Monday", Value = "2" },
+                new SelectListItem { Text = "Tuesday", Value = "3" },
+                new SelectListItem { Text = "Wednesday", Value = "4" },
+                new SelectListItem { Text = "Thursday", Value = "5" },
+                new SelectListItem { Text = "Friday", Value = "6" },
+                new SelectListItem { Text = "Saturday", Value = "7" }
+            }.ToList(); 
+
+            vm.JoiningDate = DateTime.Now;
 
             return View(vm);
         }
@@ -89,6 +101,18 @@ namespace HRMS.Web.Controllers
                     Text = de.DesignationName
                 }).ToList();
 
+                vm.WeekOffOptions = new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "Sunday", Value = "1" },
+                    new SelectListItem { Text = "Monday", Value = "2" },
+                    new SelectListItem { Text = "Tuesday", Value = "3" },
+                    new SelectListItem { Text = "Wednesday", Value = "4" },
+                    new SelectListItem { Text = "Thursday", Value = "5" },
+                    new SelectListItem { Text = "Friday", Value = "6" },
+                    new SelectListItem { Text = "Saturday", Value = "7" }
+                }.ToList();
+
+                vm.JoiningDate = DateTime.Now;
 
                 return View(vm);
             }
@@ -98,10 +122,12 @@ namespace HRMS.Web.Controllers
             createEmployeeDto.EmployeeName = vm.EmployeeName;
             createEmployeeDto.Email = vm.Email;
             createEmployeeDto.Phone = vm.Phone;
-            createEmployeeDto.DateOfBirth = vm.DateOfBirth;
+            createEmployeeDto.DateOfBirth = vm.DateOfBirth == null ? null : vm.DateOfBirth;
             createEmployeeDto.JoiningDate = vm.JoiningDate;
             createEmployeeDto.DepartmentID = vm.Department;
             createEmployeeDto.DesignationID = vm.Designation;
+            createEmployeeDto.Weekoff1 = vm.WeekOff1;
+            createEmployeeDto.Weekoff2 = vm.WeekOff2;
 
             _employeeService.Create(createEmployeeDto);
 
@@ -128,16 +154,36 @@ namespace HRMS.Web.Controllers
             vm.JoiningDate = emp.JoiningDate;
             vm.Department = emp.DepartmentID?.Trim();
             vm.Designation = emp.DesignationID?.Trim();
+            vm.WeekOff1 = emp.Weekoff1;
+            vm.WeekOff2 = emp.Weekoff2;
+            if(emp.IsInactive)
+                vm.DateOfLeft = emp.DateofLeft;
+
+            vm.IsInactive = emp.IsInactive;
+
             vm.DepartmentOptions = _departmentService.GetAll().Select(d => new SelectListItem
             {
                 Value = d.DepartmentID.Trim(),
                 Text = d.DepartmentName
             }).ToList();
+
             vm.DesignationOptions = _designationService.GetAll().Select(d => new SelectListItem
             {
                 Value = d.DesignationID.Trim(),
                 Text = d.DesignationName
             }).ToList();
+
+            vm.WeekOffOptions = new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "Sunday", Value = "1" },
+                    new SelectListItem { Text = "Monday", Value = "2" },
+                    new SelectListItem { Text = "Tuesday", Value = "3" },
+                    new SelectListItem { Text = "Wednesday", Value = "4" },
+                    new SelectListItem { Text = "Thursday", Value = "5" },
+                    new SelectListItem { Text = "Friday", Value = "6" },
+                    new SelectListItem { Text = "Saturday", Value = "7" }
+                }.ToList();
+
 
             ViewBag.EmployeeId = emp.EmployeeId;
 
@@ -159,19 +205,54 @@ namespace HRMS.Web.Controllers
                     Text = d.DepartmentName
                 }).ToList();
 
+                var designations = _designationService.GetAll();
+
+                vm.DesignationOptions = designations.Select(d => new SelectListItem
+                {
+                    Value = d.DesignationID,
+                    Text = d.DesignationName
+                }).ToList();
+
+
+
+                vm.WeekOffOptions = new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "Sunday", Value = "1" },
+                    new SelectListItem { Text = "Monday", Value = "2" },
+                    new SelectListItem { Text = "Tuesday", Value = "3" },
+                    new SelectListItem { Text = "Wednesday", Value = "4" },
+                    new SelectListItem { Text = "Thursday", Value = "5" },
+                    new SelectListItem { Text = "Friday", Value = "6" },
+                    new SelectListItem { Text = "Saturday", Value = "7" }
+                }.ToList();
+
                 return View(vm);
             }
 
-            _employeeService.Update(id, new CreateEmployeeDto
+            CreateEmployeeDto updateDto = new CreateEmployeeDto();
+            updateDto.EmployeeName = vm.EmployeeName;
+            updateDto.Email = vm.Email;
+            updateDto.Phone = vm.Phone;
+            updateDto.DateOfBirth = vm.DateOfBirth;
+            updateDto.JoiningDate = vm.JoiningDate;
+            updateDto.DepartmentID = vm.Department;
+            updateDto.DesignationID = vm.Designation;
+            updateDto.Weekoff1 = vm.WeekOff1;
+            updateDto.Weekoff2 = vm.WeekOff2;
+
+            if(vm.IsInactive == true)
             {
-                EmployeeName = vm.EmployeeName,
-                Email = vm.Email,
-                Phone = vm.Phone,
-                DateOfBirth = vm.DateOfBirth,
-                JoiningDate = vm.JoiningDate,
-                DepartmentID = vm.Department,
-                DesignationID = vm.Designation
-            });
+                updateDto.DateOfLeft = vm.DateOfLeft;
+                updateDto.IsInactive = true;
+            }
+
+            if (vm.IsInactive == true && vm.DateOfLeft == null)
+            {
+                ModelState.AddModelError("DateOfLeft", "Please provide Date of Left for Inactive employees.");
+                return View(vm);
+            }
+
+            _employeeService.Update(id, updateDto);
 
             TempData["Success"] = "Employee updated successfully.";
             return RedirectToAction("Details", new { id });
@@ -447,7 +528,12 @@ namespace HRMS.Web.Controllers
             DepartmentName = e.DepartmentName,
             DesignationID = e.DesignationID,
             DesignationName = e.DesignationName,
-            Status = e.Status
+            Status = e.Status,
+            WeekOff1 = e.Weekoff1,
+            WeekOff2 = e.Weekoff2,
+            WeekOff1Name = e.Weekoff1Name,
+            WeekOff2Name  = e.Weekoff2Name,
+
         };
     }
 

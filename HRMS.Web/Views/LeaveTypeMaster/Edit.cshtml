@@ -1,0 +1,10 @@
+@model HRMS.Application.DTOs.CreateLeaveTypeMasterDto
+@{
+    ViewBag.Title  = "Edit Leave Type";
+    ViewBag.IsEdit = true;
+    @* ViewBag.EditId is already set by the controller's Edit(int id) action
+       as ViewBag.EditId = id (integer).  We don't override it here. *@
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@* Same partial as Create — isEdit and editId flow through ViewBag. *@
+@Html.Partial("_LeaveTypeForm", Model)

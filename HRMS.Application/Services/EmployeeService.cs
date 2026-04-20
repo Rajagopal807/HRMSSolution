@@ -33,6 +33,9 @@ namespace HRMS.Application.Services
                     DepartmentName = e.Department.DepartmentName,
                     DesignationID = e.DesignationId,
                     DesignationName = e.Designation.DesignationName,
+                    Weekoff1 = e.Weekoff1,
+                    Weekoff2 = e.Weekoff2,  
+                    DateofLeft = e.DateofLeft,  
                     Status = e.Status.ToString(),
                     CreatedAt = e.CreatedAt
                 })
@@ -74,6 +77,8 @@ namespace HRMS.Application.Services
                 DepartmentId = dto.DepartmentID,
                 DesignationId = dto.DesignationID,
                 Status = EmployeeStatus.Active,
+                Weekoff1 = dto.Weekoff1,
+                Weekoff2= dto.Weekoff2,
                 CreatedAt = DateTime.UtcNow
             };
             _uow.Employees.Add(emp);
@@ -91,6 +96,20 @@ namespace HRMS.Application.Services
             emp.DateOfBirth = dto.DateOfBirth;
             emp.DepartmentId = dto.DepartmentID;
             emp.DesignationId = dto.DesignationID;
+            emp.Weekoff1 = dto.Weekoff1;
+            emp.Weekoff2 = dto.Weekoff2;
+            if(dto.IsInactive == true && emp.IsActive == true)
+            {
+                emp.Status = EmployeeStatus.Inactive;
+                emp.IsActive = false;
+                emp.DateofLeft = DateTime.UtcNow;
+            }
+            else if (dto.IsInactive == false && emp.Status == EmployeeStatus.Inactive)
+            {
+                emp.Status = EmployeeStatus.Active;
+                emp.IsActive = true;
+                emp.DateofLeft = null;
+            }
             emp.UpdatedAt = DateTime.UtcNow;
             _uow.Employees.Update(emp);
             _uow.SaveChanges();
@@ -139,21 +158,6 @@ namespace HRMS.Application.Services
             }).ToList();
         }
 
-        private static EmployeeDto Map(Employee e) => new EmployeeDto
-        {
-            EmployeeId = e.EmployeeId,
-            EmployeeName = e.EmployeeName,
-            Email        = e.Email,
-            Phone        = e.Phone,
-            JoiningDate  = e.DateOfJoining,
-            DepartmentID   = e.DepartmentId,
-            DepartmentName = e.Department != null ? e.Department.DepartmentName : string.Empty,
-            DesignationID  = e.DesignationId,
-            DesignationName = e.Designation != null ? e.Designation.DesignationName : string.Empty,
-            Status       = e.Status.ToString(),
-            CreatedAt    = e.CreatedAt
-        };
-
         public EmployeeDto GetById(string id)
         {
             var emp = _uow.Employees.GetAll().Where(e => e.EmployeeId == id).FirstOrDefault();
@@ -168,9 +172,14 @@ namespace HRMS.Application.Services
             employeeDto.DepartmentName = emp.Department.DepartmentName;
             employeeDto.DesignationID = emp.DesignationId;
             employeeDto.DesignationName = emp.Designation.DesignationName;
+            employeeDto.Weekoff1 = emp.Weekoff1;
+            employeeDto.Weekoff1Name = GetWeekoffName(emp.Weekoff1);
+            employeeDto.Weekoff2 = emp.Weekoff2;
+            employeeDto.Weekoff2Name = GetWeekoffName(emp.Weekoff2);
             employeeDto.Status = emp.Status.ToString();
             employeeDto.CreatedAt = emp.CreatedAt;
-
+            employeeDto.IsInactive = !emp.IsActive;
+            employeeDto.DateofLeft = emp.DateofLeft;
             return employeeDto;
         }
 
@@ -192,6 +201,21 @@ namespace HRMS.Application.Services
                         CreatedAt = e.CreatedAt
                     })
                     .ToList();
+        }
+
+        private string GetWeekoffName(int day)
+        {
+            switch (day)
+            {
+                case 1: return "Sunday";
+                case 2: return "Monday";
+                case 3: return "Tuesday";
+                case 4: return "Wednesday";
+                case 5: return "Thursday";
+                case 6: return "Friday";
+                case 7: return "Saturday";
+                default: return "Invalid";
+            }
         }
     }
 }

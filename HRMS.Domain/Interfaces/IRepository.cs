@@ -44,12 +44,21 @@ namespace HRMS.Domain.Interfaces
         void DeleteDesignationID(string designationID);
     }
 
-    public interface ILeaveRepository : IRepository<LeaveRequest>
+    public interface ILeaveTypeMasterRepository : IRepository<LeaveTypeMaster>
     {
-        IEnumerable<LeaveRequest> GetByEmployee(string employeeId);
-        IEnumerable<LeaveRequest> GetPending();
-        IEnumerable<LeaveRequest> GetByDateRange(DateTime from, DateTime to);
-        IDictionary<string, int> GetLeaveCountByType();
+        IEnumerable<LeaveTypeMaster> GetActive();
+        LeaveTypeMaster GetByCode(string code);
+        bool CodeExists(string code, string excludeId = "0");
+        LeaveTypeMaster GetByLeaveTypeID(string leaveTypeID);
+        void DeleteLeaveTypeID(string leaveTypeID);
+    }
+
+    public interface ILeaveApplicationRepository : IRepository<LeaveApplication>
+    {
+        IEnumerable<LeaveApplication> GetByEmployee(string employeeId);
+        IEnumerable<LeaveApplication> GetPending();
+        IEnumerable<LeaveApplication> GetAll();
+        LeaveApplication GetByLeaveTypeID(string leaveTypeID);
     }
 
     public interface IAuditService
@@ -74,7 +83,8 @@ namespace HRMS.Domain.Interfaces
         IEmployeeRepository Employees { get; }
         IDepartmentRepository Departments { get; }
         IDesignationRepository Designations { get; }
-        ILeaveRepository Leaves { get; }
+        ILeaveTypeMasterRepository LeaveTypesMasters { get; }
+        ILeaveApplicationRepository LeaveApplications { get; }
         IAuditService Log { get; }
         IAttendanceRepository Attendace { get; }
         int SaveChanges();

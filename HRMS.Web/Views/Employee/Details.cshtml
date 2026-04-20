@@ -105,7 +105,7 @@
                     <div style="display:flex;justify-content:space-between;
                                 align-items:center;font-size:13px;">
                         <span style="color:var(--muted);">Date of Birth</span>
-                        <span>@Model.DateOfBirth.ToString("dd MMM yyyy")</span>
+                        <span>@(Model.DateOfBirth?.ToString("dd MMM yyyy") ?? "-")</span>
                     </div>
 
                     <div style="display:flex;justify-content:space-between;
@@ -147,7 +147,9 @@
                             new { Label = "Employee Code",Value = Model.EmployeeId },
                             new { Label = "Status",       Value = Model.Status },
                             new { Label = "Joining Date", Value = Model.JoiningDate.ToString("dd MMMM yyyy") },
-                            new { Label = "Date of Birth",Value = Model.DateOfBirth.ToString("dd MMMM yyyy") },
+                            new { Label = "Date of Birth",Value = Model.DateOfBirth?.ToString("dd MMMM yyyy") },
+                            new { Label = "Week Off 1",Value = Model.WeekOff1Name },
+                            new { Label = "Week Off 2",Value = Model.WeekOff2Name },
                         };
                     }
 

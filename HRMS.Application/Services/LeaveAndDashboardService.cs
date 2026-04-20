@@ -10,77 +10,77 @@ using HRMS.Domain.Interfaces;
 namespace HRMS.Application.Services
 {
     // ─── Leave Service ────────────────────────────────────────────────────────
-    public class LeaveService : ILeaveService
-    {
-        private readonly IUnitOfWork _uow;
-        public LeaveService(IUnitOfWork uow) { _uow = uow; }
+    //public class LeaveService : ILeaveService
+    //{
+    //    private readonly IUnitOfWork _uow;
+    //    public LeaveService(IUnitOfWork uow) { _uow = uow; }
 
-        public IEnumerable<LeaveRequestDto> GetAll()
-            => _uow.Leaves.GetAll().Select(Map);
+    //    public IEnumerable<LeaveRequestDto> GetAll()
+    //        => _uow.Leaves.GetAll().Select(Map);
 
-        public IEnumerable<LeaveRequestDto> GetPending()
-            => _uow.Leaves.GetPending().Select(Map);
+    //    public IEnumerable<LeaveRequestDto> GetPending()
+    //        => _uow.Leaves.GetPending().Select(Map);
 
-        public IEnumerable<LeaveRequestDto> GetByEmployee(string employeeId)
-            => _uow.Leaves.GetByEmployee(employeeId).Select(Map);
+    //    public IEnumerable<LeaveRequestDto> GetByEmployee(string employeeId)
+    //        => _uow.Leaves.GetByEmployee(employeeId).Select(Map);
 
-        public LeaveRequestDto GetById(int id)
-        {
-            var l = _uow.Leaves.GetById(id);
-            return l == null ? null : Map(l);
-        }
+    //    public LeaveRequestDto GetById(int id)
+    //    {
+    //        var l = _uow.Leaves.GetById(id);
+    //        return l == null ? null : Map(l);
+    //    }
 
-        public string Create(string employeeId, string leaveType, DateTime from, DateTime to, string reason)
-        {
-            //var leave = new LeaveRequest
-            //{
-            //    EmployeeId = employeeId,
-            //    LeaveType  = (LeaveType)Enum.Parse(typeof(LeaveType), leaveType),
-            //    FromDate   = from,
-            //    ToDate     = to,
-            //    Reason     = reason,
-            //    Status     = LeaveStatus.Pending,
-            //    CreatedAt  = DateTime.UtcNow
-            //};
-            //_uow.Leaves.Add(leave);
-            //_uow.SaveChanges();
-            //return leave.Id;
-            return string.Empty;
-        }
+    //    public string Create(string employeeId, string leaveType, DateTime from, DateTime to, string reason)
+    //    {
+    //        //var leave = new LeaveRequest
+    //        //{
+    //        //    EmployeeId = employeeId,
+    //        //    LeaveType  = (LeaveType)Enum.Parse(typeof(LeaveType), leaveType),
+    //        //    FromDate   = from,
+    //        //    ToDate     = to,
+    //        //    Reason     = reason,
+    //        //    Status     = LeaveStatus.Pending,
+    //        //    CreatedAt  = DateTime.UtcNow
+    //        //};
+    //        //_uow.Leaves.Add(leave);
+    //        //_uow.SaveChanges();
+    //        //return leave.Id;
+    //        return string.Empty;
+    //    }
 
-        public void Approve(int id, string reviewerId, string comments)
-            => UpdateStatus(id, LeaveStatus.Approved, reviewerId, comments);
+    //    public void Approve(int id, string reviewerId, string comments)
+    //        => UpdateStatus(id, LeaveStatus.Approved, reviewerId, comments);
 
-        public void Reject(int id, string reviewerId, string comments)
-            => UpdateStatus(id, LeaveStatus.Rejected, reviewerId, comments);
+    //    public void Reject(int id, string reviewerId, string comments)
+    //        => UpdateStatus(id, LeaveStatus.Rejected, reviewerId, comments);
 
-        private void UpdateStatus(int id, LeaveStatus status, string reviewerId, string comments)
-        {
-            var leave = _uow.Leaves.GetById(id);
-            if (leave == null) throw new KeyNotFoundException($"Leave {id} not found.");
-            leave.Status         = status;
-            leave.ReviewedBy     = reviewerId;
-            leave.ReviewedAt     = DateTime.UtcNow;
-            leave.ReviewComments = comments;
-            leave.UpdatedAt      = DateTime.UtcNow;
-            _uow.Leaves.Update(leave);
-            _uow.SaveChanges();
-        }
+    //    private void UpdateStatus(int id, LeaveStatus status, string reviewerId, string comments)
+    //    {
+    //        var leave = _uow.Leaves.GetById(id);
+    //        if (leave == null) throw new KeyNotFoundException($"Leave {id} not found.");
+    //        leave.Status         = status;
+    //        leave.ReviewedBy     = reviewerId;
+    //        leave.ReviewedAt     = DateTime.UtcNow;
+    //        leave.ReviewComments = comments;
+    //        leave.UpdatedAt      = DateTime.UtcNow;
+    //        _uow.Leaves.Update(leave);
+    //        _uow.SaveChanges();
+    //    }
 
-        private static LeaveRequestDto Map(LeaveRequest l) => new LeaveRequestDto
-        {
-            EmployeeId   = l.EmployeeId,
-            EmployeeName = l.Employee?.EmployeeName ?? "Unknown",
-            Department   = l.Employee?.DepartmentId.ToString() ?? "",
-            LeaveType    = l.LeaveType.ToString(),
-            FromDate     = l.FromDate,
-            ToDate       = l.ToDate,
-            TotalDays    = l.TotalDays,
-            Reason       = l.Reason,
-            Status       = l.Status.ToString(),
-            CreatedAt    = l.CreatedAt
-        };
-    }
+    //    private static LeaveRequestDto Map(LeaveRequest l) => new LeaveRequestDto
+    //    {
+    //        EmployeeId   = l.EmployeeId,
+    //        EmployeeName = l.Employee?.EmployeeName ?? "Unknown",
+    //        Department   = l.Employee?.DepartmentId.ToString() ?? "",
+    //        LeaveType    = l.LeaveType.ToString(),
+    //        FromDate     = l.FromDate,
+    //        ToDate       = l.ToDate,
+    //        TotalDays    = l.TotalDays,
+    //        Reason       = l.Reason,
+    //        Status       = l.Status.ToString(),
+    //        CreatedAt    = l.CreatedAt
+    //    };
+    //}
 
     // ─── Dashboard Service ────────────────────────────────────────────────────
     public class DashboardService : IDashboardService

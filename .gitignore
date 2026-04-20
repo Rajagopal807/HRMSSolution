@@ -6,3 +6,7 @@
 /HRMS.Web/packages
 /packages
 /HRMS.Web/Properties/PublishProfiles
+/HRMS.Application/.vs
+/HRMS.Common/.vs
+/HRMS.Domain/.vs
+/HRMS.Infrastructure/.vs

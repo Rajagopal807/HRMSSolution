@@ -53,9 +53,10 @@ INSERT INTO TblshiftDetails values ('AG', 7, '1899-12-30 09:00:00.000', '1899-12
 --EXEC ComputeAttendanceFor '00000011255','03/01/2026','03/31/2026','STAFF',0
 
 ---------------Delete Below---------------------------
-SELECt * FROM TblDailyTransactions WHERE Empid='00000011255';
-DELETE FROM TblDailyTransactions;
-SELECT * FROM TblMuster WHERE EmployeeId='00000011255';
+SELECt * FROM TblDailyTransactions WHERE AttendanceDate is NULL;
+DELETE FROM TblDailyTransactions WHERE AttendanceDate is NULL;
+SELECT * FROM TblMuster WHERE  TDate between '04/01/2026' and '04/30/2026';
+DELETE FROM TblMuster WHERE  TDate>='03/01/2026';
 SELECT * FROM Tblshifts;
 SELECT * FROM TblshiftDetails;
 

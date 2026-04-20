@@ -1,0 +1,10 @@
+@model HRMS.Application.DTOs.CreateLeaveTypeMasterDto
+@{
+    ViewBag.Title  = "Define Leave Type";
+    ViewBag.IsEdit = false;
+    ViewBag.EditId = "0";
+    Layout         = "~/Views/Shared/_Layout.cshtml";
+}
+@* Delegates ALL form HTML to the shared partial.
+   The partial has Layout = null which prevents the double-render bug. *@
+@Html.Partial("_LeaveTypeForm", Model)

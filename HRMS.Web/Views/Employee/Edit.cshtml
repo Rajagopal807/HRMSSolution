@@ -3,7 +3,6 @@
     ViewBag.Title = "Edit Employee";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Get the employee ID passed via ViewBag from the controller
     string employeeId = ViewBag.EmployeeId != null ? ViewBag.EmployeeId : "0";
 }
 
@@ -48,19 +47,19 @@
             </div>
             <div class="card-body">
 
-                <!-- First Name + Last Name -->
+                <!-- Employee ID + Name -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                     <div class="form-group">
                         @Html.LabelFor(m => m.EmployeeID, "Employee ID", new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.EmployeeID, new { @class = "form-ctrl" })
+                        @Html.TextBoxFor(m => m.EmployeeID, new { @class = "form-ctrl", @readonly = true })
                         @Html.ValidationMessageFor(m => m.EmployeeID, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
                     <div class="form-group">
                         @Html.LabelFor(m => m.EmployeeName, "Employee Name *", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.EmployeeName, new { @class = "form-ctrl" })
                         @Html.ValidationMessageFor(m => m.EmployeeName, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
                 </div>
 
@@ -69,7 +68,7 @@
                     @Html.LabelFor(m => m.Email, "Email Address *", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Email, new { @class = "form-ctrl", type = "email" })
                     @Html.ValidationMessageFor(m => m.Email, "",
-                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Phone -->
@@ -77,29 +76,29 @@
                     @Html.LabelFor(m => m.Phone, "Phone Number", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Phone, new { @class = "form-ctrl" })
                     @Html.ValidationMessageFor(m => m.Phone, "",
-                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Date of Birth -->
                 <div class="form-group">
                     @Html.LabelFor(m => m.DateOfBirth, "Date of Birth *", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}",
-                        new { @class = "form-ctrl", type = "date" })
+                             new { @class = "form-ctrl", type = "date" })
                     @Html.ValidationMessageFor(m => m.DateOfBirth, "",
-                        new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Address -->
                 <div class="form-group">
                     @Html.LabelFor(m => m.Address, "Address", new { @class = "form-label" })
                     @Html.TextAreaFor(m => m.Address,
-                        new { @class = "form-ctrl", rows = "3" })
+                             new { @class = "form-ctrl", rows = "3" })
                 </div>
 
             </div>
         </div>
 
-        <!-- ── Right: Job + Compensation ──────────────────────────────── -->
+        <!-- ── Right: Job Information + Schedule + Status ─────────────── -->
         <div style="display:flex;flex-direction:column;gap:16px;">
 
             <!-- Job Information -->
@@ -114,83 +113,127 @@
                     <div class="form-group">
                         @Html.LabelFor(m => m.Department, "Department *", new { @class = "form-label" })
                         @Html.DropDownListFor(m => m.Department,
-                            Model.DepartmentOptions,
-                            "-- Select Department --",
-                            new { @class = "form-ctrl" })
+                                 Model.DepartmentOptions,
+                                 "-- Select Department --",
+                                 new { @class = "form-ctrl" })
                         @Html.ValidationMessageFor(m => m.Department, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
 
                     <!-- Designation -->
                     <div class="form-group">
                         @Html.LabelFor(m => m.Designation, "Designation *", new { @class = "form-label" })
                         @Html.DropDownListFor(m => m.Designation,
-                                                    Model.DesignationOptions,
-                                                    "-- Select Designation --",
-                                                    new { @class = "form-ctrl" })
+                                 Model.DesignationOptions,
+                                 "-- Select Designation --",
+                                 new { @class = "form-ctrl" })
                         @Html.ValidationMessageFor(m => m.Designation, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
 
                     <!-- Joining Date -->
                     <div class="form-group">
                         @Html.LabelFor(m => m.JoiningDate, "Joining Date *", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.JoiningDate, "{0:yyyy-MM-dd}",
-                            new { @class = "form-ctrl", type = "date" })
+                                 new { @class = "form-ctrl", type = "date" })
                         @Html.ValidationMessageFor(m => m.JoiningDate, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                    </div>
+
+                    <!-- Week Off 1 + Week Off 2 -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.WeekOff1, "Week Off 1 *", new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.WeekOff1,
+                                     Model.WeekOffOptions,
+                                     "-- Select Day --",
+                                     new { @class = "form-ctrl" })
+                            @Html.ValidationMessageFor(m => m.WeekOff1, "",
+                                     new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                        </div>
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.WeekOff2, "Week Off 2 *", new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.WeekOff2,
+                                     Model.WeekOffOptions,
+                                     "-- Select Day --",
+                                     new { @class = "form-ctrl" })
+                            @Html.ValidationMessageFor(m => m.WeekOff2, "",
+                                     new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                        </div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- Compensation -->
-            @*<div class="card">
+            <!-- ── Employee Status Card ───────────────────────────────── -->
+            <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Compensation</div>
-                    <div class="card-sub">Update monthly salary details</div>
+                    <div class="card-title">Employee Status</div>
+                    <div class="card-sub">Manage active or inactive state</div>
                 </div>
                 <div class="card-body">
 
-                    <!-- Basic Salary -->
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.BasicSalary, "Basic Salary (&#8377;) *", new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.BasicSalary,
-                            new { @class = "form-ctrl", type = "number", min = "0", id = "basicSalary" })
-                        @Html.ValidationMessageFor(m => m.BasicSalary, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
-                    </div>
+                    <!-- Status Badge + Toggle Row -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;
+                                padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);
+                                background:rgba(255,255,255,.03);margin-bottom:14px;">
 
-                    <!-- Allowances -->
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Allowances, "Allowances (&#8377;)", new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.Allowances,
-                            new { @class = "form-ctrl", type = "number", min = "0", id = "allowances" })
-                        @Html.ValidationMessageFor(m => m.Allowances, "",
-                            new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
-                    </div>
-
-                    <!-- Gross Salary (computed) -->
-                    <div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);
-                                border-radius:8px;padding:14px 16px;
-                                display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;
-                                        color:var(--accent2);font-weight:600;">
-                                Gross Salary
-                            </div>
-                            <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                                Basic + Allowances
-                            </div>
+                        <!-- Left: label + live badge -->
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="form-label" style="margin:0;">Status</span>
+                            <span id="statusBadge"
+                                  style="display:inline-flex;align-items:center;gap:5px;
+                                         font-size:12px;font-weight:600;padding:3px 10px;
+                                         border-radius:20px;transition:all .25s;">
+                                <!-- filled by JS on load -->
+                            </span>
                         </div>
-                        <span class="mono" id="grossDisplay"
-                              style="font-size:20px;font-weight:700;color:var(--accent2);">
-                            &#8377;0
-                        </span>
+
+                        <!-- Right: toggle switch -->
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                            <span id="toggleLabel"
+                                  style="font-size:12px;color:var(--muted);">Mark as Inactive</span>
+                            <div style="position:relative;width:44px;height:24px;">
+                                @Html.CheckBoxFor(m => m.IsInactive, new
+                                {
+                                    id = "IsInActive",
+                                    style = "position:absolute;opacity:0;width:0;height:0;"
+                                })
+                                <span id="toggleTrack"
+                                      style="display:block;width:44px;height:24px;border-radius:12px;
+                                             transition:background .25s;cursor:pointer;">
+                                </span>
+                                <span id="toggleThumb"
+                                      style="position:absolute;top:3px;width:18px;height:18px;
+                                             background:#fff;border-radius:50%;transition:left .25s;
+                                             box-shadow:0 1px 4px rgba(0,0,0,.4);">
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Date of Leaving (shown only when inactive) -->
+                    <div id="dateOfLeavingWrapper"
+                         style="display:none;animation:fadeIn .2s ease;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            @Html.LabelFor(m => m.DateOfLeft, "Date of Leaving *", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.DateOfLeft, "{0:yyyy-MM-dd}",
+                                     new
+                                     {
+                                         @class = "form-ctrl",
+                                         type = "date",
+                                         id = "dateOfLeavingInput"
+                                     })
+                            @Html.ValidationMessageFor(m => m.DateOfLeft, "",
+                                     new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                            <p style="font-size:11px;color:var(--muted);margin-top:5px;">
+                                Required when marking the employee as inactive.
+                            </p>
+                        </div>
                     </div>
 
                 </div>
-            </div>*@
+            </div>
 
             <!-- Unsaved changes warning -->
             <div id="unsavedBanner"
@@ -216,55 +259,110 @@
 }
 
 @section scripts {
-<script>
-(function () {
-    var basicEl  = document.getElementById('basicSalary');
-    var allowEl  = document.getElementById('allowances');
-    var grossEl  = document.getElementById('grossDisplay');
-    var bannerEl = document.getElementById('unsavedBanner');
-    var isDirty  = false;
+    <script>
+        (function () {
+            /* ── refs ───────────────────────────────────────────────────────────── */
+            var toggle = document.getElementById('IsInActive');
+            var track = document.getElementById('toggleTrack');
+            var thumb = document.getElementById('toggleThumb');
+            var badge = document.getElementById('statusBadge');
+            var label = document.getElementById('toggleLabel');
+            var wrapper = document.getElementById('dateOfLeavingWrapper');
+            var dolInput = document.getElementById('dateOfLeavingInput');
+            var bannerEl = document.getElementById('unsavedBanner');
+            var form = document.getElementById('editForm');
+            var isDirty = false;
 
-    function updateGross() {
-        var basic = parseFloat(basicEl.value) || 0;
-        var allow = parseFloat(allowEl.value) || 0;
-        grossEl.textContent = '\u20b9' + (basic + allow).toLocaleString('en-IN');
-    }
+            /* ── helpers ────────────────────────────────────────────────────────── */
+            function setActive() {
+                track.style.background = 'rgba(52,211,153,.25)';
+                thumb.style.left = '3px';
+                badge.textContent = '\u25CF Active';
+                badge.style.background = 'rgba(52,211,153,.15)';
+                badge.style.color = '#34d399';
+                badge.style.border = '1px solid rgba(52,211,153,.3)';
+                label.textContent = 'Mark as Inactive';
+                wrapper.style.display = 'none';
+                $('#IsInActive').prop('checked', false);
+                if (dolInput) dolInput.removeAttribute('required');
+            }
 
-    function markDirty() {
-        if (!isDirty) {
-            isDirty = true;
-            if (bannerEl) bannerEl.style.display = 'block';
-        }
-    }
+            function setInactive() {
+                track.style.background = 'rgba(239,68,68,.35)';
+                thumb.style.left = '23px';
+                badge.textContent = '\u25CF Inactive';
+                badge.style.background = 'rgba(239,68,68,.15)';
+                badge.style.color = '#f87171';
+                badge.style.border = '1px solid rgba(239,68,68,.3)';
+                label.textContent = 'Mark as Active';
+                wrapper.style.display = 'block';
+                $('#IsInActive').prop('checked', true);
+                if (dolInput) dolInput.setAttribute('required', 'required');
+            }
 
-    // Initialise gross on page load with existing values
-    updateGross();
+            /* ── initialise from model value ────────────────────────────────────── */
+            if (toggle.checked) { setInactive(); } else { setActive(); }
 
-    // Wire up change tracking on all inputs/selects/textareas
-    var inputs = document.querySelectorAll('#editForm input, #editForm select, #editForm textarea');
-    inputs.forEach(function (el) {
-        el.addEventListener('change', markDirty);
-        el.addEventListener('input',  markDirty);
-    });
+            /* ── click on the visual track/thumb ───────────────────────────────── */
+            var suppressChange = false;
 
-    if (basicEl) basicEl.addEventListener('input', updateGross);
-    if (allowEl) allowEl.addEventListener('input', updateGross);
+            function handleTrackClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                suppressChange = true;
+                toggle.checked = !toggle.checked;
+                if (toggle.checked) { setInactive(); } else { setActive(); }
+                markDirty();
+                setTimeout(function () { suppressChange = false; }, 0);
+            }
+            track.addEventListener('click', handleTrackClick);
+            thumb.addEventListener('click', handleTrackClick);
 
-    // Warn before navigating away with unsaved changes
-    window.addEventListener('beforeunload', function (e) {
-        if (isDirty) {
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
+            /* ── react to checkbox change (keyboard / direct interaction only) ── */
+            toggle.addEventListener('change', function () {
+                if (suppressChange) return;
+                if (this.checked) { setInactive(); } else { setActive(); }
+                markDirty();
+            });
 
-    // Clear dirty flag on form submit so the warning doesn't fire
-    var form = document.getElementById('editForm');
-    if (form) {
-        form.addEventListener('submit', function () {
-            isDirty = false;
-        });
-    }
-}());
-</script>
+            /* ── dirty-state tracking ───────────────────────────────────────────── */
+            function markDirty() {
+                if (!isDirty) {
+                    isDirty = true;
+                    if (bannerEl) bannerEl.style.display = 'block';
+                }
+            }
+
+            var inputs = document.querySelectorAll('#editForm input, #editForm select, #editForm textarea');
+            inputs.forEach(function (el) {
+                el.addEventListener('change', markDirty);
+                el.addEventListener('input', markDirty);
+            });
+
+            window.addEventListener('beforeunload', function (e) {
+                if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    /* Validate: date of leaving required when inactive */
+                    if (toggle.checked && dolInput && !dolInput.value.trim()) {
+                        e.preventDefault();
+                        dolInput.focus();
+                        dolInput.style.borderColor = '#b91c1c';
+                        var err = dolInput.nextElementSibling;
+                        if (err) { err.textContent = 'Date of Leaving is required when marking as inactive.'; }
+                        return false;
+                    }
+                    isDirty = false;
+                });
+            }
+        }());
+    </script>
+    <style>
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+    </style>
 }

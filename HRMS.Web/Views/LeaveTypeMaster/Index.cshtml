@@ -1,0 +1,109 @@
+@model IEnumerable<HRMS.Application.DTOs.LeaveTypeMasterDto>
+@{
+    ViewBag.Title = "Leave Types";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Define Leave Types</div>
+        <div class="page-sub">@Model.Count() leave types configured</div>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary">+ Define New Type</a>
+</div>
+
+<div class="card">
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Leave Type Name</th>
+                    <th>Max Days / Year</th>
+                    <th>Half Day</th>
+                    <th>Carry Forward</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:130px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:48px;color:var(--muted);">
+                            <div style="font-size:32px;margin-bottom:10px;opacity:.4;">&#128197;</div>
+                            <div style="font-weight:600;margin-bottom:4px;">No leave types defined yet</div>
+                            <div style="font-size:12px;">
+                                <a href="@Url.Action("Create")" style="color:var(--accent);">
+                                    Create your first leave type
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var lt in Model)
+                {
+                    <tr>
+                        <td>
+                            <span class="mono" style="font-size:13px;font-weight:600;
+                                  color:var(--accent);background:rgba(91,110,245,.1);
+                                  padding:3px 10px;border-radius:6px;">
+                                @lt.LeavetypeID
+                            </span>
+                        </td>
+                        <td style="font-weight:500;">@lt.Name</td>
+                        <td class="mono" style="text-align:center;">
+                            @(lt.MaxDaysPerYear == 0 ? "Unlimited" : lt.MaxDaysPerYear.ToString())
+                        </td>
+                        <td style="text-align:center;">
+                            @if (lt.AllowHalfDay)
+                            {
+                                <span style="color:var(--accent2);font-size:16px;">&#10003;</span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--muted);font-size:14px;">&#8212;</span>
+                            }
+                        </td>
+                        <td style="text-align:center;">
+                            @if (lt.IsCarryForward)
+                            {
+                                <span style="color:var(--accent2);font-size:16px;">&#10003;</span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--muted);font-size:14px;">&#8212;</span>
+                            }
+                        </td>
+                        <td style="color:var(--muted);font-size:12px;max-width:200px;
+                                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                            title="@lt.Description">
+                            @(string.IsNullOrEmpty(lt.Description) ? Html.Raw("&mdash;") : Html.Raw(lt.Description))
+                        </td>
+                        <td>
+                            <span class="badge @(lt.IsActive ? "badge-active" : "badge-inactive")">
+                                @(lt.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px;">
+                                <a href="@Url.Action("Edit", new { id = lt.LeavetypeID })"
+                                   class="btn btn-ghost btn-sm">Edit</a>
+                                @using (Html.BeginForm("Delete", "LeaveTypeMaster",
+                                    new { id = lt.LeavetypeID }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Delete leave type \'@lt.Name\'?')">
+                                        Delete
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

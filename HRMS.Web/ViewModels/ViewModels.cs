@@ -1,6 +1,7 @@
 ﻿using HRMS.Domain.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
@@ -36,7 +37,7 @@ namespace HRMS.Web.ViewModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public DateTime JoiningDate { get; set; }
         public string DepartmentID { get; set; }
         public string DepartmentName { get; set; }
@@ -44,6 +45,12 @@ namespace HRMS.Web.ViewModels
         public string DesignationName { get; set; }
         public List<SelectListItem> DepartmentOptions { get; set; }
         public List<SelectListItem> DesignationOptions { get; set; }
+        public List<SelectListItem> WeekOffOptions { get; set; }
+        public int WeekOff1 { get; set; }   
+        public string WeekOff1Name { get; set; }
+        public int WeekOff2 { get; set; }   
+        public string WeekOff2Name { get; set; }
+        public DateTime? DateOfLeft { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -54,9 +61,11 @@ namespace HRMS.Web.ViewModels
 
     public class CreateEmployeeViewModel
     {
+        [Required(ErrorMessage = "Employee ID is required.")]
         [Display(Name = "Employee ID")]
         public string EmployeeID { get; set; }
 
+        [Required(ErrorMessage = "Employee Name is required.")]
         [Display(Name = "Employee Name")]
         public string EmployeeName { get; set; }
 
@@ -69,10 +78,9 @@ namespace HRMS.Web.ViewModels
         [Display(Name = "Address")]
         public string Address { get; set; }
 
-        [Required(ErrorMessage = "Date of birth is required.")]
         [DataType(DataType.Date)]
         [Display(Name = "Date of Birth")]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
         [Required(ErrorMessage = "Joining date is required.")]
         [DataType(DataType.Date)]
@@ -88,9 +96,26 @@ namespace HRMS.Web.ViewModels
         [Display(Name = "Designation")]
         public string Designation { get; set; }
 
+        [Required(ErrorMessage = "Week Off 1 is required.")]
+        [Display(Name = "Week Off 1")]
+        public int WeekOff1 { get; set; }
+
+        [Required(ErrorMessage = "Week Off 2 is required.")]
+        [Display(Name = "Week Off 2")]
+        public int WeekOff2 { get; set; }
+
+        [Display(Name = "Mark as Inactive")]
+        public bool IsInactive { get; set; } = false;
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Date of Left")]
+        public DateTime? DateOfLeft { get; set; }
+
         public List<SelectListItem> DepartmentOptions { get; set; }
 
         public List<SelectListItem> DesignationOptions { get; set; }
+
+        public List<SelectListItem> WeekOffOptions { get; set; }
 
     }
 
@@ -261,4 +286,5 @@ namespace HRMS.Web.ViewModels
             Year = DateTime.Now.Year;
         }
     }
+
 }

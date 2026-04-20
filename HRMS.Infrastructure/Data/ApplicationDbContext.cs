@@ -40,6 +40,8 @@ namespace HRMS.Infrastructure.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Muster> Muster { get; set; }
         public DbSet<DailyTransactions> DailyTransactions { get; set; }
+        public DbSet<LeaveTypeMaster> LeaveTypeMasters { get; set; }
+        public DbSet<LeaveApplication> LeaveApplications { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -61,6 +63,11 @@ namespace HRMS.Infrastructure.Data
                 .Property(e => e.EmployeeId)
                 .IsRequired()
                 .HasMaxLength(11);
+
+            modelBuilder.Entity<LeaveTypeMaster>()
+                .Property(e => e.LeaveTypeID)
+                .IsRequired()
+                .HasMaxLength(2);
 
             base.OnModelCreating(modelBuilder);
         }

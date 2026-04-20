@@ -1,10 +1,15 @@
-using System;
 using HRMS.Domain.Enums;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HRMS.Domain.Entities
 {
     public class LeaveRequest : BaseEntity
     {
+        [Key, Column(Order = 0)]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)] //Important (no auto increment)
+        [StringLength(11)]
         public string EmployeeId { get; set; }
         public LeaveType LeaveType { get; set; }
         public DateTime FromDate { get; set; }

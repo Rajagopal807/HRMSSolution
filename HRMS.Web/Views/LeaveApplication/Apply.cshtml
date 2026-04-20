@@ -1,0 +1,530 @@
+@model HRMS.Application.DTOs.ApplyLeaveScreenDto
+@{
+    ViewBag.Title = "Apply for Leave";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Session radio pill buttons */
+    .session-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .session-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        font-size: 13.5px;
+        color: var(--text);
+        transition: all .15s;
+        user-select: none;
+    }
+
+        .session-pill:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .session-pill input {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .session-pill.active {
+            border-color: var(--accent);
+            background: rgba(91,110,245,.09);
+            color: var(--accent);
+        }
+
+    /* Employee card preview */
+    .emp-preview {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        display: none;
+        gap: 12px;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+        .emp-preview.show {
+            display: flex;
+        }
+
+    .ep-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(91,110,245,.18);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .ep-name {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .ep-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    /* Half-day notice */
+    .halfday-notice {
+        display: none;
+        background: rgba(245,158,66,.08);
+        border: 1px solid rgba(245,158,66,.3);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 12px;
+        color: #f59e42;
+        margin-top: 8px;
+    }
+
+        .halfday-notice.show {
+            display: block;
+        }
+
+    /* Day count pill */
+    .day-count {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-family: 'DM Mono',monospace;
+        font-weight: 600;
+        background: rgba(52,211,153,.12);
+        color: var(--accent2);
+        border: 1px solid rgba(52,211,153,.25);
+        margin-top: 8px;
+    }
+</style>
+
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">&#8592;&nbsp;Back</a>
+</div>
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Apply for Leave</div>
+        <div class="page-sub">Submit a new leave application</div>
+    </div>
+</div>
+
+@using (Html.BeginForm("Apply", "LeaveApplication", FormMethod.Post,
+    new { id = "applyForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    if (!ViewData.ModelState.IsValid)
+    {
+        <div style="background:#7f1d1d33;border:1px solid #b91c1c;border-radius:8px;
+                    padding:12px 16px;margin-bottom:20px;color:#fca5a5;font-size:13px;">
+            <strong>Please fix the following:</strong>
+            @Html.ValidationSummary(true, "",
+                     new { style = "margin:6px 0 0;padding-left:16px;" })
+        </div>
+    }
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;
+                max-width:900px;align-items:start;">
+
+        <!-- ── Left: Employee + Leave Type ───────────────────────────────── -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Employee</div>
+                    <div class="card-sub">Select the employee applying for leave</div>
+                </div>
+                <div class="card-body">
+
+                    <!-- Employee Code search box -->
+                    <div class="form-group">
+                        <label class="form-label">Employee ID / Code *</label>
+                        <input type="text" id="empCodeSearch" class="form-ctrl"
+                               placeholder="Type code or name to search..."
+                               autocomplete="off" />
+                        @Html.HiddenFor(m => m.Form.EmployeeId, new { id = "employeeId" })
+                        @Html.ValidationMessageFor(m => m.Form.EmployeeId, "",
+                                           new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                    </div>
+
+                    <!-- Datalist for quick lookup -->
+                    <datalist id="empList">
+                        @foreach (var emplist in Model.Employees)
+                        {
+                            <option value="@emplist.EmployeeId"
+                                    data-id="@emplist.EmployeeId"
+                                    data-name="@emplist.EmployeeName"
+                                    data-dept="@emplist.DepartmentName"
+                                    data-code="@emplist.EmployeeId"></option>
+                        }
+                    </datalist>
+
+                    <!-- Employee preview card (shown after selection) -->
+                    <div class="emp-preview" id="empPreview">
+                        <div class="ep-avatar" id="epAvatar"></div>
+                        <div>
+                            <div class="ep-name" id="epName"></div>
+                            <div class="ep-meta" id="epMeta"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fallback dropdown (also drives selection) -->
+                    <div style="margin-top:12px;">
+                        <label class="form-label" style="font-size:10px;">Or select from list</label>
+                        <select id="empDropdown" class="form-ctrl">
+                            <option value="">-- Select Employee --</option>
+                            @foreach (var emp in Model.Employees)
+                            {
+                                <option value="@emp.EmployeeId"
+                                        data-code="@emp.EmployeeId"
+                                        data-name="@emp.EmployeeName"
+                                        data-dept="@emp.DepartmentName">
+                                    @($"{emp.EmployeeId} - {@emp.EmployeeName}")
+                                    @*@emp.EmployeeId : @emp.EmployeeName (@emp.DepartmentName)*@
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Leave Type *</div>
+                    <div class="card-sub">Select from active leave types</div>
+                </div>
+                <div class="card-body">
+                    <select name="Form.LeaveTypeMasterId" id="leaveTypeId" class="form-ctrl"
+                            onchange="onLeaveTypeChange(this)">
+                        <option value="">-- Select Leave Type --</option>
+                        @foreach (var lt in Model.LeaveTypes)
+                        {
+                            <option value="@lt.LeavetypeID"
+                                    data-halfday="@lt.AllowHalfDay.ToString().ToLower()"
+                                    data-max="@lt.MaxDaysPerYear"
+                                    data-name="@lt.Name">
+                                @($"{lt.LeavetypeID} - {lt.Name}")
+                                @(lt.MaxDaysPerYear > 0 ? $"(max {lt.MaxDaysPerYear} days/yr)" : "")
+                            </option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(m => m.Form.LeaveTypeMasterId, "",
+                             new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+
+                    <!-- Leave type info -->
+                    <div id="ltInfo" style="display:none;margin-top:10px;padding:10px 14px;
+                         background:rgba(91,110,245,.06);border:1px solid rgba(91,110,245,.2);
+                         border-radius:8px;font-size:12px;color:var(--muted);">
+                        <span id="ltInfoText"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Right: Dates + Session + Reason ───────────────────────────── -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Leave Period *</div>
+                    <div class="card-sub">Select the date range and session</div>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Date range -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="form-group">
+                            <label class="form-label">From Date *</label>
+                            @Html.TextBox("Form.FromDate",
+                                     (Model.Form != null && Model.Form.FromDate > DateTime.MinValue
+                                         ? Model.Form.FromDate.ToString("yyyy-MM-dd")
+                                         : DateTime.Today.ToString("yyyy-MM-dd")),
+                                     new
+                                     {
+                                         @class = "form-ctrl",
+                                         type = "date",
+                                         id = "fromDate",
+                                         onchange = "recalcDays()"
+                                     })
+                            @Html.ValidationMessage("Form.FromDate", "",
+                                     new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">To Date *</label>
+                            @Html.TextBox("Form.ToDate",
+                                     (Model.Form != null && Model.Form.ToDate > DateTime.MinValue
+                                         ? Model.Form.ToDate.ToString("yyyy-MM-dd")
+                                         : DateTime.Today.ToString("yyyy-MM-dd")),
+                                     new
+                                     {
+                                         @class = "form-ctrl",
+                                         type = "date",
+                                         id = "toDate",
+                                         onchange = "recalcDays()"
+                                     })
+                            @Html.ValidationMessage("Form.ToDate", "",
+                                     new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                        </div>
+                    </div>
+
+                    <!-- Calculated days -->
+                    <div id="dayCount" class="day-count" style="display:none;"></div>
+
+                    <!-- Session selection -->
+                    <div style="margin-top:16px;">
+                        <label class="form-label">Session *</label>
+                        <div class="session-group" id="sessionGroup">
+
+                            <label class="session-pill active" id="pill-full">
+                                <input type="radio" name="Form.Session" value="FullDay"
+                                       checked onchange="onSessionChange(this)" />
+                                &#11835;&nbsp;Full Day
+                            </label>
+
+                            <label class="session-pill" id="pill-first" style="opacity:.5;pointer-events:none;">
+                                <input type="radio" name="Form.Session" value="FirstHalf"
+                                       onchange="onSessionChange(this)" />
+                                &#9728;&nbsp;First Half
+                            </label>
+
+                            <label class="session-pill" id="pill-second" style="opacity:.5;pointer-events:none;">
+                                <input type="radio" name="Form.Session" value="SecondHalf"
+                                       onchange="onSessionChange(this)" />
+                                &#9790;&nbsp;Second Half
+                            </label>
+
+                        </div>
+
+                        <!-- Half-day restriction notice -->
+                        <div class="halfday-notice" id="halfdayNotice">
+                            &#9888;&nbsp;Half-day leave is only available when From Date = To Date.
+                            Half-day is also disabled for this leave type — select a different type.
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Form.Session, "",
+                                 new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:4px;" })
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Reason *</div>
+                </div>
+                <div class="card-body">
+                    @Html.TextAreaFor(m => m.Form.Reason,
+                             new
+                             {
+                                 @class = "form-ctrl",
+                                 rows = "4",
+                                 placeholder = "Briefly describe the reason for leave..."
+                             })
+                    @Html.ValidationMessageFor(m => m.Form.Reason, "",
+                             new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    &#10003;&nbsp;Submit Application
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-ghost">Cancel</a>
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@section scripts {
+    <script>
+(function () {
+
+    // ── Employee data map ─────────────────────────────────────────────────────
+    var empMap = {};
+    @foreach (var e in Model.Employees)
+    {
+        <text>empMap['@e.EmployeeId'] = { id: '@e.EmployeeId', code: '@e.EmployeeId',
+            name: '@Html.Raw(e.EmployeeName.Replace("'", "\\'"))',
+            dept: '@e.DepartmentName' };</text>
+    }
+
+    // ── Leave type half-day flag map ──────────────────────────────────────────
+    var ltHalfDay = {};
+    @foreach (var lt in Model.LeaveTypes)
+    {
+        <text>ltHalfDay["@lt.LeavetypeID"] = @lt.AllowHalfDay.ToString().ToLower();</text>
+    }
+
+    var currentAllowHalfDay = false;
+
+    // ── Employee dropdown → preview card ──────────────────────────────────────
+    var empDropdown = document.getElementById('empDropdown');
+    empDropdown.addEventListener('change', function () {
+        selectEmployee(this.value);   // string key — EmployeeId is a string
+    });
+
+    // ── Employee code search → map to dropdown ────────────────────────────────
+    var empCodeSearch = document.getElementById('empCodeSearch');
+    empCodeSearch.setAttribute('list', 'empList');
+    empCodeSearch.addEventListener('input', function () {
+        var val = this.value.trim().toUpperCase();
+        var opts = document.querySelectorAll('#empList option');
+        for (var i = 0; i < opts.length; i++) {
+            if (opts[i].value.toUpperCase() === val) {
+                var id = opts[i].getAttribute('data-id');   // keep as string
+                empDropdown.value = id;
+                selectEmployee(id);
+                break;
+            }
+        }
+    });
+
+    function selectEmployee(id) {
+        var emp = empMap[id];
+        if (!emp) {
+            document.getElementById('empPreview').classList.remove('show');
+            document.getElementById('employeeId').value = '';
+            return;
+        }
+        document.getElementById('employeeId').value = emp.id;
+        empCodeSearch.value = emp.code;
+
+        // Show preview card
+        var initials = emp.name.split(' ').map(function (w) {
+            return w[0];
+        }).slice(0, 2).join('');
+        document.getElementById('epAvatar').textContent = initials;
+        document.getElementById('epName').textContent   = emp.name;
+        document.getElementById('epMeta').textContent = emp.code + ' \u00B7 ' + emp.dept;
+        document.getElementById('empPreview').classList.add('show');
+    }
+
+    // ── Leave type change → update half-day pill state ────────────────────────
+    window.onLeaveTypeChange = function (sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) {
+            document.getElementById('ltInfo').style.display = 'none';
+            currentAllowHalfDay = false;
+            updateHalfDayPills();
+            return;
+        }
+        currentAllowHalfDay = (opt.getAttribute('data-halfday') === 'true');
+        var max  = opt.getAttribute('data-max');
+        var name = opt.getAttribute('data-name');
+
+        document.getElementById('ltInfo').style.display = 'block';
+        document.getElementById('ltInfoText').textContent =
+            name + ' \u00B7 ' +
+            (max === '0' ? 'Unlimited days per year' : 'Max ' + max + ' days per year') +
+            (currentAllowHalfDay ? ' · Half-day allowed' : ' · Full-day only');
+
+        updateHalfDayPills();
+        recalcDays();
+    };
+
+    // ── Enable / disable half-day pills based on leave type + date range ──────
+    function updateHalfDayPills() {
+        var from = document.getElementById('fromDate').value;
+        var to   = document.getElementById('toDate').value;
+        var singleDay = (from && to && from === to);
+        var canHalf   = currentAllowHalfDay && singleDay;
+
+        ['pill-first', 'pill-second'].forEach(function (id) {
+            var pill = document.getElementById(id);
+            if (canHalf) {
+                pill.style.opacity       = '1';
+                pill.style.pointerEvents = 'auto';
+            } else {
+                pill.style.opacity       = '0.4';
+                pill.style.pointerEvents = 'none';
+                // If a half-day is currently selected, revert to Full Day
+                var radio = pill.querySelector('input[type=radio]');
+                if (radio && radio.checked) {
+                    document.querySelector('input[value="FullDay"]').checked = true;
+                    onSessionChange(document.querySelector('input[value="FullDay"]'));
+                }
+            }
+        });
+
+        // Show notice when leave type disallows half-day
+        var notice = document.getElementById('halfdayNotice');
+        if (!currentAllowHalfDay && document.getElementById('leaveTypeId').value) {
+            notice.textContent = '\u26A0\uFE0F This leave type does not allow half-day applications.';
+            notice.classList.add('show');
+        } else if (currentAllowHalfDay && !singleDay) {
+            notice.textContent = '\u26A0\uFE0F Half-day is only available when From Date = To Date.';
+            notice.classList.add('show');
+        } else {
+            notice.classList.remove('show');
+        }
+    }
+
+    // ── Session pill active state ─────────────────────────────────────────────
+    window.onSessionChange = function (radio) {
+        document.querySelectorAll('.session-pill').forEach(function (p) {
+            p.classList.remove('active');
+        });
+        if (radio.parentElement) radio.parentElement.classList.add('active');
+        recalcDays();
+    };
+
+    // ── Recalculate days display ──────────────────────────────────────────────
+    window.recalcDays = function () {
+        var from = document.getElementById('fromDate').value;
+        var to   = document.getElementById('toDate').value;
+        if (!from || !to) {
+            document.getElementById('dayCount').style.display = 'none';
+            return;
+        }
+        var f = new Date(from), t = new Date(to);
+        if (t < f) {
+            document.getElementById('toDate').value = from;
+            t = new Date(from);
+        }
+        var days = Math.round((t - f) / (1000 * 60 * 60 * 24)) + 1;
+        var session = document.querySelector('input[name="Form.Session"]:checked');
+        var label = days + ' day' + (days !== 1 ? 's' : '');
+        if (session && days === 1 && session.value !== 'FullDay') {
+            label = '0.5 days';
+        }
+        var dc = document.getElementById('dayCount');
+        dc.style.display  = 'inline-block';
+        dc.textContent    = label;
+        updateHalfDayPills();
+    };
+
+    // Init
+    recalcDays();
+
+    // Wire date inputs
+    ['fromDate','toDate'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', function () {
+            recalcDays();
+        });
+    });
+
+}());
+    </script>
+}

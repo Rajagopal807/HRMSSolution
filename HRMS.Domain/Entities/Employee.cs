@@ -11,18 +11,20 @@ namespace HRMS.Domain.Entities
     {
         [Key] // Primary Key
         [DatabaseGenerated(DatabaseGeneratedOption.None)] //Important (no auto increment)
-        public string EmployeeId { get; set; } 
-
+        public String EmployeeId { get; set; } 
         public string EmployeeName { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
         public string DepartmentId { get; set; }
         public string DesignationId { get; set; }
         public DateTime DateOfJoining { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
+        public int Weekoff1 { get; set; }
+        public int Weekoff2 { get; set; }
+        public DateTime? DateofLeft { get; set; }
 
         // Navigation
         public virtual Department Department { get; set; }

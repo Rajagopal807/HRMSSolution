@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -43,6 +44,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\Dtos.cs" />
+    <Compile Include="DTOs\LeaveTypeMasterDto.cs" />
+    <Compile Include="Interfaces\ILeaveTypeMasterService.cs" />
     <Compile Include="Interfaces\IReportGenerator.cs" />
     <Compile Include="Interfaces\IServices.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -50,6 +53,7 @@
     <Compile Include="Services\DesignationService.cs" />
     <Compile Include="Services\EmployeeService.cs" />
     <Compile Include="Services\LeaveAndDashboardService.cs" />
+    <Compile Include="Services\LeaveTypeMasterService.cs" />
     <Compile Include="Services\SecureTokenService.cs" />
   </ItemGroup>
   <ItemGroup>

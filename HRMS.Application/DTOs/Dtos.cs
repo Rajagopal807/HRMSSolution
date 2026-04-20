@@ -12,13 +12,19 @@ namespace HRMS.Application.DTOs
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public DateTime JoiningDate { get; set; }
         public string DepartmentID { get; set; }
         public string DepartmentName { get; set; }
         public string DesignationID { get; set; }
         public string DesignationName { get; set; }
+        public int Weekoff1 { get; set; }
+        public string Weekoff1Name { get; set; }
+        public int Weekoff2 { get; set; }
+        public string Weekoff2Name { get; set; }
+        public DateTime? DateofLeft { get; set; }
         public string Status { get; set; }
+        public bool IsInactive { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -28,10 +34,15 @@ namespace HRMS.Application.DTOs
         public string EmployeeName { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public DateTime JoiningDate { get; set; }
         public string DepartmentID { get; set; }
         public string DesignationID { get; set; }
+        public int Weekoff1 { get; set; }
+        public int Weekoff2 { get; set; }
+        public bool IsInactive { get; set; }
+        public DateTime? DateOfLeft { get; set; }
+        public string Status { get; set; }
     }
 
     public class DepartmentDto

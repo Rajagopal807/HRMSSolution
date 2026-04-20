@@ -1,0 +1,219 @@
+@model HRMS.Application.DTOs.CreateLeaveTypeMasterDto
+@* TRUE PARTIAL — Layout = null is REQUIRED.
+   Without this, @Html.Partial() on a view that sets its own Layout
+   renders the full _Layout.cshtml a second time inside @RenderBody(). *@
+@{ Layout = null; }
+
+@{
+    bool   isEdit      = ViewBag.IsEdit != null && (bool)ViewBag.IsEdit;
+    string editId      = ViewBag.EditId != null ? ViewBag.EditId : "0";
+    string formAction  = isEdit ? "Edit" : "Create";
+    string submitLabel = isEdit ? "Save Changes" : "Create Leave Type";
+}
+
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index","LeaveTypeMaster")" class="btn btn-ghost btn-sm">
+        &#8592;&nbsp;Back
+    </a>
+</div>
+
+<div class="page-header">
+    <div>
+        <div class="page-title">@(isEdit ? "Edit Leave Type" : "Define Leave Type")</div>
+        <div class="page-sub">@(isEdit ? "Update the leave type configuration" : "Create a new configurable leave type")</div>
+    </div>
+</div>
+
+@using (Html.BeginForm(formAction, "LeaveTypeMaster",
+    isEdit ? (object)new { id = editId } : null,
+    FormMethod.Post, new { id = "ltForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;
+                max-width:860px;align-items:start;">
+
+        <!-- Left: Core fields -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Leave Type Details</div>
+                <div class="card-sub">Basic identification and limits</div>
+            </div>
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label class="form-label">Leave Type Name *</label>
+                    @Html.TextBoxFor(m => m.Name,
+                        new { @class = "form-ctrl", placeholder = "e.g. Annual Leave" })
+                    @Html.ValidationMessageFor(m => m.Name, "",
+                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Short Code *
+                        <span style="color:var(--muted);font-weight:400;font-size:11px;
+                                     text-transform:none;letter-spacing:0;">
+                            (2–6 chars, unique, auto-uppercased)
+                        </span>
+                    </label>
+                    @Html.TextBoxFor(m => m.Code,
+                        new { @class = "form-ctrl", placeholder = "e.g. AL",
+                              maxlength = "6", id = "codeField",
+                              style = "font-family:'DM Mono',monospace;letter-spacing:1px;" })
+                    <span id="codeStatus" style="font-size:11px;margin-top:3px;display:block;"></span>
+                    @Html.ValidationMessageFor(m => m.Code, "",
+                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Max Days per Year
+                        <span style="color:var(--muted);font-weight:400;font-size:11px;
+                                     text-transform:none;letter-spacing:0;">(0 = unlimited)</span>
+                    </label>
+                    @Html.TextBoxFor(m => m.MaxDaysPerYear,
+                        new { @class = "form-ctrl", type = "number", min = "0", max = "365" })
+                    @Html.ValidationMessageFor(m => m.MaxDaysPerYear, "",
+                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    @Html.TextAreaFor(m => m.Description,
+                        new { @class = "form-ctrl", rows = "3",
+                              placeholder = "Brief description shown to employees when applying..." })
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right: Toggles + Submit -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Options</div>
+                    <div class="card-sub">Behaviour settings for this leave type</div>
+                </div>
+                <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
+
+                    <!-- Allow Half Day -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;
+                                padding-bottom:14px;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight:500;font-size:14px;">Allow Half Day</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                                Employees can apply for First Half or Second Half
+                            </div>
+                        </div>
+                        <label class="toggle-wrap">
+                            @Html.CheckBoxFor(m => m.AllowHalfDay, new { @class = "toggle-input" })
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Carry Forward -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;
+                                padding-bottom:14px;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight:500;font-size:14px;">Carry Forward</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                                Unused balance carries over to the next year
+                            </div>
+                        </div>
+                        <label class="toggle-wrap">
+                            @Html.CheckBoxFor(m => m.IsCarryForward, new { @class = "toggle-input" })
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Active -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div style="font-weight:500;font-size:14px;">Active</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                                Inactive types are hidden from the Apply Leave screen
+                            </div>
+                        </div>
+                        <label class="toggle-wrap">
+                            @Html.CheckBoxFor(m => m.IsActive, new { @class = "toggle-input" })
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    &#10003;&nbsp;@submitLabel
+                </button>
+                <a href="@Url.Action("Index","LeaveTypeMaster")" class="btn btn-ghost">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+}
+
+<style>
+/* Toggle switch — defined here so it applies whether Create or Edit renders this partial */
+.toggle-wrap   { position:relative; display:inline-block; width:44px; height:24px; cursor:pointer; flex-shrink:0; }
+/* IMPORTANT: toggle-input must cover the full .toggle-wrap area so clicking
+   anywhere on the switch area fires the checkbox. opacity:0 hides it visually
+   but it remains interactive. z-index:1 keeps it above the slider. */
+.toggle-input  { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:1; }
+.toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:24px; transition:background .2s; pointer-events:none; }
+.toggle-slider::before {
+    content:''; position:absolute; width:18px; height:18px;
+    left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s;
+}
+/* Use ~ (general sibling) so the hidden checkbox input (generated by MVC's
+   Html.CheckBoxFor which emits TWO inputs) doesn't break the selector.
+   MVC emits: <input type="checkbox"> then <input type="hidden" value="false">
+   The ~ combinator matches .toggle-slider whether or not the hidden input
+   sits between the checkbox and the slider span. */
+.toggle-input:checked ~ .toggle-slider          { background:var(--accent); }
+.toggle-input:checked ~ .toggle-slider::before  { transform:translateX(20px); }
+</style>
+
+<script>
+(function () {
+    var codeField  = document.getElementById('codeField');
+    var codeStatus = document.getElementById('codeStatus');
+    // editId is always an integer (0 for create, numeric PK for edit).
+    // This is safe to inline directly from Razor because ViewBag.EditId
+    // is set explicitly by the controller action as (int)id.
+    var editId = @editId;
+    var timer;
+
+    if (!codeField) return;
+
+    codeField.addEventListener('input', function () {
+        var pos = this.selectionStart;
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        this.setSelectionRange(pos, pos);
+        clearTimeout(timer);
+        codeStatus.textContent = '';
+        if (this.value.length < 2) return;
+        timer = setTimeout(function () { checkCode(codeField.value); }, 400);
+    });
+
+    function checkCode(code) {
+        fetch('@Url.Action("CheckCode", "LeaveTypeMaster")'
+              + '?code=' + encodeURIComponent(code)
+              + '&excludeId=' + editId)
+            .then(function (r) { return r.json(); })
+            .then(function (isAvailable) {
+                codeStatus.style.color = isAvailable ? 'var(--accent2)' : '#fca5a5';
+                codeStatus.textContent = isAvailable ? '\u2713 Code is available'
+                                                     : '\u2717 Code already in use';
+            })
+            .catch(function () {});
+    }
+
+    @if (isEdit && Model != null && !string.IsNullOrEmpty(Model.Code))
+    {
+        <text>checkCode('@Model.Code');</text>
+    }
+}());
+</script>

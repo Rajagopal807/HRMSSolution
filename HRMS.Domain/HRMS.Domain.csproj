@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\LeaveApplication.cs" />
+    <Compile Include="Entities\LeaveTypeMaster.cs" />
     <Compile Include="Entities\Muster.cs" />
     <Compile Include="Entities\AuditLog.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
