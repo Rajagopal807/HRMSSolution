@@ -436,17 +436,26 @@ table.tbl {
     border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
+
 .badge-pending {
     background: #78350f33;
     color: #fbbf24;
     border: 1px solid #78350f;
 }
 
-.badge-approved {
+[data-theme="dark"] .badge-approved {
     background: #14532d33;
     color: var(--accent2);
     border: 1px solid #14532d;
 }
+
+[data-theme="light"] .badge-approved {
+    background: rgba(34, 197, 94, 0.12); /* soft green */
+    color: #15803d; /* readable green */
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+
 
 .badge-rejected {
     background: #7f1d1d33;

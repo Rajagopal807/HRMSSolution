@@ -283,6 +283,8 @@
     <Content Include="Views\LeaveApplication\Pending.cshtml" />
     <Content Include="Views\LeaveTypeMaster\Create.cshtml" />
     <Content Include="Views\LeaveTypeMaster\Edit.cshtml" />
+    <Content Include="Views\Shared\_LeaveTypeForm.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

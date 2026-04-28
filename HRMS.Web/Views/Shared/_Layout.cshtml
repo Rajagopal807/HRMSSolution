@@ -31,6 +31,9 @@
             </div>
             <div class="sb-section">
                 <div class="sb-section-label">Leave</div>
+                <a href="@Url.Action("Index","LeaveTypeMaster")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveTypeMaster"?"active":"")">
+                    <span class="sb-icon">&#9881;</span> Define Leave Types
+                </a>
                 <a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Leave"?"active":"")">
                     <span class="sb-icon">&#128197;</span> Leave
                 </a>
@@ -51,9 +54,6 @@
                     @*<a href="@Url.Action("Pending","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Pending"?"active":"")">
                         <span class="sb-icon">&#9200;</span> Pending Approvals
                     </a>*@
-                    <a href="@Url.Action("Index","LeaveTypeMaster")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveTypeMaster"?"active":"")">
-                        <span class="sb-icon">&#9881;</span> Define Leave Types
-                    </a>
                 </div>
             }
             <div class="sb-footer">

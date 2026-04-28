@@ -105,7 +105,7 @@ namespace HRMS.Application.Services
         public LeaveApplicationService(IUnitOfWork uow) { _uow = uow; }
 
         public IEnumerable<LeaveApplicationDto> GetAll()
-            => _uow.LeaveApplications.GetAll().Select(Map);
+            => _uow.LeaveApplications.GetAllLeaveApplication().Select(Map);
 
         public IEnumerable<LeaveApplicationDto> GetPending()
             => _uow.LeaveApplications.GetPending().Select(Map);

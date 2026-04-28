@@ -7,6 +7,7 @@ using HRMS.Web.App_Start;
 using HRMS.Infrastructure.Identity;
 using System.Web;
 using System;
+using System.IO;
 
 namespace HRMS.Web
 {
@@ -39,6 +40,11 @@ namespace HRMS.Web
             {
                 try
                 {
+                    Exception ex = Server.GetLastError();
+
+                    //  Log error and get reference ID
+                    string errorId = ErrorLogger.Log(ex);
+
                     // 1. Clear Session
                     context.Session?.Clear();
                     context.Session?.Abandon();
@@ -100,6 +106,21 @@ namespace HRMS.Web
                 context.Response.Clear();
                 context.Response.Redirect("~/Account/Login");
             }
+        }
+    }
+
+    public static class ErrorLogger
+    {
+        public static string Log(Exception ex)
+        {
+            string errorId = Guid.NewGuid().ToString();
+
+            string logPath = HttpContext.Current.Server.MapPath("~/App_Data/ErrorLog.txt");
+
+            File.AppendAllText(logPath,
+                $"ErrorId: {errorId}\nTime: {DateTime.Now}\nMessage: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n");
+
+            return errorId;
         }
     }
 }

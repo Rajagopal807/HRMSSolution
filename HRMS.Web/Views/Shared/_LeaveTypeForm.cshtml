@@ -46,7 +46,7 @@
                     @Html.TextBoxFor(m => m.Name,
                         new { @class = "form-ctrl", placeholder = "e.g. Annual Leave" })
                     @Html.ValidationMessageFor(m => m.Name, "",
-                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                        new { @class = "err-label" })
                 </div>
 
                 <div class="form-group">
@@ -63,7 +63,7 @@
                               style = "font-family:'DM Mono',monospace;letter-spacing:1px;" })
                     <span id="codeStatus" style="font-size:11px;margin-top:3px;display:block;"></span>
                     @Html.ValidationMessageFor(m => m.Code, "",
-                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                        new { @class = "err-label" })
                 </div>
 
                 <div class="form-group">
@@ -75,7 +75,7 @@
                     @Html.TextBoxFor(m => m.MaxDaysPerYear,
                         new { @class = "form-ctrl", type = "number", min = "0", max = "365" })
                     @Html.ValidationMessageFor(m => m.MaxDaysPerYear, "",
-                        new { style = "color:#fca5a5;font-size:11px;display:block;margin-top:3px;" })
+                        new { @class = "err-label" })
                 </div>
 
                 <div class="form-group">

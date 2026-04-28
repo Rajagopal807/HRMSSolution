@@ -235,7 +235,7 @@ namespace HRMS.Infrastructure.Reports
     {
         public LeaveApplicationRepository(ApplicationDbContext ctx) : base(ctx) { }
 
-        public IEnumerable<LeaveApplication> GetAll()
+        public IEnumerable<LeaveApplication> GetAllLeaveApplication()
             => _ctx.LeaveApplications
                    .Include(a => a.Employee)
                    .Include(a => a.LeaveTypeMaster)
