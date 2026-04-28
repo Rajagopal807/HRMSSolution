@@ -69,6 +69,47 @@ namespace HRMS.Infrastructure.Data
                 .IsRequired()
                 .HasMaxLength(2);
 
+            modelBuilder.Entity<LeaveApplication>()
+                .HasKey(a => a.ApplicationId)
+                .Map(m => m.ToTable("TblLeaveApplications"));
+
+            // ApplicationId  → IDENTITY (the real auto-increment PK)
+            modelBuilder.Entity<LeaveApplication>()
+                .Property(a => a.ApplicationId)
+                .HasDatabaseGeneratedOption(
+                    System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity);
+
+            // Id (from BaseEntity) → NOT identity for this table — avoids the
+            // "Multiple identity columns" SQL Server error.
+            modelBuilder.Entity<LeaveApplication>()
+                .Property(a => a.Id)
+                .HasDatabaseGeneratedOption(
+                    System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+
+            // Required fields
+            modelBuilder.Entity<LeaveApplication>()
+                .Property(a => a.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(11);
+
+            modelBuilder.Entity<LeaveApplication>()
+                .Property(a => a.LeaveTypeMasterId)
+                .IsRequired()
+                .HasMaxLength(2);
+
+            // ==============================
+            // CORRECT UNIQUE INDEX
+            // ==============================
+            modelBuilder.Entity<LeaveApplication>()
+                .HasIndex(a => new
+                {
+                    a.EmployeeId,
+                    a.FromDate,
+                    a.Session,
+                    a.IsDeleted
+                })
+                .IsUnique();
+
             base.OnModelCreating(modelBuilder);
         }
     }

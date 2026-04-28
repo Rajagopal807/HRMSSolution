@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using HRMS.Domain.Entities;
+﻿using HRMS.Domain.Entities;
 using HRMS.Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HRMS.Application.DTOs
 {
@@ -336,5 +337,104 @@ namespace HRMS.Application.DTOs
             //"Leave Summary",
             //"Payroll Summary"
         };
+    }
+
+    // ── Attendance Transaction (daily summary row in Image 1 grid) ─────────────
+
+    /// <summary>
+    /// One row in the Attendance Transactions grid — computed from ManualPunch records.
+    /// </summary>
+    public class AttendanceTransactionRowDto
+    {
+        public string EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public DateTime Date { get; set; }
+
+        // Computed from punches
+        public TimeSpan? FirstIn { get; set; }
+        public TimeSpan? LastOut { get; set; }
+        public string Shift { get; set; } = "GEN";  // General shift default
+        public string AttId { get; set; } = "P";    // P=Present, A=Absent, WO=WeekOff, H=Holiday
+        public TimeSpan TotalHrs { get; set; }
+        public TimeSpan Worked { get; set; }
+        public TimeSpan Extra { get; set; }            // overtime / extra time
+        public TimeSpan Late { get; set; }            // late arrival duration
+        public TimeSpan Early { get; set; }            // early departure duration
+        public string OutPass { get; set; }            // out-pass if any
+        public int PunchCount { get; set; }            // total punch count
+        public TimeSpan OT { get; set; }            // official overtime
+
+        // Display helpers
+        public string FirstInDisplay => FirstIn.HasValue ? FirstIn.Value.ToString(@"hh\:mm") : "--:--";
+        public string LastOutDisplay => LastOut.HasValue ? LastOut.Value.ToString(@"hh\:mm") : "--:--";
+        public string TotalHrsDisplay => TotalHrs == TimeSpan.Zero ? "--:--" : TotalHrs.ToString(@"hh\:mm");
+        public string WorkedDisplay => Worked == TimeSpan.Zero ? "--:--" : Worked.ToString(@"hh\:mm");
+        public string ExtraDisplay => Extra == TimeSpan.Zero ? "00:00" : Extra.ToString(@"hh\:mm");
+        public string LateDisplay => Late == TimeSpan.Zero ? "00:00" : Late.ToString(@"hh\:mm");
+        public string EarlyDisplay => Early == TimeSpan.Zero ? "00:00" : Early.ToString(@"hh\:mm");
+        public string OTDisplay => OT == TimeSpan.Zero ? "00:00" : OT.ToString(@"hh\:mm");
+    }
+
+    /// <summary>Everything the Attendance Transactions screen needs to render.</summary>
+    public class AttendanceTransactionScreenDto
+    {
+        public List<EmployeeDto> Employees { get; set; } = new List<EmployeeDto>();
+        public string SelectedEmpId { get; set; }
+        public string SelectedEmpName { get; set; }
+        public int SelectedMonth { get; set; } = DateTime.Now.Month;
+        public int SelectedYear { get; set; } = DateTime.Now.Year;
+        public List<AttendanceTransactionRowDto> Rows { get; set; } = new List<AttendanceTransactionRowDto>();
+        public bool HasResult { get; set; } = false;
+    }
+
+    // ── Manual Punch (Image 2 — the edit punches detail screen) ───────────────
+
+    public class ManualPunchDto
+    {
+        public int Id { get; set; }
+        public string EmployeeId { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public string PunchedTimeDisplay => PunchedTime.ToString(@"hh\:mm");
+        public TimeSpan PunchedTime { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string TransTimeDisplay => TransTime.HasValue ? TransTime.Value.ToString(@"hh\:mm") : "";
+        public TimeSpan? TransTime { get; set; }
+        public string IOFlag { get; set; }   // "In" or "Out"
+        public bool IsDeleted { get; set; }
+        public string Remarks { get; set; }
+        public string BranchNo { get; set; }
+    }
+
+    public class SaveManualPunchDto
+    {
+        [Required]
+        public string EmployeeId { get; set; }
+
+        [Required]
+        public DateTime AttendanceDate { get; set; }
+
+        [Required]
+        public string PunchedTimeStr { get; set; }   // "HH:mm" from UI
+
+        public string TransDateStr { get; set; }   // optional, defaults to now
+        public string IOFlag { get; set; } = "In";
+        public bool IsDeleted { get; set; } = false;
+
+        [StringLength(200)]
+        public string Remarks { get; set; }
+
+        [StringLength(10)]
+        public string BranchNo { get; set; }
+    }
+
+    /// <summary>Everything the Edit Punches screen needs to render.</summary>
+    public class EditPunchesScreenDto
+    {
+        public string EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public string StatusMessage { get; set; }
+        public List<ManualPunchDto> Punches { get; set; } = new List<ManualPunchDto>();
+        public SaveManualPunchDto Form { get; set; } = new SaveManualPunchDto();
     }
 }

@@ -39,6 +39,7 @@ namespace HRMS.Application.DTOs
 
     public class LeaveApplicationDto
     {
+        public int ApplicationId { get; set; }
         public string EmployeeId { get; set; }
         public string EmployeeName { get; set; }
         public string Department { get; set; }
@@ -57,6 +58,8 @@ namespace HRMS.Application.DTOs
 
     public class ApplyLeaveDto
     {
+        public int ApplicationId { get; set; }
+
         [Required(ErrorMessage = "EmployeeId is required.")]
         public string EmployeeId { get; set; }
 

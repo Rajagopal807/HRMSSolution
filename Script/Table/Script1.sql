@@ -54,9 +54,15 @@ INSERT INTO TblshiftDetails values ('AG', 7, '1899-12-30 09:00:00.000', '1899-12
 
 ---------------Delete Below---------------------------
 SELECt * FROM TblDailyTransactions WHERE AttendanceDate is NULL;
-DELETE FROM TblDailyTransactions WHERE AttendanceDate is NULL;
+---DELETE FROM TblDailyTransactions WHERE AttendanceDate is NULL;
 SELECT * FROM TblMuster WHERE  TDate between '04/01/2026' and '04/30/2026';
-DELETE FROM TblMuster WHERE  TDate>='03/01/2026';
+SELECT * FROM tblErrorDisplay
+--DELETE FROM TblMuster WHERE  TDate>='03/01/2026';
+TRUNCATE TABLE TblLeaveApplications
+    SELECT * FROM    TblLeaveApplications
+    WHERE   EmployeeId  = RTRIM(LTRIM('00000011255'))
+      AND   FromDate   = CONVERT(DATETIME, '04/27/2026', 101)
+      AND   IsDeleted     = 0 ;
 SELECT * FROM Tblshifts;
 SELECT * FROM TblshiftDetails;
 

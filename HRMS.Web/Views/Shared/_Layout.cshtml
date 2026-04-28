@@ -28,18 +28,18 @@
                 <a href="@Url.Action("Index","Employee")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Employee"?"active":"")">
                     <span class="sb-icon">&#128100;</span> Employees
                 </a>
-                <a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Leave"?"active":"")">
-                    <span class="sb-icon">&#128197;</span> Leave
-                </a>
             </div>
             <div class="sb-section">
                 <div class="sb-section-label">Leave</div>
+                <a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Leave"?"active":"")">
+                    <span class="sb-icon">&#128197;</span> Leave
+                </a>
                 <a href="@Url.Action("Apply","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Apply"?"active":"")">
                     <span class="sb-icon">&#128203;</span> Apply Leave
                 </a>
-                <a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Index"?"active":"")">
-                    <span class="sb-icon">&#128197;</span> My Applications
-                </a>
+                @*<a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Index"?"active":"")">
+            <span class="sb-icon">&#128197;</span> My Applications
+        </a>*@
             </div>
             @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
             {
@@ -48,14 +48,11 @@
                     <a href="@Url.Action("Index","ReportScreen")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Report"?"active":"")">
                         <span class="sb-icon">&#128196;</span> Reports
                     </a>
-                    <a href="@Url.Action("Pending","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Pending"?"active":"")">
+                    @*<a href="@Url.Action("Pending","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Pending"?"active":"")">
                         <span class="sb-icon">&#9200;</span> Pending Approvals
-                    </a>
+                    </a>*@
                     <a href="@Url.Action("Index","LeaveTypeMaster")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveTypeMaster"?"active":"")">
                         <span class="sb-icon">&#9881;</span> Define Leave Types
-                    </a>
-                    <a href="@Url.Action("Index","ReportScreen")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="ReportScreen"?"active":"")">
-                        <span class="sb-icon">&#128196;</span> Reports
                     </a>
                 </div>
             }

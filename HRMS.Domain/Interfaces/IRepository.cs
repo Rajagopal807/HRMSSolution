@@ -51,14 +51,16 @@ namespace HRMS.Domain.Interfaces
         bool CodeExists(string code, string excludeId = "0");
         LeaveTypeMaster GetByLeaveTypeID(string leaveTypeID);
         void DeleteLeaveTypeID(string leaveTypeID);
+
     }
 
     public interface ILeaveApplicationRepository : IRepository<LeaveApplication>
     {
         IEnumerable<LeaveApplication> GetByEmployee(string employeeId);
         IEnumerable<LeaveApplication> GetPending();
-        IEnumerable<LeaveApplication> GetAll();
-        LeaveApplication GetByLeaveTypeID(string leaveTypeID);
+        LeaveApplication GetByApplicationId(int applicationId);
+        void DeleteLeaveApplicationID(int applicationId);
+        void CallCreateMusterSP(string employeeId, DateTime fromDate);
     }
 
     public interface IAuditService
@@ -78,6 +80,35 @@ namespace HRMS.Domain.Interfaces
         IEnumerable<Muster> GetByEmployee(string employeeId, DateTime from, DateTime to);
     }
 
+    public interface IDailyTransactionRepository
+    {
+        /// <summary>
+        /// Returns all daily transaction rows for one employee for the given month/year.
+        /// Used to populate the Attendance Transactions grid.
+        /// </summary>
+        IEnumerable<DailyTransactions> GetByEmployeeMonth(
+            string employeeId, int month, int year);
+
+        DailyTransactions GetByEmployeeDate(string employeeId, DateTime date);
+
+        void Add(DailyTransactions entity);
+        void Update(DailyTransactions entity);
+        int SaveChanges();
+    }
+
+
+    public interface IManualPunchRepository : IRepository<DailyTransactions>
+    {
+        IEnumerable<DailyTransactions> GetByEmployeeAndMonth(string employeeId, int month, int year);
+        IEnumerable<DailyTransactions> GetByEmployeeAndDate(string employeeId, DateTime date);
+
+        DailyTransactions GetByEmployeID(string empID);
+        void AddPunch(DailyTransactions punch);
+        void UpdatePunch(DailyTransactions punch);
+        void DeletePunch(string id);          // hard delete for punches
+        int SaveChanges();
+    }
+
     public interface IUnitOfWork : IDisposable
     {
         IEmployeeRepository Employees { get; }
@@ -87,6 +118,7 @@ namespace HRMS.Domain.Interfaces
         ILeaveApplicationRepository LeaveApplications { get; }
         IAuditService Log { get; }
         IAttendanceRepository Attendace { get; }
+        IManualPunchRepository ManualPunches { get; }
         int SaveChanges();
     }
 }

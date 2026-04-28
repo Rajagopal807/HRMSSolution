@@ -22,11 +22,12 @@ namespace HRMS.Domain.Entities
     public class LeaveApplication : BaseEntity
     {
         [Key, Column(Order = 0)]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)] //Important (no auto increment)
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] //Important (auto increment)
+        public int ApplicationId { get; set; } // Primary key (auto-increment)
+
         [StringLength(11)]
         public string EmployeeId { get; set; }
         public string LeaveTypeMasterId { get; set; }
-
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
         public LeaveSession Session { get; set; } = LeaveSession.FullDay;

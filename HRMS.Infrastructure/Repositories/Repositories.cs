@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Web;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Enums;
 using HRMS.Domain.Interfaces;
 using HRMS.Infrastructure.Data;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Web;
 
 namespace HRMS.Infrastructure.Reports
 {
@@ -197,8 +198,7 @@ namespace HRMS.Infrastructure.Reports
     }
 
     // ── Leave Type Master Repository ──────────────────────────────────────────
-    public class LeaveTypeMasterRepository
-        : Repository<LeaveTypeMaster>, ILeaveTypeMasterRepository
+    public class LeaveTypeMasterRepository : Repository<LeaveTypeMaster>, ILeaveTypeMasterRepository
     {
         public LeaveTypeMasterRepository(ApplicationDbContext ctx) : base(ctx) { }
 
@@ -231,36 +231,62 @@ namespace HRMS.Infrastructure.Reports
     }
 
     // ── Leave Application Repository ──────────────────────────────────────────
-    public class LeaveApplicationRepository
-        : Repository<LeaveApplication>, ILeaveApplicationRepository
+    public class LeaveApplicationRepository : Repository<LeaveApplication>, ILeaveApplicationRepository
     {
         public LeaveApplicationRepository(ApplicationDbContext ctx) : base(ctx) { }
 
-        public IEnumerable<LeaveApplication> GetByEmployee(string employeeId)
-            => _set.Include(l => l.Employee)
-                   .Include(l => l.LeaveTypeMaster)
-                   .Where(l => !l.IsDeleted && l.EmployeeId == employeeId)
-                   .OrderByDescending(l => l.CreatedAt)
+        public IEnumerable<LeaveApplication> GetAll()
+            => _ctx.LeaveApplications
+                   .Include(a => a.Employee)
+                   .Include(a => a.LeaveTypeMaster)
+                   .Where(a => a.IsDeleted == false)
+                   .OrderByDescending(a => a.ApplicationId)
                    .ToList();
 
         public IEnumerable<LeaveApplication> GetPending()
-            => _set.Include(l => l.Employee)
-                   .Include(l => l.LeaveTypeMaster)
-                   .Where(l => !l.IsDeleted && l.Status == LeaveStatus.Pending)
-                   .OrderBy(l => l.CreatedAt)
+            => _ctx.LeaveApplications
+                   .Include(a => a.Employee)
+                   .Include(a => a.LeaveTypeMaster)
+                   .Where(a => a.Status == LeaveStatus.Pending)
+                   .OrderBy(a => a.ApplicationId)
                    .ToList();
 
-        public IEnumerable<LeaveApplication> GetAll()
-            => _set.Include(l => l.Employee)
-                   .Include(l => l.LeaveTypeMaster)
-                   .Where(l => !l.IsDeleted)
-                   .OrderByDescending(l => l.CreatedAt)
+        public IEnumerable<LeaveApplication> GetByEmployee(string employeeId)
+            => _ctx.LeaveApplications
+                   .Include(a => a.Employee)
+                   .Include(a => a.LeaveTypeMaster)
+                   .Where(a => a.EmployeeId == employeeId)
+                   .OrderByDescending(a => a.ApplicationId)
                    .ToList();
 
-        public LeaveApplication GetByLeaveTypeID(string leaveTypeID)
-            => _set.Include(l => l.Employee)
-                   .Include(l => l.LeaveTypeMaster)
-                   .FirstOrDefault(l => !l.IsDeleted && l.Id.ToString() == leaveTypeID);
+        public LeaveApplication GetByApplicationId(int applicationId)
+            => _ctx.LeaveApplications
+                   .Include(a => a.Employee)
+                   .Include(a => a.LeaveTypeMaster)
+                   .FirstOrDefault(a => a.ApplicationId == applicationId);
+
+        public void DeleteLeaveApplicationID(int applicationId)
+        {
+            var entity = GetByApplicationId(applicationId);
+            if (entity != null)
+            {
+                entity.IsDeleted = true;
+                entity.UpdatedAt = DateTime.UtcNow;
+                Update(entity);
+            }
+        }
+
+        public void CallCreateMusterSP(string employeeId, DateTime fromDate)
+        {
+            var empParam = new SqlParameter("@empid", employeeId ?? "");
+            var dateParam = new SqlParameter("@fromDate", fromDate);
+
+            _ctx.Database.ExecuteSqlCommand(
+                "EXEC CreateMusterServiceProc @fromDate, @empid",
+                dateParam,
+                empParam
+            );
+        }
     }
 
     // ─── Unit of Work ─────────────────────────────────────────────────────────

@@ -56,6 +56,8 @@ namespace HRMS.Web.Controllers
                 return View(screen);
             }
 
+            
+
             TempData["Success"] = "Leave application submitted successfully.";
             return RedirectToAction("Index");
         }
@@ -71,7 +73,7 @@ namespace HRMS.Web.Controllers
         // POST: /LeaveApplication/Approve/5
         [HttpPost, ValidateAntiForgeryToken]
         [RoleAuthorize("Admin", "HRManager")]
-        public ActionResult Approve(string id, string reviewNotes)
+        public ActionResult Approve(int id, string reviewNotes)
         {
             _appService.Approve(id, User.Identity.Name, reviewNotes ?? "Approved");
             TempData["Success"] = "Leave application approved.";
@@ -81,11 +83,65 @@ namespace HRMS.Web.Controllers
         // POST: /LeaveApplication/Reject/5
         [HttpPost, ValidateAntiForgeryToken]
         [RoleAuthorize("Admin", "HRManager")]
-        public ActionResult Reject(string id, string reviewNotes)
+        public ActionResult Reject(int id, string reviewNotes)
         {
             _appService.Reject(id, User.Identity.Name, reviewNotes ?? "Rejected");
             TempData["Info"] = "Leave application rejected.";
             return RedirectToAction("Pending");
+        }
+
+        public ActionResult Edit(int id)
+        {
+            var data = _appService.GetByApplicationId(id); // you need this method in service
+
+            if (data == null)
+                return HttpNotFound();
+
+            var screen = _appService.GetApplyScreen();
+            ApplyLeaveDto applyLeaveDto = new ApplyLeaveDto();
+            applyLeaveDto.ApplicationId = data.ApplicationId;
+            applyLeaveDto.EmployeeId = data.EmployeeId;
+            applyLeaveDto.LeaveTypeMasterId = data.LeaveTypeMasterId;
+            applyLeaveDto.FromDate = data.FromDate;
+            applyLeaveDto.ToDate = data.ToDate;
+            applyLeaveDto.Session = data.Session;
+            applyLeaveDto.Reason = data.Reason;
+            screen.Form = applyLeaveDto;
+
+            return View("Apply", screen); // reuse Apply screen
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Prefix = "Form")] ApplyLeaveDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var screen = _appService.GetApplyScreen();
+                screen.Form = dto;
+                return View("Apply", screen);
+            }
+
+            var error = _appService.Update(dto, User.Identity.Name);
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                ModelState.AddModelError("", error);
+                var screen = _appService.GetApplyScreen();
+                screen.Form = dto;
+                return View("Apply", screen);
+            }
+
+            TempData["Success"] = "Leave updated successfully.";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            _appService.Delete(id, User.Identity.Name);
+
+            TempData["Success"] = "Leave deleted successfully.";
+            return RedirectToAction("Index");
         }
 
         // GET: /LeaveApplication/GetLeaveTypeInfo?id=1  (AJAX — returns AllowHalfDay)

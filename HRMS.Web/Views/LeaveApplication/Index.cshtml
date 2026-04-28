@@ -1,32 +1,58 @@
 @model IEnumerable<HRMS.Application.DTOs.LeaveApplicationDto>
+@using System.Linq
 @{
     ViewBag.Title = "Leave Applications";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int total = Model.Count();
+    int pending = Model.Count(a => a.Status == "Pending");
+    int approved = Model.Count(a => a.Status == "Approved");
+    int rejected = Model.Count(a => a.Status == "Rejected");
 }
 
 <div class="page-header">
     <div>
         <div class="page-title">Leave Applications</div>
-        <div class="page-sub">@Model.Count() records</div>
+        <div class="page-sub">@total records</div>
     </div>
     <div style="display:flex;gap:8px;">
-        @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+        @*@if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
         {
             <a href="@Url.Action("Pending")" class="btn btn-ghost">
-                &#9200;&nbsp;Pending Approvals
+                &#9200;&nbsp;Pending (@pending)
             </a>
-        }
+        }*@
         <a href="@Url.Action("Apply")" class="btn btn-primary">
             + Apply for Leave
         </a>
     </div>
 </div>
 
+<!-- Summary pills -->
+@*@if (total > 0)
+{
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+        <span style="padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;
+                     background:rgba(245,158,66,.12);color:#f59e42;border:1px solid rgba(245,158,66,.25);">
+            &#9200; @pending Pending
+        </span>
+        <span style="padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;
+                     background:rgba(52,211,153,.12);color:var(--accent2);border:1px solid rgba(52,211,153,.25);">
+            &#10003; @approved Approved
+        </span>
+        <span style="padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;
+                     background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25);">
+            &#10007; @rejected Rejected
+        </span>
+    </div>
+}*@
+
 <div class="card">
     <div class="tbl-wrap">
         <table class="tbl">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>Employee</th>
                     <th>Leave Type</th>
                     <th>From</th>
@@ -36,16 +62,20 @@
                     <th>Reason</th>
                     <th>Applied On</th>
                     <th>Status</th>
+                    <th style="width:130px;"></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="9" style="text-align:center;padding:48px;color:var(--muted);">
+                        <td colspan="10" style="text-align:center;padding:48px;color:var(--muted);">
                             <div style="font-size:32px;margin-bottom:10px;opacity:.4;">&#128197;</div>
-                            <div style="font-weight:600;margin-bottom:4px;">No leave applications found</div>
-                            <a href="@Url.Action("Apply")" style="font-size:13px;color:var(--accent);">
+                            <div style="font-weight:600;margin-bottom:4px;color:var(--text);">
+                                No leave applications found
+                            </div>
+                            <a href="@Url.Action("Apply")"
+                               style="font-size:13px;color:var(--accent);">
                                 Apply for Leave
                             </a>
                         </td>
@@ -53,14 +83,25 @@
                 }
                 @foreach (var a in Model)
                 {
+                    string sessionLabel = a.Session == "FirstHalf" ? "First Half" :
+                                         a.Session == "SecondHalf" ? "Second Half" : "Full Day";
+                    string sessionIcon = a.Session == "FirstHalf" ? "&#9728;" :
+                                         a.Session == "SecondHalf" ? "&#9790;" : "&#11835;";
                     <tr>
-                        <td>
-                            <div style="font-weight:500;color:var(--text);">@a.EmployeeName</div>
-                            <div style="font-size:11px;color:var(--muted);" class="mono">@a.EmployeeId</div>
+                        <td class="mono" style="color:var(--muted);font-size:12px;">
+                            #@a.ApplicationId
                         </td>
                         <td>
-                            <span class="dept-badge">@a.LeaveTypeCode</span>
-                            <span style="font-size:12px;color:var(--muted);margin-left:5px;">@a.LeaveTypeName</span>
+                            <div style="font-weight:500;color:var(--text);">@a.EmployeeName</div>
+                            <div class="mono" style="font-size:11px;color:var(--muted);">
+                                @a.EmployeeId
+                            </div>
+                        </td>
+                        <td>
+                            <span class="dept-badge">@a.LeaveTypeMasterId</span>
+                            <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                                @a.LeaveTypeName
+                            </div>
                         </td>
                         <td class="mono" style="font-size:12px;white-space:nowrap;">
                             @a.FromDate.ToString("dd MMM yyyy")
@@ -68,16 +109,8 @@
                         <td class="mono" style="font-size:12px;white-space:nowrap;">
                             @a.ToDate.ToString("dd MMM yyyy")
                         </td>
-                        <td>
-                            @{
-                                string sessionIcon = a.Session == "FirstHalf"  ? "&#9728;" :
-                                                     a.Session == "SecondHalf" ? "&#9790;" : "&#11835;";
-                                string sessionLabel = a.Session == "FirstHalf"  ? "First Half"  :
-                                                      a.Session == "SecondHalf" ? "Second Half" : "Full Day";
-                            }
-                            <span style="font-size:12px;">
-                                @Html.Raw(sessionIcon) @sessionLabel
-                            </span>
+                        <td style="font-size:12px;white-space:nowrap;">
+                            @Html.Raw(sessionIcon)&nbsp;@sessionLabel
                         </td>
                         <td class="mono" style="text-align:center;font-weight:600;">
                             @a.TotalDays
@@ -92,6 +125,20 @@
                         </td>
                         <td>
                             <span class="badge badge-@a.Status.ToLower()">@a.Status</span>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px;">
+                                @Html.ActionLink("Edit", "Edit", new { id = a.ApplicationId }, new { @class = "btn btn-sm btn-primary" })
+
+                                @using (Html.BeginForm("Delete", "LeaveApplication", new { id = a.ApplicationId }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Are you sure you want to delete this leave?');">
+                                        Delete
+                                    </button>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }

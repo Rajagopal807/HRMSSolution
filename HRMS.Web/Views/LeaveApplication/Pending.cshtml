@@ -7,9 +7,11 @@
 <div class="page-header">
     <div>
         <div class="page-title">Pending Approvals</div>
-        <div class="page-sub">@Model.Count() leave applications awaiting action</div>
+        <div class="page-sub">@Model.Count() applications awaiting action</div>
     </div>
-    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">All Applications</a>
+    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">
+        All Applications
+    </a>
 </div>
 
 <div class="card">
@@ -17,6 +19,7 @@
         <table class="tbl">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>Employee</th>
                     <th>Dept</th>
                     <th>Leave Type</th>
@@ -25,67 +28,86 @@
                     <th>Session</th>
                     <th style="text-align:center;">Days</th>
                     <th>Reason</th>
-                    <th>Applied</th>
-                    <th style="width:170px;">Action</th>
+                    <th>Applied On</th>
+                    <th style="width:190px;">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="10" style="text-align:center;padding:48px;color:var(--muted);">
+                        <td colspan="11" style="text-align:center;padding:52px;color:var(--muted);">
                             <div style="font-size:36px;margin-bottom:10px;opacity:.5;">&#10003;</div>
-                            <div style="font-weight:600;color:var(--text);margin-bottom:4px;">All caught up!</div>
+                            <div style="font-weight:600;color:var(--text);margin-bottom:4px;">
+                                All caught up!
+                            </div>
                             <div style="font-size:12px;">No pending leave applications.</div>
                         </td>
                     </tr>
                 }
                 @foreach (var a in Model)
                 {
-                    string sessionLabel = a.Session == "FirstHalf"  ? "First Half"  :
+                    string sessionLabel = a.Session == "FirstHalf" ? "First Half" :
                                          a.Session == "SecondHalf" ? "Second Half" : "Full Day";
                     <tr>
+                        <td class="mono" style="color:var(--muted);font-size:12px;">
+                            #@a.ApplicationId
+                        </td>
                         <td>
                             <div style="font-weight:500;">@a.EmployeeName</div>
-                            <div class="mono" style="font-size:11px;color:var(--muted);">@a.EmployeeId</div>
+                            <div class="mono" style="font-size:11px;color:var(--muted);">
+                                @a.EmployeeId
+                            </div>
                         </td>
-                        <td><span class="dept-badge">@a.Department</span></td>
                         <td>
-                            <span class="dept-badge">@a.LeaveTypeCode</span>
-                            <div style="font-size:11px;color:var(--muted);margin-top:2px;">@a.LeaveTypeName</div>
+                            <span class="dept-badge">@a.Department</span>
                         </td>
-                        <td class="mono" style="font-size:12px;white-space:nowrap;">@a.FromDate.ToString("dd MMM yyyy")</td>
-                        <td class="mono" style="font-size:12px;white-space:nowrap;">@a.ToDate.ToString("dd MMM yyyy")</td>
-                        <td style="font-size:12px;">@sessionLabel</td>
-                        <td class="mono" style="text-align:center;font-weight:600;color:var(--accent3);">@a.TotalDays</td>
+                        <td>
+                            <span class="dept-badge">@a.LeaveTypeMasterId</span>
+                            <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                                @a.LeaveTypeName
+                            </div>
+                        </td>
+                        <td class="mono" style="font-size:12px;white-space:nowrap;">
+                            @a.FromDate.ToString("dd MMM yyyy")
+                        </td>
+                        <td class="mono" style="font-size:12px;white-space:nowrap;">
+                            @a.ToDate.ToString("dd MMM yyyy")
+                        </td>
+                        <td style="font-size:12px;white-space:nowrap;">@sessionLabel</td>
+                        <td class="mono" style="text-align:center;font-weight:600;
+                                                color:var(--accent3);">
+                            @a.TotalDays
+                        </td>
                         <td style="font-size:12px;color:var(--muted);max-width:140px;
                                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                            title="@a.Reason">@a.Reason</td>
+                            title="@a.Reason">
+                            @a.Reason
+                        </td>
                         <td style="font-size:12px;color:var(--muted);white-space:nowrap;">
                             @a.CreatedAt.ToString("dd MMM yyyy")
                         </td>
                         <td>
-                            <div style="display:flex;gap:6px;">
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <!-- Approve -->
                                 @using (Html.BeginForm("Approve", "LeaveApplication",
-                                    new { id = a.EmployeeId }, FormMethod.Post))
+                                    new { id = a.ApplicationId }, FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="reviewNotes" value="Approved" />
-                                    <button type="submit" class="btn btn-success btn-sm"
-                                            title="Approve">
+                                    <button type="submit" class="btn btn-success btn-sm">
                                         &#10003; Approve
                                     </button>
                                 }
                                 <!-- Reject -->
                                 @using (Html.BeginForm("Reject", "LeaveApplication",
-                                    new { id = a.EmployeeId }, FormMethod.Post))
+                                    new { id = a.ApplicationId }, FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="reviewNotes" value="Rejected by manager" />
+                                    <input type="hidden" name="reviewNotes"
+                                           value="Rejected by manager" />
                                     <button type="submit" class="btn btn-danger btn-sm"
-                                            title="Reject"
-                                            onclick="return confirm('Reject leave for @a.EmployeeName?')">
+                                            onclick="return confirm('Reject leave for @Html.Raw(a.EmployeeName.Replace("'", "\\'"))?')">
                                         &#10007; Reject
                                     </button>
                                 }
