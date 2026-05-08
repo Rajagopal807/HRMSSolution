@@ -78,7 +78,9 @@ namespace HRMS.Application.Services
                 DesignationId = dto.DesignationID,
                 Status = EmployeeStatus.Active,
                 Weekoff1 = dto.Weekoff1,
-                Weekoff2= dto.Weekoff2,
+                Weekoff2 = dto.Weekoff2,
+                Gender = dto.Gender,
+                MaritalStatus = dto.MaritalStatus,
                 CreatedAt = DateTime.UtcNow
             };
             _uow.Employees.Add(emp);
@@ -98,6 +100,8 @@ namespace HRMS.Application.Services
             emp.DesignationId = dto.DesignationID;
             emp.Weekoff1 = dto.Weekoff1;
             emp.Weekoff2 = dto.Weekoff2;
+            emp.Gender = dto.Gender;
+            emp.MaritalStatus = dto.MaritalStatus;
             if(dto.IsInactive == true && emp.IsActive == true)
             {
                 emp.Status = EmployeeStatus.Inactive;
@@ -180,6 +184,9 @@ namespace HRMS.Application.Services
             employeeDto.CreatedAt = emp.CreatedAt;
             employeeDto.IsInactive = !emp.IsActive;
             employeeDto.DateofLeft = emp.DateofLeft;
+            employeeDto.Gender = emp.Gender;
+            employeeDto.MaritalStatus = emp.MaritalStatus;
+            employeeDto.BloodGroup = emp.BloodGroup;
             return employeeDto;
         }
 

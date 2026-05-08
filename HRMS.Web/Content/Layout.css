@@ -14,6 +14,11 @@
     --popup-subtext: #9ca3af;
     --popup-border: #2a2f3a;
     --popup-overlay: rgba(0, 0, 0, 0.6);
+    --male-color: #60a5fa;
+    --male-bg: rgba(96,165,250,.25);
+    --female-color: #f472b6;
+    --female-bg: rgba(244,114,182,.25);
+    --toggle-default: rgba(255,255,255,.2);
 }
 
 [data-theme="light"] {
@@ -28,6 +33,11 @@
     --popup-subtext: #6b7280;
     --popup-border: #e5e7eb;
     --popup-overlay: rgba(0, 0, 0, 0.25);
+    --male-color: #3b82f6;
+    --male-bg: rgba(59,130,246,.18);
+    --female-color: #ec4899;
+    --female-bg: rgba(236,72,153,.18);
+    --toggle-default: rgba(0,0,0,.15);
 }
 
 
@@ -455,6 +465,58 @@ table.tbl {
     border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
+[data-theme="dark"] .badge-male {
+    background: rgba(59, 130, 246, 0.25); /* stronger blue */
+    color: #93c5fd; /* light blue text */
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+[data-theme="dark"] .badge-female {
+    background: rgba(236, 72, 153, 0.25); /* stronger pink */
+    color: #f9a8d4; /* light pink text */
+    border: 1px solid rgba(236, 72, 153, 0.4);
+}
+
+[data-theme="light"] .badge-male {
+    background: rgba(59, 130, 246, 0.12); /* soft blue */
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+[data-theme="light"] .badge-female {
+    background: rgba(236, 72, 153, 0.12); /* soft pink */
+    color: #ec4899;
+    border: 1px solid rgba(236, 72, 153, 0.12);
+}
+
+/* Unmarried - green */
+[data-theme="light"] .badge-unmarried {
+    background: rgba(34, 197, 94, 0.12); /* soft green */
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* Married - gray */
+[data-theme="light"] .badge-married {
+    background: rgba(156, 163, 175, 0.12); /* soft gray */
+    color: #6b7280;
+    border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+/* Unmarried - green */
+[data-theme="dark"] .badge-unmarried {
+    background: rgba(34, 197, 94, 0.25); /* stronger green */
+    color: #86efac; /* lighter green text */
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+/* Married - gray */
+[data-theme="dark"] .badge-married {
+    background: rgba(156, 163, 175, 0.25); /* stronger gray */
+    color: #d1d5db; /* lighter gray text */
+    border: 1px solid rgba(156, 163, 175, 0.4);
+}
+
 
 
 .badge-rejected {
@@ -851,3 +913,46 @@ select.form-ctrl option {
     .leave-toggle-input:checked + .toggle-slider::before {
         transform: translateX(20px);
     }
+
+.gender-toggle {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    cursor: pointer;
+}
+
+/* Track */
+.gender-toggle-track {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    background: var(--toggle-default);
+    transition: .3s;
+}
+
+/* Male State */
+.gender-toggle.male .gender-toggle-track {
+    background: var(--male-bg);
+}
+
+/* Female State */
+.gender-toggle.female .gender-toggle-track {
+    background: var(--female-bg);
+}
+
+/* Thumb */
+.gender-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .3s;
+}
+
+/* Move right */
+.gender-toggle.active .gender-toggle-thumb {
+    left: 26px;
+}

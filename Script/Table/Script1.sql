@@ -70,3 +70,7 @@ SELECT CAST('03/01/2026' as DATE);
 
 
 SELECT TRY_CONVERT(DATE, '03/01/2026', 101)
+select * FROM TblEMpmast
+
+select * FROM TblDepartment
+select * FROM TblDesignation

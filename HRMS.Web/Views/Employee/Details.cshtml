@@ -102,6 +102,13 @@
                         <span class="mono" style="color:var(--text);">@Model.Phone</span>
                     </div>
 
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Joined</span>
+                        <span>@Model.JoiningDate.ToString("dd MMM yyyy")</span>
+                    </div>
+
                     <div style="display:flex;justify-content:space-between;
                                 align-items:center;font-size:13px;">
                         <span style="color:var(--muted);">Date of Birth</span>
@@ -110,9 +117,16 @@
 
                     <div style="display:flex;justify-content:space-between;
                                 align-items:center;font-size:13px;">
-                        <span style="color:var(--muted);">Joined</span>
-                        <span>@Model.JoiningDate.ToString("dd MMM yyyy")</span>
+                        <span style="color:var(--muted);">Gender</span>
+                        <span class="badge badge-@Model.Gender.ToString().ToLower()">@Model.Gender</span>
                     </div>
+
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;font-size:13px;">
+                        <span style="color:var(--muted);">Marital Status</span>
+                        <span class="badge badge-@Model.MaritalStatus.ToString().ToLower()">@Model.MaritalStatus</span>
+                    </div>
+
 
                     @if (!string.IsNullOrEmpty(Model.Address))
                     {

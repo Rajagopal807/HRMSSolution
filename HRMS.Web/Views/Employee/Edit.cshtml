@@ -53,13 +53,13 @@
                         @Html.LabelFor(m => m.EmployeeID, "Employee ID", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.EmployeeID, new { @class = "form-ctrl", @readonly = true })
                         @Html.ValidationMessageFor(m => m.EmployeeID, "",
-                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                                               new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
                     <div class="form-group">
                         @Html.LabelFor(m => m.EmployeeName, "Employee Name *", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.EmployeeName, new { @class = "form-ctrl" })
                         @Html.ValidationMessageFor(m => m.EmployeeName, "",
-                                 new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                                               new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                     </div>
                 </div>
 
@@ -68,7 +68,7 @@
                     @Html.LabelFor(m => m.Email, "Email Address *", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Email, new { @class = "form-ctrl", type = "email" })
                     @Html.ValidationMessageFor(m => m.Email, "",
-                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                                           new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Phone -->
@@ -76,23 +76,63 @@
                     @Html.LabelFor(m => m.Phone, "Phone Number", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Phone, new { @class = "form-ctrl" })
                     @Html.ValidationMessageFor(m => m.Phone, "",
-                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                                           new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Date of Birth -->
                 <div class="form-group">
                     @Html.LabelFor(m => m.DateOfBirth, "Date of Birth *", new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}",
-                             new { @class = "form-ctrl", type = "date" })
+                                                           new { @class = "form-ctrl", type = "date" })
                     @Html.ValidationMessageFor(m => m.DateOfBirth, "",
-                             new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
+                                                           new { style = "color:#fca5a5;font-size:11px;margin-top:3px;display:block;" })
                 </div>
 
                 <!-- Address -->
                 <div class="form-group">
                     @Html.LabelFor(m => m.Address, "Address", new { @class = "form-label" })
                     @Html.TextAreaFor(m => m.Address,
-                             new { @class = "form-ctrl", rows = "3" })
+                                                           new { @class = "form-ctrl", rows = "3" })
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                   padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);
+                   background:rgba(255,255,255,.03);margin-bottom:14px;">
+
+                    <!-- Left -->
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="form-label">Gender</span>
+                        <span id="genderBadge"></span>
+                    </div>
+
+                    <!-- Hidden Enum Field -->
+                    @Html.HiddenFor(m => m.Gender, new { id = "GenderValue" })
+
+                    <!-- Toggle -->
+                    <div class="gender-toggle" id="genderToggle">
+                        <div class="gender-toggle-track"></div>
+                        <div class="gender-toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);
+                    background:rgba(255,255,255,.03);margin-bottom:14px;">
+
+                    <!-- Left -->
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="form-label">Marital Status</span>
+                        <span id="maritalBadge"></span>
+                    </div>
+
+                    <!-- Hidden Enum Field -->
+                    @Html.HiddenFor(m => m.MaritalStatus, new { id = "MaritalValue" })
+
+                    <!-- Toggle -->
+                    <div class="gender-toggle" id="maritalToggle">
+                        <div class="gender-toggle-track"></div>
+                        <div class="gender-toggle-thumb"></div>
+                    </div>
                 </div>
 
             </div>
@@ -358,6 +398,117 @@
                 });
             }
         }());
+        /***************Gender ********************/
+        const genderToggle = document.getElementById("genderToggle");
+        const genderValue = document.getElementById("GenderValue");
+        const genderBadge = document.getElementById("genderBadge");
+
+        function normalizeGender(val) {
+            if (!val) return "male";
+
+            val = val.toString().toLowerCase();
+
+            if (val === "0" || val === "female") return "female";
+            return "male";
+        }
+
+        // INIT from model
+        function initGender() {
+            const normalized = normalizeGender(genderValue.value);
+
+            if (normalized === "female") {
+                setFemale();
+            } else {
+                setMale();
+            }
+        }
+
+        function setMale() {
+            genderValue.value = "1";
+            genderToggle.classList.remove("female");
+            genderToggle.classList.add("male");
+            genderToggle.classList.remove("active");
+            genderBadge.innerText = "Male";
+            genderBadge.className = "badge badge-" + genderBadge.innerText.toLowerCase();
+        }
+
+        function setFemale() {
+            genderValue.value = "0";
+            genderToggle.classList.remove("male");
+            genderToggle.classList.add("female");
+            genderToggle.classList.add("active");
+            genderBadge.innerText = "Female";
+            genderBadge.className = "badge badge-" + genderBadge.innerText.toLowerCase();
+        }
+
+        // TOGGLE CLICK
+        genderToggle.addEventListener("click", () => {
+            genderToggle.classList.toggle("active");
+
+            if (genderToggle.classList.contains("active")) {
+                setFemale();
+            } else {
+                setMale();
+            }
+        });
+
+        initGender();
+
+        /***************Gender ********************/
+        const MaritalToggle = document.getElementById("maritalToggle");
+        const maritalValue = document.getElementById("MaritalValue");
+        const maritalBadge = document.getElementById("maritalBadge");
+
+        function normalizeMarital(val) {
+            if (!val) return "unmarried";
+
+            val = val.toString().toLowerCase();
+
+            if (val === "0" || val === "unmarried") return "unmarried";
+            return "married";
+        }
+
+        // INIT from model
+        function initMarital() {
+            const normalized = normalizeMarital(maritalValue.value);
+
+            if (normalized === "unmarried") {
+                setUnmarried();
+            } else {
+                setMarried();
+            }
+        }
+
+        function setMarried() {
+            maritalValue.value = "1";
+            MaritalToggle.classList.remove("umarried");
+            MaritalToggle.classList.add("married");
+            MaritalToggle.classList.remove("active");
+            maritalBadge.innerText = "Married";
+            maritalBadge.className = "badge badge-" + maritalBadge.innerText.toLowerCase();
+        }
+
+        function setUnmarried() {
+            maritalValue.value = "0";
+            MaritalToggle.classList.remove("married");
+            MaritalToggle.classList.add("unmarried");
+            MaritalToggle.classList.add("active");
+            maritalBadge.innerText = "Unmarried";
+            maritalBadge.className = "badge badge-" + maritalBadge.innerText.toLowerCase();
+        }
+
+        // TOGGLE CLICK
+        MaritalToggle.addEventListener("click", () => {
+            MaritalToggle.classList.toggle("active");
+
+            if (MaritalToggle.classList.contains("active")) {
+                setUnmarried();
+            } else {
+                setMarried();
+            }
+        });
+
+        initMarital();
     </script>
     <style>
 @@keyframes fadeIn {

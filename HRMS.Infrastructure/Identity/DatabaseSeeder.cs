@@ -100,9 +100,14 @@ namespace HRMS.Infrastructure.Identity
                     Email = "divyab@zenithsoft.com",
                     DepartmentId = "03",
                     DesignationId = "07",
+                    Gender = Gender.Male,
+                    MaritalStatus = MaritalStatus.Married,
+                    BloodGroup = string.Empty,
                     DateOfJoining = DateTime.Now,
                     DateOfBirth = DateTime.Now.AddYears(-30),
                     Status = Domain.Enums.EmployeeStatus.Active,
+                    Weekoff1 = 7,
+                    Weekoff2 =1,
                     CreatedAt = DateTime.UtcNow
                 },
                 new Employee{
@@ -111,9 +116,14 @@ namespace HRMS.Infrastructure.Identity
                     Email = "rajeshs@zenithsoft.com",
                     DepartmentId = "01",
                     DesignationId = "05",
+                    Gender = Gender.Female,
+                    MaritalStatus = MaritalStatus.Married,
+                    BloodGroup = "B+ve",
                     DateOfJoining = DateTime.Now,
                     DateOfBirth = DateTime.Now.AddYears(-30),
                     Status = Domain.Enums.EmployeeStatus.Active,
+                    Weekoff1 = 7,
+                    Weekoff2 =1,
                     CreatedAt = DateTime.UtcNow
                 }
         };

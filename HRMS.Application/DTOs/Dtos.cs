@@ -19,6 +19,9 @@ namespace HRMS.Application.DTOs
         public string DepartmentName { get; set; }
         public string DesignationID { get; set; }
         public string DesignationName { get; set; }
+        public Gender Gender { get; set; }
+        public MaritalStatus MaritalStatus { get; set; }
+        public string BloodGroup { get; set; }
         public int Weekoff1 { get; set; }
         public string Weekoff1Name { get; set; }
         public int Weekoff2 { get; set; }
@@ -39,6 +42,9 @@ namespace HRMS.Application.DTOs
         public DateTime JoiningDate { get; set; }
         public string DepartmentID { get; set; }
         public string DesignationID { get; set; }
+        public Gender Gender { get; set; }
+        public MaritalStatus MaritalStatus { get; set; }
+        public string BloodGroup { get; set; }
         public int Weekoff1 { get; set; }
         public int Weekoff2 { get; set; }
         public bool IsInactive { get; set; }

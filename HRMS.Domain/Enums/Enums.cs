@@ -1,4 +1,6 @@
-﻿namespace HRMS.Domain.Enums
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HRMS.Domain.Enums
 {
     public enum EmployeeStatus
     {
@@ -44,5 +46,21 @@
         Daily = 1,
         Monthly = 2,
         Periodic = 3
+    }
+
+    public enum Gender
+    {
+        [Display(Name = "Male")]
+        Male = 1,
+        [Display(Name = "Female")]
+        Female =0,
+    }
+
+    public enum MaritalStatus
+    {
+        [Display(Name = "Unmarried")]
+        Unmarried = 0,
+        [Display(Name = "Married")]
+        Married = 1,
     }
 }

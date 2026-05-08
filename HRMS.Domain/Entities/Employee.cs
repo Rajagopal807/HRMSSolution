@@ -17,6 +17,9 @@ namespace HRMS.Domain.Entities
         public string Phone { get; set; }
         public string DepartmentId { get; set; }
         public string DesignationId { get; set; }
+        public Gender Gender {  get; set; } 
+        public MaritalStatus MaritalStatus { get; set; }
+        public string BloodGroup {  get; set; }
         public DateTime DateOfJoining { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public bool IsActive { get; set; } = true;

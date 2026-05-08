@@ -1,4 +1,5 @@
 ﻿using HRMS.Domain.Entities;
+using HRMS.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -43,6 +44,9 @@ namespace HRMS.Web.ViewModels
         public string DepartmentName { get; set; }
         public string DesignationID { get; set; }
         public string DesignationName { get; set; }
+        public Gender Gender { get; set; }
+        public MaritalStatus MaritalStatus { get; set; }
+        public string BloodGroup { get; set; }
         public List<SelectListItem> DepartmentOptions { get; set; }
         public List<SelectListItem> DesignationOptions { get; set; }
         public List<SelectListItem> WeekOffOptions { get; set; }
@@ -95,6 +99,15 @@ namespace HRMS.Web.ViewModels
         [StringLength(100, ErrorMessage = "Max 100 characters.")]
         [Display(Name = "Designation")]
         public string Designation { get; set; }
+
+        [Display(Name = "Gender")]
+        public Gender Gender { get; set; }
+
+        [Display(Name = "MaritalStatus")]
+        public MaritalStatus MaritalStatus { get; set; }
+
+        [Display(Name = "BloodGroup")]
+        public string BloodGroup { get; set; }
 
         [Required(ErrorMessage = "Week Off 1 is required.")]
         [Display(Name = "Week Off 1")]

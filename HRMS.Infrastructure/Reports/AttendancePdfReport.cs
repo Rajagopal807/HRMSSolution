@@ -59,8 +59,7 @@ namespace HRMS.Infrastructure.Reports
         // ── Content ───────────────────────────────────────────────────────────
         private void BuildContent(Document doc, PdfWriter writer, AttendanceReportDto data)
         {
-            int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
-            totalDays = totalDays < 30 ? totalDays + 1 : totalDays;
+            int totalDays = Convert.ToInt32((data.ToDate.AddDays(1) - data.FromDate).TotalDays);
             int days = totalDays;
 
             int totalCols = 2 + (totalDays * 2);

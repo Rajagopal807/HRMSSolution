@@ -128,6 +128,10 @@ namespace HRMS.Web.Controllers
             createEmployeeDto.DesignationID = vm.Designation;
             createEmployeeDto.Weekoff1 = vm.WeekOff1;
             createEmployeeDto.Weekoff2 = vm.WeekOff2;
+            createEmployeeDto.Gender = vm.Gender;
+            createEmployeeDto.MaritalStatus = vm.MaritalStatus;
+            createEmployeeDto.BloodGroup = vm.BloodGroup;
+            
 
             _employeeService.Create(createEmployeeDto);
 
@@ -184,6 +188,9 @@ namespace HRMS.Web.Controllers
                     new SelectListItem { Text = "Saturday", Value = "7" }
                 }.ToList();
 
+            vm.Gender = emp.Gender;
+            vm.MaritalStatus = emp.MaritalStatus;
+            vm.BloodGroup = emp.BloodGroup;
 
             ViewBag.EmployeeId = emp.EmployeeId;
 
@@ -239,6 +246,9 @@ namespace HRMS.Web.Controllers
             updateDto.DesignationID = vm.Designation;
             updateDto.Weekoff1 = vm.WeekOff1;
             updateDto.Weekoff2 = vm.WeekOff2;
+            updateDto.Gender = vm.Gender;
+            updateDto.MaritalStatus = vm.MaritalStatus;
+            updateDto.BloodGroup = vm.BloodGroup;
 
             if(vm.IsInactive == true)
             {
@@ -533,6 +543,9 @@ namespace HRMS.Web.Controllers
             WeekOff2 = e.Weekoff2,
             WeekOff1Name = e.Weekoff1Name,
             WeekOff2Name  = e.Weekoff2Name,
+            Gender = e.Gender,
+            MaritalStatus = e.MaritalStatus,
+            BloodGroup = e.BloodGroup,
 
         };
     }
