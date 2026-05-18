@@ -10,3 +10,6 @@
 /HRMS.Common/.vs
 /HRMS.Domain/.vs
 /HRMS.Infrastructure/.vs
+/.vs
+/HRMS.Web/App_Data/ErrorLog.txt
+/HRMS.Web/HRMS.Web.csproj.user

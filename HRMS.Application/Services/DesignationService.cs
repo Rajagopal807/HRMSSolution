@@ -35,8 +35,13 @@ namespace HRMS.Application.Services
 
         public void Delete(string id)
         {
+            var designation = _uow.Designations.GetByDesignationID(id);
             _uow.Designations.DeleteDesignationID(id);
             _uow.SaveChanges();
+            _uow.Log.Log("Delete", "Designation",
+                designation == null
+                    ? $"Designation '{id}' delete requested."
+                    : $"Deleted designation '{designation.DesignationID}' - '{designation.DesignationName}'.");
         }
 
         public IEnumerable<DesignationDto> GetActive()

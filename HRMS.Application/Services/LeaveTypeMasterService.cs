@@ -76,8 +76,13 @@ namespace HRMS.Application.Services
 
         public void Delete(string id)
         {
+            var leaveType = _uow.LeaveTypesMasters.GetByLeaveTypeID(id);
             _uow.LeaveTypesMasters.DeleteLeaveTypeID(id);
             _uow.SaveChanges();
+            _uow.Log.Log("Delete", "Leave Type",
+                leaveType == null
+                    ? $"Leave type '{id}' delete requested."
+                    : $"Deleted leave type '{leaveType.LeaveTypeID}' - '{leaveType.Name}'.");
         }
 
         public bool CodeExists(string code, string excludeId = "0")
@@ -189,6 +194,8 @@ namespace HRMS.Application.Services
 
             _uow.LeaveApplications.DeleteLeaveApplicationID(id); // or Remove(app)
             _uow.SaveChanges();
+            _uow.Log.Log("Delete", "Leave Application",
+                $"Deleted leave application '{id}' for employee '{app.EmployeeId}' from {app.FromDate:dd-MMM-yyyy} to {app.ToDate:dd-MMM-yyyy}. Requested by '{userName}'.");
             _uow.LeaveApplications.CallCreateMusterSP(app.EmployeeId, app.FromDate);
         }
 

@@ -53,21 +53,8 @@ namespace HRMS.Web.App_Start
                      c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel")))
                    .As<IAttendanceReportService>()
                    .InstancePerRequest();
-            //builder.Register(c => new GroupedAttendanceReportService(
-            //        c.Resolve<IUnitOfWork>(),
-            //        c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-pdf"),
-            //        c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel")))
-            //       .As<IGroupedAttendanceReportService>()
-            //       .InstancePerRequest();
-            builder.RegisterType<ReportScreenService>()
-                   .As<IReportScreenService>()
-                   .InstancePerRequest();
-
-            // Crystal Report Service — pass report folder path at registration
-            //builder.Register(c => new CrystalReportService(
-            //    c.Resolve<IUnitOfWork>(),
-            //    System.Web.HttpContext.Current.Server.MapPath("~/Reports")
-            //)).As<IReportService>().InstancePerRequest();
+            builder.RegisterType<ReportScreenService>().As<IReportScreenService>().InstancePerRequest();
+            builder.RegisterType<TempcardService>().As<ITempCardService>().InstancePerRequest();
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));

@@ -87,6 +87,40 @@
                     @Html.TextAreaFor(m => m.Address,
                         new { @class = "form-ctrl", rows = "3", placeholder = "Street, City, State" })
                 </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                   padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);
+                   background:rgba(255,255,255,.03);margin-bottom:14px;">
+
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="form-label">Gender</span>
+                        <span id="genderBadge"></span>
+                    </div>
+
+                    @Html.HiddenFor(m => m.Gender, new { id = "GenderValue" })
+
+                    <div class="gender-toggle" id="genderToggle">
+                        <div class="gender-toggle-track"></div>
+                        <div class="gender-toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);
+                    background:rgba(255,255,255,.03);margin-bottom:14px;">
+
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="form-label">Marital Status</span>
+                        <span id="maritalBadge"></span>
+                    </div>
+
+                    @Html.HiddenFor(m => m.MaritalStatus, new { id = "MaritalValue" })
+
+                    <div class="gender-toggle" id="maritalToggle">
+                        <div class="gender-toggle-track"></div>
+                        <div class="gender-toggle-thumb"></div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- ── Right: Job + Compensation ──────────────────────────────── -->
@@ -174,5 +208,113 @@
                 }
             });
         });
+
+        /***************Gender ********************/
+        const genderToggle = document.getElementById("genderToggle");
+        const genderValue = document.getElementById("GenderValue");
+        const genderBadge = document.getElementById("genderBadge");
+
+        function normalizeGender(val) {
+            if (!val) return "male";
+
+            val = val.toString().toLowerCase();
+
+            if (val === "0" || val === "female") return "female";
+            return "male";
+        }
+
+        function initGender() {
+            const normalized = normalizeGender(genderValue.value);
+
+            if (normalized === "female") {
+                setFemale();
+            } else {
+                setMale();
+            }
+        }
+
+        function setMale() {
+            genderValue.value = "1";
+            genderToggle.classList.remove("female");
+            genderToggle.classList.add("male");
+            genderToggle.classList.remove("active");
+            genderBadge.innerText = "Male";
+            genderBadge.className = "badge badge-" + genderBadge.innerText.toLowerCase();
+        }
+
+        function setFemale() {
+            genderValue.value = "0";
+            genderToggle.classList.remove("male");
+            genderToggle.classList.add("female");
+            genderToggle.classList.add("active");
+            genderBadge.innerText = "Female";
+            genderBadge.className = "badge badge-" + genderBadge.innerText.toLowerCase();
+        }
+
+        genderToggle.addEventListener("click", () => {
+            genderToggle.classList.toggle("active");
+
+            if (genderToggle.classList.contains("active")) {
+                setFemale();
+            } else {
+                setMale();
+            }
+        });
+
+        initGender();
+
+        /***************Marital Status ********************/
+        const MaritalToggle = document.getElementById("maritalToggle");
+        const maritalValue = document.getElementById("MaritalValue");
+        const maritalBadge = document.getElementById("maritalBadge");
+
+        function normalizeMarital(val) {
+            if (!val) return "unmarried";
+
+            val = val.toString().toLowerCase();
+
+            if (val === "0" || val === "unmarried") return "unmarried";
+            return "married";
+        }
+
+        function initMarital() {
+            const normalized = normalizeMarital(maritalValue.value);
+
+            if (normalized === "unmarried") {
+                setUnmarried();
+            } else {
+                setMarried();
+            }
+        }
+
+        function setMarried() {
+            maritalValue.value = "1";
+            MaritalToggle.classList.remove("umarried");
+            MaritalToggle.classList.add("married");
+            MaritalToggle.classList.remove("active");
+            maritalBadge.innerText = "Married";
+            maritalBadge.className = "badge badge-" + maritalBadge.innerText.toLowerCase();
+        }
+
+        function setUnmarried() {
+            maritalValue.value = "0";
+            MaritalToggle.classList.remove("married");
+            MaritalToggle.classList.add("unmarried");
+            MaritalToggle.classList.add("active");
+            maritalBadge.innerText = "Unmarried";
+            maritalBadge.className = "badge badge-" + maritalBadge.innerText.toLowerCase();
+        }
+
+        MaritalToggle.addEventListener("click", () => {
+            MaritalToggle.classList.toggle("active");
+
+            if (MaritalToggle.classList.contains("active")) {
+                setUnmarried();
+            } else {
+                setMarried();
+            }
+        });
+
+        initMarital();
     </script>
 }

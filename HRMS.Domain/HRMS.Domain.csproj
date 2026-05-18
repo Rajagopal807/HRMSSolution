@@ -53,6 +53,7 @@
     <Compile Include="Entities\Designation.cs" />
     <Compile Include="Entities\Employee.cs" />
     <Compile Include="Entities\LeaveRequest.cs" />
+    <Compile Include="Entities\TempCard.cs" />
     <Compile Include="Enums\Enums.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

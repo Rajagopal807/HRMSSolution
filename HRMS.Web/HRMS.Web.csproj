@@ -216,6 +216,8 @@
     <Compile Include="Controllers\LeaveApplicationController.cs" />
     <Compile Include="Controllers\LeaveTypeMasterController.cs" />
     <Compile Include="Controllers\ReportScreenController.cs" />
+    <Compile Include="Controllers\TempCardController.cs" />
+    <Compile Include="Filters\PageExceptionFilterAttribute.cs" />
     <Compile Include="Filters\RoleAuthorizeAttribute.cs" />
     <Compile Include="Filters\SessionAuthorizeAttribute.cs" />
     <Compile Include="Global.asax.cs">
@@ -285,6 +287,10 @@
     <Content Include="Views\LeaveTypeMaster\Edit.cshtml" />
     <Content Include="Views\Shared\_LeaveTypeForm.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\TempCard\Create.cshtml" />
+    <Content Include="Views\TempCard\Edit.cshtml" />
+    <Content Include="Views\TempCard\Index.cshtml" />
+    <Content Include="Views\Shared\_TempCardForm.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

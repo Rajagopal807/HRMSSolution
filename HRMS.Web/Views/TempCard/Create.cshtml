@@ -1,0 +1,9 @@
+@model HRMS.Application.DTOs.SaveTempCardDto
+@{
+    ViewBag.Title = "Assign Temp Card";
+    ViewBag.IsEdit = false;
+    ViewBag.EditId = "0";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@Html.Partial("_TempCardForm", Model)

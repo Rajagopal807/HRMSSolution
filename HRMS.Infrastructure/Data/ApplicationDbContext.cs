@@ -42,6 +42,7 @@ namespace HRMS.Infrastructure.Data
         public DbSet<DailyTransactions> DailyTransactions { get; set; }
         public DbSet<LeaveTypeMaster> LeaveTypeMasters { get; set; }
         public DbSet<LeaveApplication> LeaveApplications { get; set; }
+        public DbSet<TempCard> TempCards { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

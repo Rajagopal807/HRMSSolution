@@ -1,0 +1,85 @@
+@model IEnumerable<HRMS.Application.DTOs.TempCardDto>
+@using System.Linq
+@{
+    ViewBag.Title = "Temp Cards";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Temp Cards</div>
+        <div class="page-sub">@Model.Count() active temp cards assigned</div>
+    </div>
+    <a href="@Url.Action("Create", "TempCard")" class="btn btn-primary">+ Assign Temp Card</a>
+</div>
+
+<div class="card">
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Temp Card ID</th>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th style="width:150px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:48px;color:var(--muted);">
+                            <div style="font-size:32px;margin-bottom:10px;opacity:.4;">&#128179;</div>
+                            <div style="font-weight:600;margin-bottom:4px;">No temp cards assigned yet</div>
+                            <div style="font-size:12px;">
+                                <a href="@Url.Action("Create", "TempCard")" style="color:var(--accent);">
+                                    Assign the first temp card
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var card in Model)
+                {
+                    <tr>
+                        <td>
+                            <span class="mono" style="font-size:13px;font-weight:600;
+                                  color:var(--accent);background:rgba(91,110,245,.1);
+                                  padding:3px 10px;border-radius:6px;">
+                                @card.TempCardId
+                            </span>
+                        </td>
+                        <td class="mono">@card.EmployeeId</td>
+                        <td style="font-weight:500;">@card.EmployeeName</td>
+                        <td style="color:var(--muted);font-size:12px;">
+                            @if (string.IsNullOrWhiteSpace(card.Department))
+                            {
+                                @Html.Raw("&mdash;")
+                            }
+                            else
+                            {
+                                @card.Department
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px;">
+                                <a href="@Url.Action("Edit", "TempCard", new { id = card.TempCardId })"
+                                   class="btn btn-ghost btn-sm">Edit</a>
+                                @using (Html.BeginForm("Delete", "TempCard",
+                                    new { id = card.TempCardId }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Remove temp card \'@card.TempCardId\'?')">
+                                        Delete
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

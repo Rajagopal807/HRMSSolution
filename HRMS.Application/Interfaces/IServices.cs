@@ -110,4 +110,26 @@ namespace HRMS.Application.Interfaces
         /// </summary>
         (byte[] Bytes, string ContentType, string FileName) Generate(ReportFilterDto filter);
     }
+
+    public interface ITempCardService
+    {
+        IEnumerable<TempCardDto> GetAll();
+        TempCardDto GetById(string id);
+
+        /// <summary>Returns (id, errorMessage). error is null on success.</summary>
+        (string Id, string Error) Create(SaveTempCardDto dto);
+
+        /// <summary>Returns error message or null on success.</summary>
+        string Update(string id, SaveTempCardDto dto);
+
+        void Delete(string id);
+
+        bool TempCardIdExists(string tempCardId, string excludeId = "0");
+        bool EmployeeAlreadyHasCard(string employeeId, string excludeId = "0");
+
+        // Employee list for the dropdown
+        IEnumerable<EmployeeDropdownDto> GetEmployees();
+    }
+
+
 }

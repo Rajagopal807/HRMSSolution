@@ -59,6 +59,7 @@
     <Compile Include="Services\LeaveAndDashboardService.cs" />
     <Compile Include="Services\LeaveTypeMasterService.cs" />
     <Compile Include="Services\SecureTokenService.cs" />
+    <Compile Include="Services\TempcardService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HRMS.Domain\HRMS.Domain.csproj">

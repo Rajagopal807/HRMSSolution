@@ -1,0 +1,165 @@
+@model HRMS.Application.DTOs.SaveTempCardDto
+@using HRMS.Application.DTOs
+@using System.Collections.Generic
+@using System.Linq
+@using System.Web
+@{
+    Layout = null;
+
+    bool isEdit = ViewBag.IsEdit != null && (bool)ViewBag.IsEdit;
+    string editId = ViewBag.EditId != null ? Convert.ToString(ViewBag.EditId) : "0";
+    string formAction = isEdit ? "Edit" : "Create";
+    string submitLabel = isEdit ? "Save Changes" : "Assign Temp Card";
+    var employees = (ViewBag.Employees as IEnumerable<EmployeeDropdownDto>) ?? Enumerable.Empty<EmployeeDropdownDto>();
+}
+
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index", "TempCard")" class="btn btn-ghost btn-sm">
+        &#8592;&nbsp;Back
+    </a>
+</div>
+
+<div class="page-header">
+    <div>
+        <div class="page-title">@(isEdit ? "Edit Temp Card" : "Assign Temp Card")</div>
+        <div class="page-sub">@(isEdit ? "Update the temp card assignment" : "Map a temporary card to an active employee")</div>
+    </div>
+</div>
+
+@using (Html.BeginForm(formAction, "TempCard",
+    isEdit ? (object)new { id = editId } : null,
+    FormMethod.Post, new { id = "tempCardForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div style="display:grid;grid-template-columns:minmax(0,520px) minmax(260px,340px);gap:20px;align-items:start;">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Card Details</div>
+                <div class="card-sub">Unique card number and assigned employee</div>
+            </div>
+            <div class="card-body">
+                @Html.ValidationSummary(true, "", new { @class = "err-label", style = "margin-bottom:12px;display:block;" })
+
+                <div class="form-group">
+                    <label class="form-label">Temp Card ID *</label>
+                    @Html.TextBoxFor(m => m.TempCardId,
+                        new
+                        {
+                            @class = "form-ctrl",
+                            placeholder = "e.g. TC001",
+                            maxlength = "50",
+                            id = "tempCardIdField",
+                            autocomplete = "off",
+                            style = "font-family:'DM Mono',monospace;text-transform:uppercase;"
+                        })
+                    <span id="cardStatus" style="font-size:11px;margin-top:3px;display:block;"></span>
+                    @Html.ValidationMessageFor(m => m.TempCardId, "", new { @class = "err-label" })
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Employee *</label>
+                    @Html.DropDownListFor(m => m.EmployeeId,
+                        employees.Select(e => new SelectListItem
+                        {
+                            Value = e.EmployeeId,
+                            Text = e.EmployeeId + " - " + e.EmployeeName +
+                                (string.IsNullOrWhiteSpace(e.DepartmentName) ? "" : " (" + e.DepartmentName + ")"),
+                            Selected = e.EmployeeId == Model.EmployeeId
+                        }),
+                        "-- Select Employee --",
+                        new { @class = "form-ctrl", id = "employeeField" })
+                    <span id="employeeStatus" style="font-size:11px;margin-top:3px;display:block;"></span>
+                    @Html.ValidationMessageFor(m => m.EmployeeId, "", new { @class = "err-label" })
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Assignment Rules</div>
+                    <div class="card-sub">Validation enforced by the controller</div>
+                </div>
+                <div class="card-body" style="font-size:12px;color:var(--muted);line-height:1.6;">
+                    <div style="padding-bottom:12px;border-bottom:1px solid var(--border);">
+                        Each temp card ID must be unique.
+                    </div>
+                    <div style="padding-top:12px;">
+                        An employee can have only one active temp card.
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    &#10003;&nbsp;@submitLabel
+                </button>
+                <a href="@Url.Action("Index", "TempCard")" class="btn btn-ghost">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+(function () {
+    var cardField = document.getElementById('tempCardIdField');
+    var employeeField = document.getElementById('employeeField');
+    var cardStatus = document.getElementById('cardStatus');
+    var employeeStatus = document.getElementById('employeeStatus');
+    var editId = '@HttpUtility.JavaScriptStringEncode(editId)';
+    var cardTimer;
+    var employeeTimer;
+
+    if (cardField) {
+        cardField.addEventListener('input', function () {
+            var pos = this.selectionStart;
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+            this.setSelectionRange(pos, pos);
+            clearTimeout(cardTimer);
+            cardStatus.textContent = '';
+            if (!this.value) return;
+            cardTimer = setTimeout(function () { checkCard(cardField.value); }, 350);
+        });
+    }
+
+    if (employeeField) {
+        employeeField.addEventListener('change', function () {
+            clearTimeout(employeeTimer);
+            employeeStatus.textContent = '';
+            if (!this.value) return;
+            employeeTimer = setTimeout(function () { checkEmployee(employeeField.value); }, 250);
+        });
+    }
+
+    function setStatus(el, ok, availableText, takenText) {
+        el.style.color = ok ? 'var(--accent2)' : '#fca5a5';
+        el.textContent = ok ? availableText : takenText;
+    }
+
+    function checkCard(value) {
+        fetch('@Url.Action("CheckCardId", "TempCard")'
+            + '?cardId=' + encodeURIComponent(value)
+            + '&excludeId=' + encodeURIComponent(editId))
+            .then(function (r) { return r.json(); })
+            .then(function (isAvailable) {
+                setStatus(cardStatus, isAvailable, '\u2713 Card ID is available', '\u2717 Card ID already exists');
+            })
+            .catch(function () {});
+    }
+
+    function checkEmployee(value) {
+        fetch('@Url.Action("CheckEmployee", "TempCard")'
+            + '?employeeId=' + encodeURIComponent(value)
+            + '&excludeId=' + encodeURIComponent(editId))
+            .then(function (r) { return r.json(); })
+            .then(function (isAvailable) {
+                setStatus(employeeStatus, isAvailable, '\u2713 Employee can be assigned', '\u2717 Employee already has a temp card');
+            })
+            .catch(function () {});
+    }
+
+    if (cardField && cardField.value) checkCard(cardField.value);
+    if (employeeField && employeeField.value) checkEmployee(employeeField.value);
+}());
+</script>

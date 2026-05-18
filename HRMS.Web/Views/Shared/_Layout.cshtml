@@ -51,9 +51,12 @@
                     <a href="@Url.Action("Index","ReportScreen")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Report"?"active":"")">
                         <span class="sb-icon">&#128196;</span> Reports
                     </a>
+                    <a href="@Url.Action("Index","TempCard")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="TempCard"?"active":"")">
+                        <span class="sb-icon">&#128179;</span> Temp Cards
+                    </a>
                     @*<a href="@Url.Action("Pending","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Pending"?"active":"")">
-                        <span class="sb-icon">&#9200;</span> Pending Approvals
-                    </a>*@
+            <span class="sb-icon">&#9200;</span> Pending Approvals
+        </a>*@
                 </div>
             }
             <div class="sb-footer">
@@ -94,6 +97,14 @@
                 @if (TempData["Info"] != null)
                 {
                     <div class="toast toast-info">&#8505; @TempData["Info"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="toast toast-error">&#9888; @TempData["Error"]</div>
+                }
+                @if (ViewData["UnhandledExceptionMessage"] != null)
+                {
+                    <div class="toast toast-error">&#9888; @ViewData["UnhandledExceptionMessage"]</div>
                 }
                 @RenderBody()
             </div>

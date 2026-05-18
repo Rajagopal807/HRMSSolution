@@ -81,34 +81,15 @@ namespace HRMS.Domain.Interfaces
         IEnumerable<Muster> GetByEmployee(string employeeId, DateTime from, DateTime to);
     }
 
-    //public interface IDailyTransactionRepository
-    //{
-    //    /// <summary>
-    //    /// Returns all daily transaction rows for one employee for the given month/year.
-    //    /// Used to populate the Attendance Transactions grid.
-    //    /// </summary>
-    //    IEnumerable<DailyTransactions> GetByEmployeeMonth(
-    //        string employeeId, int month, int year);
+    public interface ITempCardRepository : IRepository<TempCard>
+    {
+        IEnumerable<TempCard> GetAllTempCards();
+        TempCard GetByTempCard(string Tempcardno);
+        bool TempCardIdExists(string tempCardId, string excludeId = "0");
+        bool EmployeeAlreadyHasCard(string employeeId, string excludeId = "0");
+        void DeleteByTempcard(string id);
 
-    //    DailyTransactions GetByEmployeeDate(string employeeId, DateTime date);
-
-    //    void Add(DailyTransactions entity);
-    //    void Update(DailyTransactions entity);
-    //    int SaveChanges();
-    //}
-
-
-    //public interface IManualPunchRepository : IRepository<DailyTransactions>
-    //{
-    //    IEnumerable<DailyTransactions> GetByEmployeeAndMonth(string employeeId, int month, int year);
-    //    IEnumerable<DailyTransactions> GetByEmployeeAndDate(string employeeId, DateTime date);
-
-    //    DailyTransactions GetByEmployeID(string empID);
-    //    void AddPunch(DailyTransactions punch);
-    //    void UpdatePunch(DailyTransactions punch);
-    //    void DeletePunch(string id);          // hard delete for punches
-    //    int SaveChanges();
-    //}
+    }
 
     public interface IUnitOfWork : IDisposable
     {
@@ -119,7 +100,7 @@ namespace HRMS.Domain.Interfaces
         ILeaveApplicationRepository LeaveApplications { get; }
         IAuditService Log { get; }
         IAttendanceRepository Attendace { get; }
-        //IManualPunchRepository ManualPunches { get; }
+        ITempCardRepository TempCard { get; }
         int SaveChanges();
     }
 }

@@ -35,41 +35,18 @@ namespace HRMS.Web
         protected void Application_Error()
         {
             var context = HttpContext.Current;
+            var ex = Server.GetLastError();
 
-            if (context != null)
+            if (context != null && ex != null)
             {
                 try
                 {
-                    Exception ex = Server.GetLastError();
-
-                    //  Log error and get reference ID
-                    string errorId = ErrorLogger.Log(ex);
-
-                    // 1. Clear Session
-                    context.Session?.Clear();
-                    context.Session?.Abandon();
-
-                    // 2. Sign out OWIN
-                    context.GetOwinContext().Authentication.SignOut();
-
-                    // 3. Clear Cookies
-                    foreach (string cookie in context.Request.Cookies.AllKeys)
-                    {
-                        var c = new HttpCookie(cookie)
-                        {
-                            Expires = DateTime.Now.AddDays(-1)
-                        };
-                        context.Response.Cookies.Add(c);
-                    }
+                    ErrorLogger.Log(ex);
                 }
                 catch
                 {
                     // Avoid throwing inside error handler
                 }
-
-                // 4. Redirect to Login
-                context.Response.Clear();
-                context.Response.Redirect("~/Account/Login?error=unexpected");
             }
         }
 

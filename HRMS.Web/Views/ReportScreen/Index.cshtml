@@ -217,12 +217,12 @@
         <div class="page-sub">Select grouping, items, duration and report type</div>
     </div>
 </div>
-@if (TempData["Error"] != null)
+@*@if (TempData["Error"] != null)
 {
     <div id="errordisplay" class="rpt-err-box">
         &#9888;&nbsp;@TempData["Error"]
     </div>
-}
+}*@
 @using (Html.BeginForm("Generate", "ReportScreen", FormMethod.Post, new { id = "reportForm" }))
 {
     @Html.AntiForgeryToken()

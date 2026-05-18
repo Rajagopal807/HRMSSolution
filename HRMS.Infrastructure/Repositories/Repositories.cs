@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Office2010.Excel;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Enums;
 using HRMS.Domain.Interfaces;
@@ -84,12 +85,10 @@ namespace HRMS.Infrastructure.Reports
 
         public void DeleteEmployeeID(string employeeID)
         {
-            var entity = GetByEmployeeID(employeeID);
+            var entity = _set.FirstOrDefault(e => e.EmployeeId == employeeID);
             if (entity != null)
             {
-                entity.IsDeleted = true;
-                entity.UpdatedAt = DateTime.UtcNow;
-                Update(entity);
+                _set.Remove(entity);
             }
         }
     }
@@ -289,6 +288,44 @@ namespace HRMS.Infrastructure.Reports
         }
     }
 
+    public class TempCardRepository : Repository<TempCard>, ITempCardRepository
+    {
+        public TempCardRepository(ApplicationDbContext ctx) : base(ctx) { }
+
+
+        public IEnumerable<TempCard> GetAllTempCards()
+            => _ctx.Set<TempCard>()
+                   .Include(t => t.Employee)
+                   .Where(t => !t.IsDeleted)
+                   .OrderBy(t => t.TempCardNo)
+                   .ToList();
+
+        public TempCard GetByTempCard(string Tempcardno) => _ctx.Set<TempCard>()
+                   .Include(t => t.Employee)
+                   .FirstOrDefault(t => t.TempCardNo == Tempcardno && !t.IsDeleted);
+
+        public bool TempCardIdExists(string tempCardId, string excludeId = "0")
+            => _ctx.Set<TempCard>()
+                   .Any(t => !t.IsDeleted
+                           && t.TempCardNo == tempCardId.Trim()
+                           && t.TempCardNo != excludeId);
+
+        public bool EmployeeAlreadyHasCard(string employeeId, string excludeId = "0")
+            => _ctx.Set<TempCard>()
+                   .Any(t => t.EmpId == employeeId
+                           && t.EmpId != excludeId);
+
+        public void DeleteByTempcard(string id)
+        {
+            var entity = GetByTempCard(id);
+            if (entity == null) return;
+            _set.Remove(entity);
+            //card.IsDeleted = true;
+            //card.UpdatedAt = DateTime.UtcNow;
+            //_ctx.Entry(card).State = EntityState.Modified;
+        }
+    }
+
     // ─── Unit of Work ─────────────────────────────────────────────────────────
     public class UnitOfWork : IUnitOfWork
     {
@@ -300,6 +337,7 @@ namespace HRMS.Infrastructure.Reports
         private DesignationRepository _designations;
         private AuditRepository _auditRepository;
         private AttendanceRepository _attendanceRepository;
+        private TempCardRepository _tempRepository;
 
         public UnitOfWork(ApplicationDbContext ctx) { _ctx = ctx; }
 
@@ -337,6 +375,12 @@ namespace HRMS.Infrastructure.Reports
         {
             get { return _attendanceRepository ?? (_attendanceRepository = new AttendanceRepository(_ctx)); }
         }
+
+        public ITempCardRepository TempCard
+        {
+            get { return _tempRepository ?? (_tempRepository = new TempCardRepository(_ctx)); }
+        }
+
 
         public int SaveChanges() => _ctx.SaveChanges();
 

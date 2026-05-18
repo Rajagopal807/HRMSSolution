@@ -300,4 +300,18 @@ namespace HRMS.Web.ViewModels
         }
     }
 
+    public class TempcardViewModel
+    {
+        [Required]
+        [Display(Name = "TempCardNo")]
+        public string TempCardNo { get; set; }
+
+        [Required]
+        [Display(Name = "Employee ID")]
+        [StringLength(11)]
+        public string EmpId { get; set; }
+
+        public Employee Employee { get; set; }
+    }
+
 }

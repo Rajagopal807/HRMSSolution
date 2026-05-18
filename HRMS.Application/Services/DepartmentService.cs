@@ -37,8 +37,13 @@ namespace HRMS.Application.Services
 
         public void Delete(string id)
         {
+            var department = _uow.Departments.GetByDepartmentID(id);
             _uow.Departments.DeleteDepartmentID(id);
             _uow.SaveChanges();
+            _uow.Log.Log("Delete", "Department",
+                department == null
+                    ? $"Department '{id}' delete requested."
+                    : $"Deleted department '{department.DepartmentId}' - '{department.DepartmentName}'.");
         }
 
         public IEnumerable<DepartmentDto> GetActive()

@@ -443,4 +443,29 @@ namespace HRMS.Application.DTOs
         public List<ManualPunchDto> Punches { get; set; } = new List<ManualPunchDto>();
         public SaveManualPunchDto Form { get; set; } = new SaveManualPunchDto();
     }
+
+    public class TempCardDto
+    {
+        public string TempCardId { get; set; }
+        public string EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public string Department { get; set; }
+    }
+
+    public class SaveTempCardDto
+    {
+        [Required(ErrorMessage = "Temp Card ID is required.")]
+        [StringLength(50, ErrorMessage = "Max 50 characters.")]
+        public string TempCardId { get; set; }
+
+        [Required(ErrorMessage = "Employee is required.")]
+        public string EmployeeId { get; set; }
+    }
+
+    public class EmployeeDropdownDto
+    {
+        public string EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public string DepartmentName { get; set; }
+    }
 }

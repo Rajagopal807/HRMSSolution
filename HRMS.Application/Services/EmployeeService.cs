@@ -121,8 +121,25 @@ namespace HRMS.Application.Services
 
         public void Delete(string id)
         {
+            var emp = _uow.Employees.GetByEmployeeID(id);
+            if (_uow.TempCard.EmployeeAlreadyHasCard(id))
+            {
+                var card = _uow.TempCard.GetAllTempCards().Where(c => c.EmpId == id).FirstOrDefault();
+                if (card != null)
+                {
+                    _uow.TempCard.DeleteByTempcard(card.TempCardNo);
+                    _uow.Log.Log("Delete", "Temp Card",
+                        card == null
+                            ? $"Temp card '{card.TempCardNo}' delete requested(Employee Removal)."
+                            : $"Deleted temp card '{card.TempCardNo}' assigned to employee '{card.EmpId}'.");
+                }
+            }
             _uow.Employees.DeleteEmployeeID(id);
             _uow.SaveChanges();
+            _uow.Log.Log("Delete", "Employee",
+                emp == null
+                    ? $"Employee '{id}' delete requested."
+                    : $"Deleted employee '{emp.EmployeeId}' - '{emp.EmployeeName}'.");
         }
 
         public IEnumerable<EmployeeDto> Search(string query, string department, string status)
