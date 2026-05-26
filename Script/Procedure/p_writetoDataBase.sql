@@ -94,6 +94,7 @@ BEGIN
             SET @iret = 2;
         ELSE
             SET @iret = 0;
+            SELECT @strCode = EmpId FROM TblTempCards  WHERE TempCardNo = @strcode;
     END
 
     IF @iret = 0

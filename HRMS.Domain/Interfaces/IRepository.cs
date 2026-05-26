@@ -79,6 +79,12 @@ namespace HRMS.Domain.Interfaces
 
         /// <summary>Returns punch records for one employee within the date range.</summary>
         IEnumerable<Muster> GetByEmployee(string employeeId, DateTime from, DateTime to);
+        IEnumerable<DailyTransactions> GetDailyTransactions(string employeeId, DateTime from, DateTime to);
+        IEnumerable<DailyTransactions> GetDailyTransactionsForDay(string employeeId, DateTime attendanceDate);
+        DailyTransactions GetDailyTransaction(string employeeId, string ioFlag, DateTime transTime);
+        void AddDailyTransaction(DailyTransactions transaction);
+        void UpdateDailyTransaction(DailyTransactions transaction);
+        void DeleteDailyTransaction(DailyTransactions transaction);
     }
 
     public interface ITempCardRepository : IRepository<TempCard>

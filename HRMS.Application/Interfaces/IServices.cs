@@ -131,5 +131,14 @@ namespace HRMS.Application.Interfaces
         IEnumerable<EmployeeDropdownDto> GetEmployees();
     }
 
+    public interface IAttendanceTransactionService
+    {
+        AttendanceTransactionScreenDto GetScreen(string employeeId, int? month, int? year);
+        EditPunchesScreenDto GetPunchScreen(string employeeId, DateTime attendanceDate, string statusMessage = null);
+        string AddPunch(SaveManualPunchDto dto);
+        string UpdatePunch(SaveManualPunchDto dto);
+        string DeletePunch(string employeeId, string ioFlag, DateTime transTime);
+    }
+
 
 }

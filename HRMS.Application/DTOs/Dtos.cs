@@ -398,6 +398,7 @@ namespace HRMS.Application.DTOs
     public class ManualPunchDto
     {
         public int Id { get; set; }
+        public string Key { get; set; }
         public string EmployeeId { get; set; }
         public DateTime AttendanceDate { get; set; }
         public string PunchedTimeDisplay => PunchedTime.ToString(@"hh\:mm");
@@ -431,6 +432,9 @@ namespace HRMS.Application.DTOs
 
         [StringLength(10)]
         public string BranchNo { get; set; }
+
+        public string OriginalIOFlag { get; set; }
+        public string OriginalTransTimeStr { get; set; }
     }
 
     /// <summary>Everything the Edit Punches screen needs to render.</summary>

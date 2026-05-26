@@ -1,0 +1,155 @@
+@model HRMS.Application.DTOs.AttendanceTransactionScreenDto
+@using System
+@using System.Globalization
+@using System.Linq
+@{
+    ViewBag.Title = "Attendance Transactions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var monthNames = CultureInfo.CurrentCulture.DateTimeFormat.MonthNames.Take(12).ToList();
+    var currentYear = DateTime.Today.Year;
+}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Attendance Transactions</div>
+        <div class="page-sub">Review daily attendance and open a day to modify manual punches</div>
+    </div>
+</div>
+
+<div class="card att-filter">
+    <div class="card-header">
+        <div class="card-title">Selection</div>
+        <div class="card-sub">Choose employee, month and year</div>
+    </div>
+    <div class="card-body">
+        @using (Html.BeginForm("Index", "AttendanceTransaction", FormMethod.Get, new { @class = "att-filter-form" }))
+        {
+            <div class="form-group">
+                <label class="form-label">Employee</label>
+                <select name="employeeId" class="form-ctrl" id="employeeSelect">
+                    <option value="">-- Select Employee --</option>
+                    @foreach (var emp in Model.Employees)
+                    {
+                        <option value="@emp.EmployeeId" @(emp.EmployeeId == Model.SelectedEmpId ? "selected" : "")>
+                            @emp.EmployeeId - @emp.EmployeeName
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Month</label>
+                <select name="month" class="form-ctrl">
+                    @for (var i = 1; i <= 12; i++)
+                    {
+                        <option value="@i" @(i == Model.SelectedMonth ? "selected" : "")>@monthNames[i - 1]</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Year</label>
+                <input type="number" name="year" class="form-ctrl" value="@Model.SelectedYear" min="2000" max="2100" />
+            </div>
+            <div class="att-actions">
+                <button type="submit" class="btn btn-primary">View</button>
+                <a href="@Url.Action("Index", "AttendanceTransaction")" class="btn btn-ghost">Clear</a>
+                <button type="submit" class="btn btn-ghost">Compute</button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="att-summary">
+    <div>Employee Id : <span class="mono">@(string.IsNullOrWhiteSpace(Model.SelectedEmpId) ? "-" : Model.SelectedEmpId)</span></div>
+    <div>Name : <span>@(string.IsNullOrWhiteSpace(Model.SelectedEmpName) ? "-" : Model.SelectedEmpName)</span></div>
+    <div>Mon/Year : <span class="mono">@monthNames[Model.SelectedMonth - 1] @Model.SelectedYear</span></div>
+</div>
+
+<div class="card att-grid-card">
+    <div class="tbl-wrap">
+        <table class="tbl att-grid">
+            <thead>
+                <tr>
+                    <th>Edit Punch</th>
+                    <th>Date</th>
+                    <th>First-In</th>
+                    <th>Last-Out</th>
+                    <th>Shift</th>
+                    <th>AttId</th>
+                    <th>Worked</th>
+                    <th>Extra</th>
+                    <th>Late</th>
+                    <th>Early</th>
+                    <th>OutPass</th>
+                    <th>Punch</th>
+                    <th>OT</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.HasResult)
+                {
+                    <tr>
+                        <td colspan="13" class="att-empty">Select an employee and period to view attendance transactions.</td>
+                    </tr>
+                }
+                else if (!Model.Rows.Any())
+                {
+                    <tr>
+                        <td colspan="13" class="att-empty">No attendance transactions found for this selection.</td>
+                    </tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    var editUrl = Url.Action("EditPunches", "AttendanceTransaction", new
+                    {
+                        employeeId = Model.SelectedEmpId,
+                        attendanceDate = row.Date.ToString("yyyy-MM-dd")
+                    });
+                    <tr class="att-row" data-url="@editUrl" title="Open manual punches">
+                        <td><a href="@editUrl" class="btn btn-ghost btn-sm">Edit</a></td>
+                        <td class="mono">@row.Date.ToString("dd-MMM-yyyy")</td>
+                        <td class="mono">@row.FirstInDisplay</td>
+                        <td class="mono">@row.LastOutDisplay</td>
+                        <td>@row.Shift</td>
+                        <td>@row.AttId</td>
+                        <td class="mono">@row.WorkedDisplay</td>
+                        <td class="mono">@row.ExtraDisplay</td>
+                        <td class="mono">@row.LateDisplay</td>
+                        <td class="mono">@row.EarlyDisplay</td>
+                        <td>@row.OutPass</td>
+                        <td>@row.PunchCount</td>
+                        <td class="mono">@row.OTDisplay</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.att-filter { max-width:1100px;margin-bottom:18px; }
+.att-filter-form { display:grid;grid-template-columns:minmax(280px,1.7fr) minmax(150px,.7fr) minmax(120px,.5fr) auto;gap:14px;align-items:end; }
+.att-actions { display:flex;gap:8px;align-items:center; }
+.att-summary { display:flex;gap:22px;flex-wrap:wrap;margin:12px 0 18px;color:var(--muted);font-size:13px; }
+.att-summary span { color:var(--text);font-weight:600; }
+.att-grid-card { overflow:hidden; }
+.att-grid th { white-space:nowrap; }
+.att-grid td { white-space:nowrap; }
+.att-row { cursor:pointer; }
+.att-row:hover td { background:rgba(91,110,245,.08); }
+.att-empty { text-align:center;padding:44px;color:var(--muted); }
+@@media (max-width:900px) {
+    .att-filter-form { grid-template-columns:1fr; }
+    .att-actions { justify-content:flex-start; }
+}
+</style>
+
+@section scripts {
+    <script>
+        document.querySelectorAll('.att-row').forEach(function (row) {
+            row.addEventListener('click', function (event) {
+                if (event.target.closest('a,button')) return;
+                window.location.href = row.getAttribute('data-url');
+            });
+        });
+    </script>
+}

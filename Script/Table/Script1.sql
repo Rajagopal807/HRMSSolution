@@ -55,7 +55,7 @@ INSERT INTO TblshiftDetails values ('AG', 7, '1899-12-30 09:00:00.000', '1899-12
 ---------------Delete Below---------------------------
 SELECt * FROM TblDailyTransactions WHERE AttendanceDate is NULL;
 ---DELETE FROM TblDailyTransactions WHERE AttendanceDate is NULL;
-SELECT * FROM TblMuster WHERE  TDate between '04/01/2026' and '04/30/2026';
+SELECT * FROM TblMuster WHERE  TDate between '05/01/2026' and '05/31/2026';
 SELECT * FROM tblErrorDisplay
 --DELETE FROM TblMuster WHERE  TDate>='03/01/2026';
 TRUNCATE TABLE TblLeaveApplications
@@ -74,3 +74,8 @@ select * FROM TblEMpmast
 
 select * FROM TblDepartment
 select * FROM TblDesignation
+
+SELECT * FROM TblDailyTransactions;
+
+DELETE FROM TBLEMPMAST;
+TRUNCATE TABLE TBLDEPARTMENT;

@@ -169,6 +169,59 @@ namespace HRMS.Infrastructure.Reports
                 .OrderBy(a => a.TDate )
                 .ToList();
         }
+
+        public IEnumerable<DailyTransactions> GetDailyTransactions(string employeeId, DateTime from, DateTime to)
+        {
+            var fromDate = from.Date;
+            var toDate = to.Date;
+
+            return _ctx.DailyTransactions
+                .Include(t => t.Employee)
+                .Where(t => t.EmpId == employeeId
+                         && t.AttendanceDate.HasValue
+                         && DbFunctions.TruncateTime(t.AttendanceDate) >= fromDate
+                         && DbFunctions.TruncateTime(t.AttendanceDate) <= toDate)
+                .OrderBy(t => t.AttendanceDate)
+                .ThenBy(t => t.PunchedTime)
+                .ToList();
+        }
+
+        public IEnumerable<DailyTransactions> GetDailyTransactionsForDay(string employeeId, DateTime attendanceDate)
+        {
+            var day = attendanceDate.Date;
+
+            return _ctx.DailyTransactions
+                .Include(t => t.Employee)
+                .Where(t => t.EmpId == employeeId
+                         && t.AttendanceDate.HasValue
+                         && DbFunctions.TruncateTime(t.AttendanceDate) == day)
+                .OrderBy(t => t.PunchedTime)
+                .ThenBy(t => t.TransTime)
+                .ToList();
+        }
+
+        public DailyTransactions GetDailyTransaction(string employeeId, string ioFlag, DateTime transTime)
+        {
+            return _ctx.DailyTransactions
+                .FirstOrDefault(t => t.EmpId == employeeId
+                                  && t.IOFlag == ioFlag
+                                  && t.TransTime == transTime);
+        }
+
+        public void AddDailyTransaction(DailyTransactions transaction)
+        {
+            _ctx.DailyTransactions.Add(transaction);
+        }
+
+        public void UpdateDailyTransaction(DailyTransactions transaction)
+        {
+            _ctx.Entry(transaction).State = EntityState.Modified;
+        }
+
+        public void DeleteDailyTransaction(DailyTransactions transaction)
+        {
+            _ctx.DailyTransactions.Remove(transaction);
+        }
     }
 
 

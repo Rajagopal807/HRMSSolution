@@ -1,0 +1,212 @@
+@model HRMS.Application.DTOs.EditPunchesScreenDto
+@using System.Globalization
+@{
+    ViewBag.Title = "Manual Punches";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index", "AttendanceTransaction", new { employeeId = Model.EmployeeId, month = Model.AttendanceDate.Month, year = Model.AttendanceDate.Year })"
+       class="btn btn-ghost btn-sm">&#8592;&nbsp;Back to Transactions</a>
+</div>
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Manual Punches</div>
+        <div class="page-sub">Modify punches for a single attendance date</div>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="toast toast-success">&#10003; @Model.StatusMessage</div>
+}
+
+<div class="card punch-editor">
+    <div class="card-header">
+        <div class="card-title">Punch Entry</div>
+        <div class="card-sub">Create or modify manual punch records</div>
+    </div>
+    <div class="card-body">
+        @using (Html.BeginForm("AddPunch", "AttendanceTransaction", FormMethod.Post, new { id = "punchForm", @class = "punch-form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("EmployeeId", Model.EmployeeId, new { id = "EmployeeId" })
+            @Html.Hidden("AttendanceDate", Model.AttendanceDate.ToString("yyyy-MM-dd"), new { id = "AttendanceDate" })
+            @Html.Hidden("OriginalIOFlag", "", new { id = "OriginalIOFlag" })
+            @Html.Hidden("OriginalTransTimeStr", "", new { id = "OriginalTransTimeStr" })
+
+            <div class="form-group">
+                <label class="form-label">Attendance Date</label>
+                <input type="date" class="form-ctrl" value="@Model.AttendanceDate.ToString("yyyy-MM-dd")" disabled />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time [24 Hrs]</label>
+                <input type="time" name="PunchedTimeStr" id="PunchedTimeStr" class="form-ctrl" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">IO Mode</label>
+                <div class="seg">
+                    <label><input type="radio" name="IOFlag" value="I" checked /> In</label>
+                    <label><input type="radio" name="IOFlag" value="O" /> Out</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Transaction Date</label>
+                <input type="date" name="TransDateStr" id="TransDateStr" class="form-ctrl" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Deleted</label>
+                <div class="seg">
+                    <label><input type="radio" name="IsDeleted" value="true" /> True</label>
+                    <label><input type="radio" name="IsDeleted" value="false" checked /> False</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Remarks</label>
+                <input type="text" name="Remarks" id="Remarks" class="form-ctrl" maxlength="200" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Branch No</label>
+                <input type="text" name="BranchNo" id="BranchNo" class="form-ctrl" maxlength="10" />
+            </div>
+            <div class="punch-buttons">
+                <button type="button" class="btn btn-ghost" id="newBtn">New</button>
+                <button type="submit" class="btn btn-primary" formaction="@Url.Action("AddPunch", "AttendanceTransaction")">Add</button>
+                <button type="submit" class="btn btn-ghost" formaction="@Url.Action("ModifyPunch", "AttendanceTransaction")">Modify</button>
+                <button type="button" class="btn btn-ghost" id="clearBtn">Clear</button>
+                <a href="@Url.Action("Index", "AttendanceTransaction", new { employeeId = Model.EmployeeId, month = Model.AttendanceDate.Month, year = Model.AttendanceDate.Year })" class="btn btn-ghost">Close</a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="punch-context">
+    <div>Employee Id:<br /><span class="mono">@Model.EmployeeId</span></div>
+    <div>Employee:<br /><span>@Model.EmployeeName</span></div>
+    <div>Attendance Date:<br /><span class="mono">@Model.AttendanceDate.ToString("dd-MMM-yyyy")</span></div>
+</div>
+
+<div class="card punch-grid-card">
+    <div class="card-header">
+        <div class="card-title">Punch Details</div>
+    </div>
+    <div class="tbl-wrap">
+        <table class="tbl punch-grid">
+            <thead>
+                <tr>
+                    <th>Option</th>
+                    <th>Attendance Date</th>
+                    <th>Punched Time</th>
+                    <th>Transaction Date</th>
+                    <th>Trans Time</th>
+                    <th>IO Flag</th>
+                    <th>Deleted</th>
+                    <th>Remarks</th>
+                    <th>Br.No</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Punches.Any())
+                {
+                    <tr><td colspan="9" class="punch-empty">No punches found for this day.</td></tr>
+                }
+                @foreach (var punch in Model.Punches)
+                {
+                    var transKey = punch.TransactionDate.Date.Add(punch.TransTime ?? TimeSpan.Zero).ToString("o", CultureInfo.InvariantCulture);
+                    <tr class="punch-row"
+                        data-io="@punch.IOFlag"
+                        data-trans="@transKey"
+                        data-punched="@punch.PunchedTime.ToString(@"hh\:mm")"
+                        data-transdate="@punch.TransactionDate.ToString("yyyy-MM-dd")"
+                        data-deleted="@punch.IsDeleted.ToString().ToLowerInvariant()"
+                        data-remarks="@punch.Remarks"
+                        data-branch="@punch.BranchNo">
+                        <td>
+                            @using (Html.BeginForm("DeletePunch", "AttendanceTransaction", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("employeeId", Model.EmployeeId)
+                                @Html.Hidden("attendanceDate", Model.AttendanceDate.ToString("yyyy-MM-dd"))
+                                @Html.Hidden("ioFlag", punch.IOFlag)
+                                @Html.Hidden("transTime", transKey)
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete selected punch?')">Delete</button>
+                            }
+                        </td>
+                        <td class="mono">@punch.AttendanceDate.ToString("dd-MMM-yyyy")</td>
+                        <td class="mono">@punch.PunchedTimeDisplay</td>
+                        <td class="mono">@punch.TransactionDate.ToString("dd-MMM-yyyy")</td>
+                        <td class="mono">@punch.TransTimeDisplay</td>
+                        <td>@punch.IOFlag</td>
+                        <td>@(punch.IsDeleted ? "True" : "False")</td>
+                        <td>@punch.Remarks</td>
+                        <td>@punch.BranchNo</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.punch-editor { max-width:980px; }
+.punch-form { display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:14px;align-items:end; }
+.seg { min-height:38px;display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:rgba(255,255,255,.03); }
+[data-theme="light"] .seg { background:#f8fafc; }
+.seg label { display:flex;align-items:center;gap:5px;color:var(--text);font-size:13px; }
+.punch-buttons { grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap; }
+.punch-context { display:grid;grid-template-columns:repeat(3,minmax(160px,1fr));gap:14px;max-width:980px;margin:18px 0;color:var(--muted);text-align:center; }
+.punch-context span { display:inline-block;margin-top:6px;color:var(--text);font-weight:600; }
+.punch-grid-card { overflow:hidden; }
+.punch-grid th,.punch-grid td { white-space:nowrap; }
+.punch-row { cursor:pointer; }
+.punch-row:hover td { background:rgba(91,110,245,.08); }
+.punch-empty { padding:40px;text-align:center;color:var(--muted); }
+@@media (max-width:900px) {
+    .punch-form { grid-template-columns:1fr; }
+    .punch-context { grid-template-columns:1fr; text-align:left; }
+}
+</style>
+
+@section scripts {
+    <script>
+        (function () {
+            var form = document.getElementById('punchForm');
+            var originalIo = document.getElementById('OriginalIOFlag');
+            var originalTrans = document.getElementById('OriginalTransTimeStr');
+
+            function setRadio(name, value) {
+                var input = form.querySelector('input[name="' + name + '"][value="' + value + '"]');
+                if (input) input.checked = true;
+            }
+
+            function clearForm() {
+                originalIo.value = '';
+                originalTrans.value = '';
+                document.getElementById('PunchedTimeStr').value = '';
+                document.getElementById('TransDateStr').value = '@DateTime.Today.ToString("yyyy-MM-dd")';
+                document.getElementById('Remarks').value = '';
+                document.getElementById('BranchNo').value = '';
+                setRadio('IOFlag', 'I');
+                setRadio('IsDeleted', 'false');
+            }
+
+            document.querySelectorAll('.punch-row').forEach(function (row) {
+                row.addEventListener('click', function (event) {
+                    if (event.target.closest('button')) return;
+                    originalIo.value = row.dataset.io;
+                    originalTrans.value = row.dataset.trans;
+                    document.getElementById('PunchedTimeStr').value = row.dataset.punched;
+                    document.getElementById('TransDateStr').value = row.dataset.transdate;
+                    document.getElementById('Remarks').value = row.dataset.remarks || '';
+                    document.getElementById('BranchNo').value = row.dataset.branch || '';
+                    setRadio('IOFlag', row.dataset.io);
+                    setRadio('IsDeleted', row.dataset.deleted === 'true' ? 'true' : 'false');
+                });
+            });
+
+            document.getElementById('newBtn').addEventListener('click', clearForm);
+            document.getElementById('clearBtn').addEventListener('click', clearForm);
+        }());
+    </script>
+}

@@ -55,6 +55,7 @@ namespace HRMS.Web.App_Start
                    .InstancePerRequest();
             builder.RegisterType<ReportScreenService>().As<IReportScreenService>().InstancePerRequest();
             builder.RegisterType<TempcardService>().As<ITempCardService>().InstancePerRequest();
+            builder.RegisterType<AttendanceTransactionService>().As<IAttendanceTransactionService>().InstancePerRequest();
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
