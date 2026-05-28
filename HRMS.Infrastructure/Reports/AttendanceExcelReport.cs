@@ -38,7 +38,7 @@ namespace HRMS.Infrastructure.Reports
         // ── Sheet Builder ─────────────────────────────────────────────────────
         private static void BuildSheet(IXLWorksheet ws, AttendanceReportDto data)
         {
-            int totalDays = Convert.ToInt32((data.ToDate - data.FromDate).TotalDays);
+            int totalDays = Convert.ToInt32((data.ToDate.AddDays(1) - data.FromDate).TotalDays);
             int days = totalDays; //data.DaysInMonth;
             int totalCols = 2 + (days * 2); // EmpID + Name + 31 days * 2(In/Out)
 
