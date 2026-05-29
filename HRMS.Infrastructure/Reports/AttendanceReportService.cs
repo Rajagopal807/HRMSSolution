@@ -80,11 +80,24 @@ namespace HRMS.Infrastructure.Reports
 
                     if (!dayLogs.Any())
                     {
-                        row.Days.Add(new AttendanceDayDto
+                        if (from == to && from.Day == day)
                         {
-                            Day = day,
-                            AttId = "00"
-                        });
+                            row.Days.Add(new AttendanceDayDto
+                            {
+                                Day = day,
+                                AttId = "00"
+                            });
+                        }
+
+                        if (from != to)
+                        {
+                            row.Days.Add(new AttendanceDayDto
+                            {
+                                Day = day,
+                                AttId = "00"
+                            });
+                        }
+
                         continue;
                     }
 
@@ -103,7 +116,14 @@ namespace HRMS.Infrastructure.Reports
                     attendanceDayDto.AttId = first.AttId;
                     attendanceDayDto.ShiftId = first.ShiftId;
 
-                    row.Days.Add(attendanceDayDto);
+                    if (from == to && from.Day == day)
+                    {
+                        row.Days.Add(attendanceDayDto);
+                    }
+
+                    if(from != to){
+                        row.Days.Add(attendanceDayDto);
+                    }
                 } 
 
                 row.WorkDays = workDays;
