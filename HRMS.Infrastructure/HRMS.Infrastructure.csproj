@@ -168,6 +168,10 @@
     <Compile Include="Reports\AttendanceReportService.cs" />
     <Compile Include="Reports\GroupedAttendanceExcelReport.cs" />
     <Compile Include="Reports\GroupedAttendancePdfReport.cs" />
+    <Compile Include="Reports\HolidayExcelReport.cs" />
+    <Compile Include="Reports\HolidayPdfReport.cs" />
+    <Compile Include="Reports\SinglePunchExcelReport.cs" />
+    <Compile Include="Reports\SinglePunchPdfReport.cs" />
     <Compile Include="Repositories\Repositories.cs" />
   </ItemGroup>
   <ItemGroup>

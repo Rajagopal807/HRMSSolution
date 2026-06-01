@@ -55,7 +55,8 @@ INSERT INTO TblshiftDetails values ('AG', 7, '1899-12-30 09:00:00.000', '1899-12
 ---------------Delete Below---------------------------
 SELECt * FROM TblDailyTransactions WHERE AttendanceDate is NULL;
 ---DELETE FROM TblDailyTransactions WHERE AttendanceDate is NULL;
-SELECT * FROM TblMuster WHERE  TDate between '05/01/2026' and '05/31/2026';
+SELECT * FROM TblMuster WHERE  TDate = '05/01/2026' and EmployeeId='00000BD1861' and Attid='AA';
+DELETE FROM TblMuster WHERE  TDate >= '05/01/2026' and Tdate<='05/31/2026' and EmployeeId='00000BD1861'
 SELECT * FROM tblErrorDisplay
 --DELETE FROM TblMuster WHERE  TDate>='03/01/2026';
 TRUNCATE TABLE TblLeaveApplications
@@ -68,9 +69,55 @@ SELECT * FROM TblshiftDetails;
 
 SELECT CAST('03/01/2026' as DATE);
 
+SELECT
+    M.*,
+    H.Holiday
+FROM TblMuster M
+LEFT JOIN TblHolidays H
+    ON M.TDate = H.Holiday
+WHERE M.AttId = 'AA'
+  AND M.TDate = '2026-05-01';
+
+            SELECT * 
+            FROM TblHolidays 
+            WHERE Holiday BETWEEN '05/01/2026' AND '05/31/2026'
+              AND IsActive = 1
+              AND IsDeleted = 0;
+
+SELECT
+    M.TDate,
+    H.Holiday,
+    M.AttId
+FROM TblMuster M
+INNER JOIN TblHolidays H
+    ON CAST(M.TDate AS DATE) = CAST(H.Holiday AS DATE)
+WHERE CAST(H.Holiday AS DATE)
+      BETWEEN CAST('05/01/2026' AS DATE)
+          AND CAST('05/31/2026' AS DATE)
+  AND H.IsActive = 1
+  AND H.IsDeleted = 0
+ORDER BY H.Holiday;
+
+UPDATE M
+SET AttId = 'HH'
+FROM TblMuster M
+INNER JOIN TblHolidays H 
+    ON M.TDate = H.Holiday
+WHERE H.Holiday BETWEEN '05/01/2026' AND '05/31/2026'
+    AND H.IsActive = 1
+    AND H.IsDeleted = 0;
+
+SELECT *
+FROM TblMuster M
+INNER JOIN TblHolidays H 
+    ON M.TDate = H.Holiday
+WHERE H.Holiday BETWEEN '05/01/2026' AND '05/31/2026'
+    AND H.IsActive = 1
+    AND H.IsDeleted = 0;
+
 
 SELECT TRY_CONVERT(DATE, '03/01/2026', 101)
-select * FROM TblEMpmast
+select * FROM TblEMpmast WHERE EmployeeId='00000BD1861'
 
 select * FROM TblDepartment
 select * FROM TblDesignation

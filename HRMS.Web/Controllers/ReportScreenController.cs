@@ -39,7 +39,13 @@ namespace HRMS.Web.Controllers
 
             // Employee Wise allows empty selection (generates for all employees).
             // Department Wise and Cadre Wise REQUIRE at least one selected item.
-            if (filter.Grouping != ReportGrouping.EmployeeWise
+            bool skipsItemSelection = string.Equals(filter.ReportType, "Holiday Register",
+                StringComparison.OrdinalIgnoreCase)
+                || string.Equals(filter.ReportType, "Single Punch Report",
+                    StringComparison.OrdinalIgnoreCase);
+
+            if (!skipsItemSelection
+                && filter.Grouping != ReportGrouping.EmployeeWise
                 && (filter.SelectedItems == null || filter.SelectedItems.Count == 0))
             {
                 TempData["Error"] = filter.Grouping == ReportGrouping.DepartmentWise

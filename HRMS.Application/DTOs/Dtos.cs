@@ -353,6 +353,27 @@ namespace HRMS.Application.DTOs
         };
     }
 
+    public class SinglePunchReportRowDto
+    {
+        public string EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public string DepartmentName { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public DateTime PunchTime { get; set; }
+        public string IOFlag { get; set; }
+        public string Remarks { get; set; }
+        public string BadgeReaderNo { get; set; }
+    }
+
+    public class SinglePunchReportDto
+    {
+        public string CompanyName { get; set; }
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public DateTime PrintedOn { get; set; }
+        public List<SinglePunchReportRowDto> Rows { get; set; } = new List<SinglePunchReportRowDto>();
+    }
+
     // ── Attendance Transaction (daily summary row in Image 1 grid) ─────────────
 
     /// <summary>

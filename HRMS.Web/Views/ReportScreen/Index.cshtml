@@ -514,8 +514,12 @@
             if (r.checked) groupingVal = parseInt(r.value);
         });
 
-        // 2. For Department/Cadre wise, at least one item must be selected
-        if (groupingVal !== 1 && selList.options.length === 0) {
+        var reportType = document.querySelector("select[name='ReportType']").value || '';
+        var skipsItemSelection = reportType.toLowerCase() === 'holiday register'
+            || reportType.toLowerCase() === 'single punch report';
+
+        // 2. For Department/Cadre wise attendance, at least one item must be selected
+        if (!skipsItemSelection && groupingVal !== 1 && selList.options.length === 0) {
             var label = groupingVal === 2 ? 'Department' : 'Cadre';
             alert('Please select at least one ' + label + ' from the Selected Items list.');
             return false;  // prevent form submission

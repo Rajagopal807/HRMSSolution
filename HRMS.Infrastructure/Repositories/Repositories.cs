@@ -186,6 +186,25 @@ namespace HRMS.Infrastructure.Reports
                 .ToList();
         }
 
+        public IEnumerable<DailyTransactions> GetDailyTransactionsByDateRange(DateTime from, DateTime to)
+        {
+            var fromDate = from.Date;
+            var toDate = to.Date;
+
+            return _ctx.DailyTransactions
+                .Include(t => t.Employee)
+                .Include(t => t.Employee.Department)
+                .Where(t => t.AttendanceDate.HasValue
+                         && DbFunctions.TruncateTime(t.AttendanceDate) >= fromDate
+                         && DbFunctions.TruncateTime(t.AttendanceDate) <= toDate
+                         && t.Deleted != "Y"
+                         && t.Deleted != "1")
+                .OrderBy(t => t.AttendanceDate)
+                .ThenBy(t => t.EmpId)
+                .ThenBy(t => t.PunchedTime)
+                .ToList();
+        }
+
         public IEnumerable<DailyTransactions> GetDailyTransactionsForDay(string employeeId, DateTime attendanceDate)
         {
             var day = attendanceDate.Date;
@@ -348,6 +367,13 @@ namespace HRMS.Infrastructure.Reports
         public IEnumerable<Holiday> GetAllHolidays()
             => _set.Where(h => !h.IsDeleted)
                    .OrderByDescending(h => h.HolidayDate)
+                   .ToList();
+
+        public IEnumerable<Holiday> GetByDateRange(DateTime from, DateTime to)
+            => _set.Where(h => !h.IsDeleted
+                            && DbFunctions.TruncateTime(h.HolidayDate) >= from.Date
+                            && DbFunctions.TruncateTime(h.HolidayDate) <= to.Date)
+                   .OrderBy(h => h.HolidayDate)
                    .ToList();
 
         public Holiday GetByHolidayDate(DateTime holidayDate)

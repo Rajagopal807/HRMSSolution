@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace HRMS.Application.DTOs
@@ -29,5 +30,22 @@ namespace HRMS.Application.DTOs
         public string Description { get; set; }
 
         public bool IsActive { get; set; } = true;
+    }
+
+    public class HolidayReportRowDto
+    {
+        public DateTime HolidayDate { get; set; }
+        public string HolidayName { get; set; }
+        public string Description { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class HolidayReportDto
+    {
+        public string CompanyName { get; set; }
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public DateTime PrintedOn { get; set; }
+        public List<HolidayReportRowDto> Rows { get; set; } = new List<HolidayReportRowDto>();
     }
 }

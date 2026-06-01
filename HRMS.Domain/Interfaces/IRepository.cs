@@ -67,6 +67,7 @@ namespace HRMS.Domain.Interfaces
     public interface IHolidayRepository : IRepository<Holiday>
     {
         IEnumerable<Holiday> GetAllHolidays();
+        IEnumerable<Holiday> GetByDateRange(DateTime from, DateTime to);
         Holiday GetByHolidayDate(DateTime holidayDate);
         bool DateExists(DateTime holidayDate, int excludeId = 0);
     }
@@ -87,6 +88,7 @@ namespace HRMS.Domain.Interfaces
         /// <summary>Returns punch records for one employee within the date range.</summary>
         IEnumerable<Muster> GetByEmployee(string employeeId, DateTime from, DateTime to);
         IEnumerable<DailyTransactions> GetDailyTransactions(string employeeId, DateTime from, DateTime to);
+        IEnumerable<DailyTransactions> GetDailyTransactionsByDateRange(DateTime from, DateTime to);
         IEnumerable<DailyTransactions> GetDailyTransactionsForDay(string employeeId, DateTime attendanceDate);
         DailyTransactions GetDailyTransaction(string employeeId, string ioFlag, DateTime transTime);
         void AddDailyTransaction(DailyTransactions transaction);

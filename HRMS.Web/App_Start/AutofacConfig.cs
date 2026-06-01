@@ -47,6 +47,10 @@ namespace HRMS.Web.App_Start
             builder.RegisterType<AttendanceExcelReport>().Named<IReportGenerator<AttendanceReportDto>>("excel").InstancePerRequest();
             builder.RegisterType<GroupedAttendancePdfReport>().Named<IReportGenerator<GroupedAttendanceReportDto>>("grouped-pdf").InstancePerRequest();
             builder.RegisterType<GroupedAttendanceExcelReport>().Named<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel").InstancePerRequest();
+            builder.RegisterType<HolidayPdfReport>().Named<IReportGenerator<HolidayReportDto>>("holiday-pdf").InstancePerRequest();
+            builder.RegisterType<HolidayExcelReport>().Named<IReportGenerator<HolidayReportDto>>("holiday-excel").InstancePerRequest();
+            builder.RegisterType<SinglePunchPdfReport>().Named<IReportGenerator<SinglePunchReportDto>>("single-punch-pdf").InstancePerRequest();
+            builder.RegisterType<SinglePunchExcelReport>().Named<IReportGenerator<SinglePunchReportDto>>("single-punch-excel").InstancePerRequest();
             builder.Register(c => new AttendanceReportService(c.Resolve<IUnitOfWork>(),
                     c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("pdf"),
                     c.ResolveNamed<IReportGenerator<AttendanceReportDto>>("excel"),
@@ -54,7 +58,15 @@ namespace HRMS.Web.App_Start
                      c.ResolveNamed<IReportGenerator<GroupedAttendanceReportDto>>("grouped-excel")))
                    .As<IAttendanceReportService>()
                    .InstancePerRequest();
-            builder.RegisterType<ReportScreenService>().As<IReportScreenService>().InstancePerRequest();
+            builder.Register(c => new ReportScreenService(
+                    c.Resolve<IUnitOfWork>(),
+                    c.Resolve<IAttendanceReportService>(),
+                    c.ResolveNamed<IReportGenerator<HolidayReportDto>>("holiday-pdf"),
+                    c.ResolveNamed<IReportGenerator<HolidayReportDto>>("holiday-excel"),
+                    c.ResolveNamed<IReportGenerator<SinglePunchReportDto>>("single-punch-pdf"),
+                    c.ResolveNamed<IReportGenerator<SinglePunchReportDto>>("single-punch-excel")))
+                   .As<IReportScreenService>()
+                   .InstancePerRequest();
             builder.RegisterType<TempcardService>().As<ITempCardService>().InstancePerRequest();
             builder.RegisterType<AttendanceTransactionService>().As<IAttendanceTransactionService>().InstancePerRequest();
 

@@ -340,15 +340,29 @@ namespace HRMS.Infrastructure.Reports
     {
         private readonly IUnitOfWork _uow;
         private readonly IAttendanceReportService _attendanceService;
+        private readonly IReportGenerator<HolidayReportDto> _holidayPdfGenerator;
+        private readonly IReportGenerator<HolidayReportDto> _holidayExcelGenerator;
+        private readonly IReportGenerator<SinglePunchReportDto> _singlePunchPdfGenerator;
+        private readonly IReportGenerator<SinglePunchReportDto> _singlePunchExcelGenerator;
 
         // ── OCP factory: map report type string → generator delegate ──────────
         private readonly Dictionary<string,
             Func<ReportFilterDto, (byte[], string, string)>> _generators;
 
-        public ReportScreenService(IUnitOfWork uow, IAttendanceReportService attendanceService)
+        public ReportScreenService(
+            IUnitOfWork uow,
+            IAttendanceReportService attendanceService,
+            IReportGenerator<HolidayReportDto> holidayPdfGenerator,
+            IReportGenerator<HolidayReportDto> holidayExcelGenerator,
+            IReportGenerator<SinglePunchReportDto> singlePunchPdfGenerator,
+            IReportGenerator<SinglePunchReportDto> singlePunchExcelGenerator)
         {
             _uow = uow;
             _attendanceService = attendanceService;
+            _holidayPdfGenerator = holidayPdfGenerator;
+            _holidayExcelGenerator = holidayExcelGenerator;
+            _singlePunchPdfGenerator = singlePunchPdfGenerator;
+            _singlePunchExcelGenerator = singlePunchExcelGenerator;
 
             byte[] bytes = new byte[0];
             string fileName = string.Empty;
@@ -395,6 +409,38 @@ namespace HRMS.Infrastructure.Reports
                         fileName = string.Format("AttendanceRegister_DesignationWise_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
                     }
                     return (bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                },
+
+                ["Holiday Register"] = filter =>
+                {
+                    var data = GetHolidayReportData(filter.ResolvedFrom, filter.ResolvedTo);
+                    fileName = _holidayPdfGenerator.GetFileName(data);
+                    bytes = _holidayPdfGenerator.Generate(data);
+                    return (bytes, _holidayPdfGenerator.ContentType, fileName);
+                },
+
+                ["Holiday Register Excel"] = filter =>
+                {
+                    var data = GetHolidayReportData(filter.ResolvedFrom, filter.ResolvedTo);
+                    fileName = _holidayExcelGenerator.GetFileName(data);
+                    bytes = _holidayExcelGenerator.Generate(data);
+                    return (bytes, _holidayExcelGenerator.ContentType, fileName);
+                },
+
+                ["Single Punch Report"] = filter =>
+                {
+                    var data = GetSinglePunchReportData(filter.ResolvedFrom, filter.ResolvedTo);
+                    fileName = _singlePunchPdfGenerator.GetFileName(data);
+                    bytes = _singlePunchPdfGenerator.Generate(data);
+                    return (bytes, _singlePunchPdfGenerator.ContentType, fileName);
+                },
+
+                ["Single Punch Report Excel"] = filter =>
+                {
+                    var data = GetSinglePunchReportData(filter.ResolvedFrom, filter.ResolvedTo);
+                    fileName = _singlePunchExcelGenerator.GetFileName(data);
+                    bytes = _singlePunchExcelGenerator.Generate(data);
+                    return (bytes, _singlePunchExcelGenerator.ContentType, fileName);
                 },
 
             };
@@ -445,12 +491,20 @@ namespace HRMS.Infrastructure.Reports
                 })
                 .ToList();
 
-            return new ReportScreenDto
+            var screen = new ReportScreenDto
             {
                 AvailableEmployees = employees,
                 AvailableDepartments = departments,
                 AvailableCadres = cadres
             };
+
+            if (!screen.ReportTypes.Contains("Holiday Register"))
+                screen.ReportTypes.Add("Holiday Register");
+
+            if (!screen.ReportTypes.Contains("Single Punch Report"))
+                screen.ReportTypes.Add("Single Punch Report");
+
+            return screen;
         }
         #endregion
 
@@ -467,5 +521,70 @@ namespace HRMS.Infrastructure.Reports
             return generator(filter);
         }
         #endregion
+
+        private HolidayReportDto GetHolidayReportData(DateTime from, DateTime to, string companyName = "Zeith Software Pvt Ltd.")
+        {
+            var holidays = _uow.Holidays.GetByDateRange(from, to)
+                .Select(h => new HolidayReportRowDto
+                {
+                    HolidayDate = h.HolidayDate,
+                    HolidayName = h.HolidayName,
+                    Description = h.Description,
+                    IsActive = h.IsActive
+                })
+                .ToList();
+
+            return new HolidayReportDto
+            {
+                CompanyName = companyName,
+                FromDate = from,
+                ToDate = to,
+                PrintedOn = DateTime.Now,
+                Rows = holidays
+            };
+        }
+
+        private SinglePunchReportDto GetSinglePunchReportData(DateTime from, DateTime to, string companyName = "Zeith Software Pvt Ltd.")
+        {
+            var punches = _uow.Attendace.GetDailyTransactionsByDateRange(from, to);
+
+            var rows = punches
+                .GroupBy(p => new
+                {
+                    p.EmpId,
+                    AttendanceDate = (p.AttendanceDate ?? p.TransTime).Date
+                })
+                .Where(g => g.Count() == 1)
+                .Select(g =>
+                {
+                    var punch = g.First();
+                    var employee = punch.Employee ?? _uow.Employees.GetByEmployeeID(punch.EmpId);
+                    var punchTime = punch.PunchedTime ?? punch.TransTime;
+
+                    return new SinglePunchReportRowDto
+                    {
+                        EmployeeId = punch.EmpId,
+                        EmployeeName = employee == null ? "" : employee.EmployeeName,
+                        DepartmentName = employee != null && employee.Department != null ? employee.Department.DepartmentName : "",
+                        AttendanceDate = g.Key.AttendanceDate,
+                        PunchTime = punchTime,
+                        IOFlag = punch.IOFlag,
+                        Remarks = punch.Remarks,
+                        BadgeReaderNo = punch.BadgeReaderNo.HasValue ? punch.BadgeReaderNo.Value.ToString() : ""
+                    };
+                })
+                .OrderBy(r => r.AttendanceDate)
+                .ThenBy(r => r.EmployeeId)
+                .ToList();
+
+            return new SinglePunchReportDto
+            {
+                CompanyName = companyName,
+                FromDate = from,
+                ToDate = to,
+                PrintedOn = DateTime.Now,
+                Rows = rows
+            };
+        }
     }
 }
