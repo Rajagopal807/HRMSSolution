@@ -44,7 +44,8 @@ namespace HRMS.Infrastructure.Reports
                 CompanyName = companyName,
                 FromDate = from,
                 ToDate = to,
-                PrintedOn = DateTime.Now
+                PrintedOn = DateTime.Now,
+                LeaveTypes = GetReportLeaveTypes()
             };
 
             int daysInMonth = DateTime.DaysInMonth(from.Year, from.Month);
@@ -150,7 +151,8 @@ namespace HRMS.Infrastructure.Reports
                 FromDate = from,
                 ToDate = to,
                 PrintedOn = DateTime.Now,
-                GroupingLabel = "Department"
+                GroupingLabel = "Department",
+                LeaveTypes = GetReportLeaveTypes()
             };
 
             // Group employees by department
@@ -190,7 +192,8 @@ namespace HRMS.Infrastructure.Reports
                 FromDate = from,
                 ToDate = to,
                 PrintedOn = DateTime.Now,
-                GroupingLabel = "Cadre"
+                GroupingLabel = "Cadre",
+                LeaveTypes = GetReportLeaveTypes()
             };
 
             // Group employees by designation (cadre)
@@ -312,6 +315,18 @@ namespace HRMS.Infrastructure.Reports
 
             row.WorkDays = workDays;
             return row;
+        }
+
+        private List<ReportLeaveTypeDto> GetReportLeaveTypes()
+        {
+            return _uow.LeaveTypesMasters.GetActive()
+                .OrderBy(l => l.LeaveTypeID)
+                .Select(l => new ReportLeaveTypeDto
+                {
+                    LeaveTypeID = l.LeaveTypeID,
+                    Description = string.IsNullOrWhiteSpace(l.Description) ? l.Name : l.Description
+                })
+                .ToList();
         }
         #endregion
     }

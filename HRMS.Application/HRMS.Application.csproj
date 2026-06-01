@@ -48,7 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\Dtos.cs" />
+    <Compile Include="DTOs\HolidayDto.cs" />
     <Compile Include="DTOs\LeaveTypeMasterDto.cs" />
+    <Compile Include="Interfaces\IHolidayService.cs" />
     <Compile Include="Interfaces\ILeaveTypeMasterService.cs" />
     <Compile Include="Interfaces\IReportGenerator.cs" />
     <Compile Include="Interfaces\IServices.cs" />
@@ -57,6 +59,7 @@
     <Compile Include="Services\DepartmentService.cs" />
     <Compile Include="Services\DesignationService.cs" />
     <Compile Include="Services\EmployeeService.cs" />
+    <Compile Include="Services\HolidayService.cs" />
     <Compile Include="Services\LeaveAndDashboardService.cs" />
     <Compile Include="Services\LeaveTypeMasterService.cs" />
     <Compile Include="Services\SecureTokenService.cs" />

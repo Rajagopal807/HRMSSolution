@@ -186,6 +186,45 @@ namespace HRMS.Infrastructure.Reports
             }
 
             doc.Add(table);
+            AddLeaveTypeFooter(doc, data);
+        }
+
+        private static void AddLeaveTypeFooter(Document doc, AttendanceReportDto data)
+        {
+            if (data.LeaveTypes == null || data.LeaveTypes.Count == 0)
+                return;
+
+            var table = new PdfPTable(2)
+            {
+                WidthPercentage = 35f,
+                HorizontalAlignment = Element.ALIGN_LEFT,
+                SpacingBefore = 8f,
+                KeepTogether = true
+            };
+            table.SetWidths(new[] { 45f, 140f });
+
+            var titleCell = new PdfPCell(new Phrase("Leave Types", _fontCellBold))
+            {
+                Colspan = 2,
+                BackgroundColor = _headerBg,
+                HorizontalAlignment = Element.ALIGN_LEFT,
+                Border = Rectangle.BOX,
+                BorderColor = new BaseColor(160, 160, 160),
+                BorderWidth = 0.5f,
+                Padding = 3f
+            };
+            table.AddCell(titleCell);
+
+            AddFooterHeaderCell(table, "LeaveType ID");
+            AddFooterHeaderCell(table, "Leave Description");
+
+            foreach (var leaveType in data.LeaveTypes)
+            {
+                AddDataCell(table, leaveType.LeaveTypeID, _fontCellBold, BaseColor.WHITE, Element.ALIGN_LEFT);
+                AddDataCell(table, leaveType.Description, _fontCell, BaseColor.WHITE, Element.ALIGN_LEFT);
+            }
+
+            doc.Add(table);
         }
 
         // ── Cell Helpers ──────────────────────────────────────────────────────
@@ -235,6 +274,21 @@ namespace HRMS.Infrastructure.Reports
                 BorderColor = new BaseColor(200, 200, 200),
                 BorderWidth = 0.3f,
                 Padding = 2f
+            };
+            table.AddCell(cell);
+        }
+
+        private static void AddFooterHeaderCell(PdfPTable table, string text)
+        {
+            var cell = new PdfPCell(new Phrase(text, _fontHeader))
+            {
+                BackgroundColor = _headerBg,
+                HorizontalAlignment = Element.ALIGN_LEFT,
+                VerticalAlignment = Element.ALIGN_MIDDLE,
+                Border = Rectangle.BOX,
+                BorderColor = new BaseColor(160, 160, 160),
+                BorderWidth = 0.5f,
+                Padding = 2.5f
             };
             table.AddCell(cell);
         }

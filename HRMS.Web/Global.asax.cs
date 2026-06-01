@@ -20,8 +20,13 @@ namespace HRMS.Web
                 if (!ctx.Database.Exists())
                 {
                     DatabaseSetup.Initialize();
-                    Database.SetInitializer(new DatabaseSeeder());
+                    Database.SetInitializer<ApplicationDbContext>(new DatabaseSeeder());
                     ctx.Database.Initialize(true);
+                }
+                else
+                {
+                    Database.SetInitializer<ApplicationDbContext>(null);
+                    DatabaseSetup.EnsureHolidayTable();
                 }
             }
 

@@ -1,0 +1,137 @@
+@model HRMS.Application.DTOs.SaveHolidayDto
+@{ Layout = null; }
+
+@{
+    bool isEdit = ViewBag.IsEdit != null && (bool)ViewBag.IsEdit;
+    int editId = ViewBag.EditId != null ? (int)ViewBag.EditId : 0;
+    string formAction = isEdit ? "Edit" : "Create";
+    string submitLabel = isEdit ? "Save Changes" : "Add Holiday";
+}
+
+<div style="margin-bottom:20px;">
+    <a href="@Url.Action("Index","Holiday")" class="btn btn-ghost btn-sm">
+        &#8592;&nbsp;Back
+    </a>
+</div>
+
+<div class="page-header">
+    <div>
+        <div class="page-title">@(isEdit ? "Edit Holiday" : "Add Holiday")</div>
+        <div class="page-sub">@(isEdit ? "Update holiday details" : "Create a holiday used by attendance processing")</div>
+    </div>
+</div>
+
+@using (Html.BeginForm(formAction, "Holiday",
+    isEdit ? (object)new { id = editId } : null,
+    FormMethod.Post, new { id = "holidayForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+
+    <div style="display:grid;grid-template-columns:minmax(0,560px) minmax(280px,320px);gap:20px;max-width:920px;align-items:start;">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Holiday Details</div>
+                <div class="card-sub">Date and display name</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Holiday Date *</label>
+                    @Html.TextBoxFor(m => m.HolidayDate, "{0:yyyy-MM-dd}",
+                        new { @class = "form-ctrl", type = "date", id = "holidayDateField" })
+                    <span id="dateStatus" style="font-size:11px;margin-top:3px;display:block;"></span>
+                    @Html.ValidationMessageFor(m => m.HolidayDate, "", new { @class = "err-label" })
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Holiday Name *</label>
+                    @Html.TextBoxFor(m => m.HolidayName,
+                        new { @class = "form-ctrl", placeholder = "e.g. Independence Day" })
+                    @Html.ValidationMessageFor(m => m.HolidayName, "", new { @class = "err-label" })
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Description</label>
+                    @Html.TextAreaFor(m => m.Description,
+                        new { @class = "form-ctrl", rows = "3", placeholder = "Optional notes..." })
+                    @Html.ValidationMessageFor(m => m.Description, "", new { @class = "err-label" })
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Status</div>
+                    <div class="card-sub">Inactive holidays stay stored but are ignored by lists</div>
+                </div>
+                <div class="card-body">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div style="font-weight:500;font-size:14px;">Active</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                                Use this holiday for attendance processing
+                            </div>
+                        </div>
+                        <label class="holiday-toggle-wrap">
+                            @Html.CheckBoxFor(m => m.IsActive, new { @class = "holiday-toggle-input" })
+                            <span class="holiday-toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    &#10003;&nbsp;@submitLabel
+                </button>
+                <a href="@Url.Action("Index","Holiday")" class="btn btn-ghost">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+.holiday-toggle-wrap { position:relative; display:inline-block; width:44px; height:24px; cursor:pointer; flex-shrink:0; }
+.holiday-toggle-input { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:1; }
+.holiday-toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:24px; transition:background .2s; pointer-events:none; }
+.holiday-toggle-slider::before {
+    content:''; position:absolute; width:18px; height:18px;
+    left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s;
+}
+.holiday-toggle-input:checked ~ .holiday-toggle-slider { background:var(--accent); }
+.holiday-toggle-input:checked ~ .holiday-toggle-slider::before { transform:translateX(20px); }
+</style>
+
+<script>
+(function () {
+    var dateField = document.getElementById('holidayDateField');
+    var dateStatus = document.getElementById('dateStatus');
+    var editId = @editId;
+    var timer;
+
+    if (!dateField) return;
+
+    dateField.addEventListener('change', function () {
+        clearTimeout(timer);
+        dateStatus.textContent = '';
+        if (!this.value) return;
+        timer = setTimeout(function () { checkDate(dateField.value); }, 200);
+    });
+
+    function checkDate(value) {
+        fetch('@Url.Action("CheckDate", "Holiday")'
+              + '?holidayDate=' + encodeURIComponent(value)
+              + '&excludeId=' + editId)
+            .then(function (r) { return r.json(); })
+            .then(function (isAvailable) {
+                dateStatus.style.color = isAvailable ? 'var(--accent2)' : '#fca5a5';
+                dateStatus.textContent = isAvailable ? '\u2713 Date is available'
+                                                     : '\u2717 Holiday already exists on this date';
+            })
+            .catch(function () {});
+    }
+
+    if (dateField.value) checkDate(dateField.value);
+}());
+</script>

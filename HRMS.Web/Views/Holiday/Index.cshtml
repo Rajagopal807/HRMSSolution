@@ -1,0 +1,78 @@
+@model IEnumerable<HRMS.Application.DTOs.HolidayDto>
+@{
+    ViewBag.Title = "Holidays";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Holidays</div>
+        <div class="page-sub">@Model.Count() holidays configured</div>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary">+ Add Holiday</a>
+</div>
+
+<div class="card">
+    <div class="tbl-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Holiday Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:130px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:48px;color:var(--muted);">
+                            <div style="font-size:32px;margin-bottom:10px;opacity:.4;">&#128197;</div>
+                            <div style="font-weight:600;margin-bottom:4px;">No holidays configured yet</div>
+                            <div style="font-size:12px;">
+                                <a href="@Url.Action("Create")" style="color:var(--accent);">
+                                    Add your first holiday
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var holiday in Model)
+                {
+                    <tr>
+                        <td class="mono" style="font-weight:600;color:var(--accent);">
+                            @holiday.HolidayDate.ToString("dd-MMM-yyyy")
+                        </td>
+                        <td style="font-weight:500;">@holiday.HolidayName</td>
+                        <td style="color:var(--muted);font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                            title="@holiday.Description">
+                            @(string.IsNullOrEmpty(holiday.Description) ? Html.Raw("&mdash;") : Html.Raw(holiday.Description))
+                        </td>
+                        <td>
+                            <span class="badge @(holiday.IsActive ? "badge-active" : "badge-inactive")">
+                                @(holiday.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px;">
+                                <a href="@Url.Action("Edit", new { id = holiday.Id })"
+                                   class="btn btn-ghost btn-sm">Edit</a>
+                                @using (Html.BeginForm("Delete", "Holiday",
+                                    new { id = holiday.Id }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Delete holiday \'@holiday.HolidayName\'?')">
+                                        Delete
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

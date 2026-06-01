@@ -30,6 +30,8 @@ BEGIN
             SELECT 1 
             FROM TblHolidays 
             WHERE Holiday BETWEEN @DtFrom AND @DtTo
+              AND IsActive = 1
+              AND IsDeleted = 0
         )
         BEGIN
             SET @UpdateHolidays = 0;
@@ -44,7 +46,9 @@ BEGIN
         FROM TblMuster M
         INNER JOIN TblHolidays H 
             ON M.TDate = H.Holiday
-        WHERE H.Holiday BETWEEN @DtFrom AND @DtTo;
+        WHERE H.Holiday BETWEEN @DtFrom AND @DtTo
+          AND H.IsActive = 1
+          AND H.IsDeleted = 0;
 
         --------------------------------------------------
         -- Success

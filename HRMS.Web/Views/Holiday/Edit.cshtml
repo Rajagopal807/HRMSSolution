@@ -1,0 +1,7 @@
+@model HRMS.Application.DTOs.SaveHolidayDto
+@{
+    ViewBag.Title = "Edit Holiday";
+    ViewBag.IsEdit = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Html.Partial("_HolidayForm", Model)

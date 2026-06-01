@@ -40,6 +40,9 @@
                 <a href="@Url.Action("Apply","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Apply"?"active":"")">
                     <span class="sb-icon">&#128203;</span> Apply Leave
                 </a>
+                <a href="@Url.Action("Index","Holiday")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="Holiday"?"active":"")">
+                    <span class="sb-icon">&#127881;</span> Holidays
+                </a>
                 @*<a href="@Url.Action("Index","LeaveApplication")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LeaveApplication"&&ViewContext.RouteData.Values["action"].ToString()=="Index"?"active":"")">
             <span class="sb-icon">&#128197;</span> My Applications
         </a>*@

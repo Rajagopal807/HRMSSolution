@@ -156,9 +156,10 @@
 
                     <!-- Search box (drives datalist) -->
                     <div class="form-group">
-                        <label class="form-label">Employee ID / Code *</label>
+                        <label class="form-label">Employee ID / Name *</label>
                         <input type="text" id="empCodeSearch" class="form-ctrl"
-                               placeholder="Type code or name to search..."
+                               list="empList"
+                               placeholder="Type employee ID or name..."
                                autocomplete="off" />
                         @Html.HiddenFor(m => m.Form.EmployeeId, new { id = "hiddenEmployeeId" })
                         @Html.ValidationMessageFor(m => m.Form.EmployeeId, "",
@@ -169,7 +170,7 @@
                     <datalist id="empList">
                         @foreach (var emplist in Model.Employees)
                         {
-                            <option value="@emplist.EmployeeId"
+                            <option value="@($"{emplist.EmployeeId} - {emplist.EmployeeName}")"
                                     data-id="@emplist.EmployeeId"
                                     data-name="@emplist.EmployeeName"
                                     data-dept="@emplist.DepartmentName"
@@ -357,13 +358,16 @@
     var isInitialLoad = true;
     // ── Build employee lookup map (string keys — EmployeeId is a string) ───────
     var empMap = {};
+    var empSearchMap = {};
     @foreach (var e in Model.Employees)
     {
         <text>empMap['@e.EmployeeId'] = {
             id:   '@e.EmployeeId',
             name: '@Html.Raw(e.EmployeeName.Replace("'", "\\'"))',
             dept: '@Html.Raw(e.DepartmentName.Replace("'", "\\'"))'
-        };</text>
+        };
+        empSearchMap['@e.EmployeeId'.toLowerCase()] = '@e.EmployeeId';
+        empSearchMap['@Html.Raw((e.EmployeeId + " - " + e.EmployeeName).Replace("'", "\\'").ToLower())'] = '@e.EmployeeId';</text>
     }
 
     // ── Build leave type half-day flag map (string keys) ──────────────────────
@@ -390,20 +394,35 @@
     });
 
     // ── Employee search box (datalist) → update hidden field + dropdown ────────
-    empCodeSearch.addEventListener('change', function () {
-        var val = this.value.trim();
-        if (empMap[val]) {
-            empDropdown.value = val;
-            selectEmployee(val);
+    empCodeSearch.addEventListener('keydown', function (evt) {
+        if (evt.key !== 'Enter') return;
+
+        evt.preventDefault();
+        var normalized = normalizeEmployeeSearch(this.value);
+        this.value = normalized.displayValue;
+
+        if (normalized.employeeId) {
+            selectEmployee(normalized.employeeId);
+        } else {
+            hiddenEmpId.value = normalized.rawId || '';
+            empPreview.classList.remove('show');
         }
     });
+
+    empCodeSearch.addEventListener('change', function () {
+        var normalized = normalizeEmployeeSearch(this.value);
+        if (normalized.employeeId) {
+            selectEmployee(normalized.employeeId);
+        }
+    });
+
     empCodeSearch.addEventListener('input', function () {
-        var val = this.value.trim();
-        if (empMap[val]) {
-            empDropdown.value = val;
-            selectEmployee(val);
+        var normalized = normalizeEmployeeSearch(this.value, true);
+        if (normalized.employeeId) {
+            selectEmployee(normalized.employeeId);
         } else {
             hiddenEmpId.value = '';
+            empDropdown.value = '';
             empPreview.classList.remove('show');
         }
     });
@@ -411,7 +430,7 @@
     function selectEmployee(id) {
         var emp = empMap[id];
         hiddenEmpId.value = id;
-        empCodeSearch.value = id;
+        empCodeSearch.value = emp ? emp.id + ' - ' + emp.name : id;
         empDropdown.value = id;
         if (!emp) {
             empPreview.classList.remove('show');
@@ -423,6 +442,37 @@
         document.getElementById('epName').textContent   = emp.name;
         document.getElementById('epMeta').textContent   = emp.id + ' \u00b7 ' + emp.dept;
         empPreview.classList.add('show');
+    }
+
+    function normalizeEmployeeSearch(value, keepTyping) {
+        var raw = (value || '').trim();
+        var key = raw.toLowerCase();
+        var id = empSearchMap[key] || '';
+        var rawId = '';
+
+        if (!id && empMap[raw]) {
+            id = raw;
+        }
+
+        if (!id && /^\d+$/.test(raw)) {
+            rawId = raw.length < 11 ? raw.padStart(11, '0') : raw;
+            id = empMap[rawId] ? rawId : '';
+        }
+
+        if (!id && !keepTyping) {
+            var matches = Object.keys(empMap).filter(function (empId) {
+                var emp = empMap[empId];
+                return empId.toLowerCase().indexOf(key) >= 0
+                    || emp.name.toLowerCase().indexOf(key) >= 0;
+            });
+            if (matches.length === 1) id = matches[0];
+        }
+
+        return {
+            employeeId: id,
+            rawId: rawId,
+            displayValue: id && empMap[id] ? empMap[id].id + ' - ' + empMap[id].name : (rawId || raw)
+        };
     }
 
     // Pre-select on page load (re-display after validation failure)

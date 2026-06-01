@@ -159,6 +159,12 @@ namespace HRMS.Application.DTOs
         public int WorkDays { get; set; }
     }
 
+    public class ReportLeaveTypeDto
+    {
+        public string LeaveTypeID { get; set; }
+        public string Description { get; set; }
+    }
+
     /// <summary>Full data set passed to any report generator.</summary>
     public class AttendanceReportDto
     {
@@ -169,6 +175,7 @@ namespace HRMS.Application.DTOs
         public int PageNo { get; set; } = 1;
 
         public List<AttendanceRowDto> Rows { get; set; } = new List<AttendanceRowDto>();
+        public List<ReportLeaveTypeDto> LeaveTypes { get; set; } = new List<ReportLeaveTypeDto>();
 
         /// <summary>Number of calendar days in the selected month (28–31).</summary>
         public int DaysInMonth
@@ -221,6 +228,7 @@ namespace HRMS.Application.DTOs
         public string GroupingLabel { get; set; }
 
         public List<AttendanceGroupDto> Groups { get; set; }= new List<AttendanceGroupDto>();
+        public List<ReportLeaveTypeDto> LeaveTypes { get; set; } = new List<ReportLeaveTypeDto>();
 
         public int DaysInMonth
         {

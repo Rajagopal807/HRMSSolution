@@ -250,6 +250,9 @@ namespace HRMS.Infrastructure.Reports
                 .Border.SetOutsideBorderColor(XLColor.Gray)
                 .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
             ws.Row(currentRow).Height = 18;
+            currentRow += 2;
+
+            AddLeaveTypeFooter(ws, data, currentRow);
 
             // ── Column widths ─────────────────────────────────────────────────
             ws.Column(EmpIdCol).Width = 13;
@@ -323,6 +326,35 @@ namespace HRMS.Infrastructure.Reports
                 .Border.SetOutsideBorderColor(XLColor.Gray)
                 .Alignment.SetHorizontal(align)
                 .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+        }
+
+        private static void AddLeaveTypeFooter(IXLWorksheet ws, GroupedAttendanceReportDto data, int startRow)
+        {
+            if (data.LeaveTypes == null || data.LeaveTypes.Count == 0)
+                return;
+
+            ws.Cell(startRow, 1).Value = "Leave Types";
+            ws.Range(startRow, 1, startRow, 2).Merge();
+            ws.Cell(startRow, 1).Style
+                .Font.SetBold(true)
+                .Font.SetFontSize(8)
+                .Fill.SetBackgroundColor(XLColor.FromArgb(200, 200, 200))
+                .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetOutsideBorderColor(XLColor.Gray)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+
+            SetColHeader(ws.Cell(startRow + 1, 1), "LeaveType ID");
+            SetColHeader(ws.Cell(startRow + 1, 2), "Leave Description");
+
+            int row = startRow + 2;
+            foreach (var leaveType in data.LeaveTypes)
+            {
+                StyleDataCell(ws.Cell(row, 1), leaveType.LeaveTypeID, XLColor.White, bold: true,
+                    align: XLAlignmentHorizontalValues.Left);
+                StyleDataCell(ws.Cell(row, 2), leaveType.Description, XLColor.White, bold: false,
+                    align: XLAlignmentHorizontalValues.Left);
+                row++;
+            }
         }
     }
 }

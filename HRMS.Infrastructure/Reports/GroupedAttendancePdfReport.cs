@@ -123,6 +123,8 @@ namespace HRMS.Infrastructure.Reports
             var grandTable = BuildTable(data.DaysInMonth);
             AddGrandTotalRow(grandTable, data.Groups.Count, grandEmp, grandWD);
             doc.Add(grandTable);
+
+            AddLeaveTypeFooter(doc, data);
         }
 
         // ── Table factory ─────────────────────────────────────────────────────
@@ -407,6 +409,57 @@ namespace HRMS.Infrastructure.Reports
             };
         }
 
+        private static void AddLeaveTypeFooter(Document doc, GroupedAttendanceReportDto data)
+        {
+            if (data.LeaveTypes == null || data.LeaveTypes.Count == 0)
+                return;
+
+            var table = new PdfPTable(2)
+            {
+                WidthPercentage = 35f,
+                HorizontalAlignment = Element.ALIGN_LEFT,
+                SpacingBefore = 4f,
+                KeepTogether = true
+            };
+            table.SetWidths(new[] { 45f, 140f });
+
+            var titleCell = new PdfPCell(new Phrase("Leave Types", _fSubtotal))
+            {
+                Colspan = 2,
+                BackgroundColor = _bgColHeader,
+                Border = Rectangle.BOX,
+                BorderColor = _borderDark,
+                BorderWidth = 0.5f,
+                Padding = 3f,
+                HorizontalAlignment = Element.ALIGN_LEFT
+            };
+            table.AddCell(titleCell);
+
+            table.AddCell(MakeFooterHeaderCell("LeaveType ID"));
+            table.AddCell(MakeFooterHeaderCell("Leave Description"));
+
+            foreach (var leaveType in data.LeaveTypes)
+            {
+                table.AddCell(MakeDataCell(leaveType.LeaveTypeID, _fEmpId, BaseColor.WHITE, Element.ALIGN_LEFT));
+                table.AddCell(MakeDataCell(leaveType.Description, _fEmpName, BaseColor.WHITE, Element.ALIGN_LEFT));
+            }
+
+            doc.Add(table);
+        }
+
+        private static PdfPCell MakeFooterHeaderCell(string text)
+        {
+            return new PdfPCell(new Phrase(text, _fDayNum))
+            {
+                BackgroundColor = _bgColHeader,
+                HorizontalAlignment = Element.ALIGN_LEFT,
+                VerticalAlignment = Element.ALIGN_MIDDLE,
+                Border = Rectangle.BOX,
+                BorderColor = _borderDark,
+                BorderWidth = 0.5f,
+                Padding = 2.5f
+            };
+        }
 
     private static readonly BaseFont _bfStatic =
             BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, false);

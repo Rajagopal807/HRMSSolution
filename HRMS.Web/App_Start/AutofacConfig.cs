@@ -35,6 +35,7 @@ namespace HRMS.Web.App_Start
             builder.RegisterType<DesignationService>().As<IDesignationService>().InstancePerRequest();
             builder.RegisterType<LeaveTypeMasterService>().As<ILeaveTypeMasterService>().InstancePerRequest();
             builder.RegisterType<LeaveApplicationService>().As<ILeaveApplicationService>().InstancePerRequest();
+            builder.RegisterType<HolidayService>().As<IHolidayService>().InstancePerRequest();
             builder.RegisterType<DashboardService>().As<IDashboardService>().InstancePerRequest();
             builder.RegisterType<AuditRepository>().As<IAuditService>().InstancePerRequest();
             builder.RegisterType<ApplicationDbContext>().AsSelf().InstancePerRequest();

@@ -341,6 +341,25 @@ namespace HRMS.Infrastructure.Reports
         }
     }
 
+    public class HolidayRepository : Repository<Holiday>, IHolidayRepository
+    {
+        public HolidayRepository(ApplicationDbContext ctx) : base(ctx) { }
+
+        public IEnumerable<Holiday> GetAllHolidays()
+            => _set.Where(h => !h.IsDeleted)
+                   .OrderByDescending(h => h.HolidayDate)
+                   .ToList();
+
+        public Holiday GetByHolidayDate(DateTime holidayDate)
+            => _set.FirstOrDefault(h => !h.IsDeleted
+                                     && DbFunctions.TruncateTime(h.HolidayDate) == holidayDate.Date);
+
+        public bool DateExists(DateTime holidayDate, int excludeId = 0)
+            => _set.Any(h => !h.IsDeleted
+                          && DbFunctions.TruncateTime(h.HolidayDate) == holidayDate.Date
+                          && h.Id != excludeId);
+    }
+
     public class TempCardRepository : Repository<TempCard>, ITempCardRepository
     {
         public TempCardRepository(ApplicationDbContext ctx) : base(ctx) { }
@@ -386,6 +405,7 @@ namespace HRMS.Infrastructure.Reports
         private EmployeeRepository _employees;
         private LeaveTypeMasterRepository _leaveTypeMasters;
         private LeaveApplicationRepository _leaveApplications;
+        private HolidayRepository _holidays;
         private DepartmentRepository _departments;
         private DesignationRepository _designations;
         private AuditRepository _auditRepository;
@@ -407,6 +427,11 @@ namespace HRMS.Infrastructure.Reports
         public ILeaveApplicationRepository LeaveApplications
         {
             get { return _leaveApplications ?? (_leaveApplications = new LeaveApplicationRepository(_ctx)); }
+        }
+
+        public IHolidayRepository Holidays
+        {
+            get { return _holidays ?? (_holidays = new HolidayRepository(_ctx)); }
         }
 
         public IDepartmentRepository Departments

@@ -40,6 +40,8 @@ namespace HRMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Apply([Bind(Prefix = "Form")] ApplyLeaveDto dto)
         {
+            NormalizeEmployeeId(dto);
+
             if (!ModelState.IsValid)
             {
                 var screen = _appService.GetApplyScreen();
@@ -114,6 +116,8 @@ namespace HRMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Prefix = "Form")] ApplyLeaveDto dto)
         {
+            NormalizeEmployeeId(dto);
+
             if (!ModelState.IsValid)
             {
                 var screen = _appService.GetApplyScreen();
@@ -162,6 +166,19 @@ namespace HRMS.Web.Controllers
         {
             var identity = User.Identity as ClaimsIdentity;
             return identity?.FindFirst("EmployeeId")?.Value ?? "0";
+        }
+
+        private static void NormalizeEmployeeId(ApplyLeaveDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.EmployeeId)) return;
+
+            var employeeId = dto.EmployeeId.Trim();
+            if (employeeId.Length < 11 && long.TryParse(employeeId, out _))
+            {
+                employeeId = employeeId.PadLeft(11, '0');
+            }
+
+            dto.EmployeeId = employeeId;
         }
     }
 }

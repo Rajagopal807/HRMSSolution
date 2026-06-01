@@ -237,6 +237,8 @@ namespace HRMS.Infrastructure.Reports
                 currentRow++;
             }
 
+            AddLeaveTypeFooter(ws, data, currentRow + 1);
+
             // ── Column widths ─────────────────────────────────────────────────
             ws.Column(1).Width = 12;   // Emp ID
             ws.Column(2).Width = 22;   // Employee Name
@@ -281,6 +283,43 @@ namespace HRMS.Infrastructure.Reports
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
                 .Alignment.SetVertical(XLAlignmentVerticalValues.Center)
                 .Alignment.SetWrapText(true);
+        }
+
+        private static void AddLeaveTypeFooter(IXLWorksheet ws, AttendanceReportDto data, int startRow)
+        {
+            if (data.LeaveTypes == null || data.LeaveTypes.Count == 0)
+                return;
+
+            ws.Cell(startRow, 1).Value = "Leave Types";
+            ws.Range(startRow, 1, startRow, 2).Merge();
+            ws.Cell(startRow, 1).Style
+                .Font.SetBold(true)
+                .Font.SetFontSize(8)
+                .Fill.SetBackgroundColor(XLColor.FromArgb(200, 200, 200))
+                .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetOutsideBorderColor(XLColor.Gray)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+
+            SetHeader(ws.Cell(startRow + 1, 1), "LeaveType ID");
+            SetHeader(ws.Cell(startRow + 1, 2), "Leave Description");
+
+            int row = startRow + 2;
+            foreach (var leaveType in data.LeaveTypes)
+            {
+                ws.Cell(row, 1).Value = leaveType.LeaveTypeID;
+                ws.Cell(row, 2).Value = leaveType.Description;
+
+                var range = ws.Range(row, 1, row, 2);
+                range.Style
+                    .Font.SetFontSize(8)
+                    .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                    .Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                    .Border.SetOutsideBorderColor(XLColor.Gray)
+                    .Border.SetInsideBorderColor(XLColor.LightGray)
+                    .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+
+                row++;
+            }
         }
     }
 }

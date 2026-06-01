@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\LeaveApplication.cs" />
+    <Compile Include="Entities\Holiday.cs" />
     <Compile Include="Entities\LeaveTypeMaster.cs" />
     <Compile Include="Entities\Muster.cs" />
     <Compile Include="Entities\AuditLog.cs" />

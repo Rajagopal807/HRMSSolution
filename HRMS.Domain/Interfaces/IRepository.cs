@@ -64,6 +64,13 @@ namespace HRMS.Domain.Interfaces
         void CallCreateMusterSP(string employeeId, DateTime fromDate);
     }
 
+    public interface IHolidayRepository : IRepository<Holiday>
+    {
+        IEnumerable<Holiday> GetAllHolidays();
+        Holiday GetByHolidayDate(DateTime holidayDate);
+        bool DateExists(DateTime holidayDate, int excludeId = 0);
+    }
+
     public interface IAuditService
     {
         void Log(string action, string module, string details = null);
@@ -104,6 +111,7 @@ namespace HRMS.Domain.Interfaces
         IDesignationRepository Designations { get; }
         ILeaveTypeMasterRepository LeaveTypesMasters { get; }
         ILeaveApplicationRepository LeaveApplications { get; }
+        IHolidayRepository Holidays { get; }
         IAuditService Log { get; }
         IAttendanceRepository Attendace { get; }
         ITempCardRepository TempCard { get; }

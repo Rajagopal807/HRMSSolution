@@ -86,4 +86,74 @@ public class DatabaseSetup
 
         }
     }
+
+    public static void EnsureHolidayTable()
+    {
+        string sql = @"
+IF OBJECT_ID('dbo.TblHolidays', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.TblHolidays
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_TblHolidays PRIMARY KEY,
+        Holiday DATE NOT NULL,
+        HolidayName NVARCHAR(100) NOT NULL,
+        Description NVARCHAR(250) NULL,
+        IsActive BIT NOT NULL CONSTRAINT DF_TblHolidays_IsActive DEFAULT (1),
+        CreatedAt DATETIME NOT NULL CONSTRAINT DF_TblHolidays_CreatedAt DEFAULT (GETUTCDATE()),
+        UpdatedAt DATETIME NULL,
+        IsDeleted BIT NOT NULL CONSTRAINT DF_TblHolidays_IsDeleted DEFAULT (0)
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('dbo.TblHolidays', 'Id') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD Id INT IDENTITY(1,1) NOT NULL;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.key_constraints
+        WHERE parent_object_id = OBJECT_ID('dbo.TblHolidays')
+          AND [type] = 'PK'
+    )
+        ALTER TABLE dbo.TblHolidays ADD CONSTRAINT PK_TblHolidays PRIMARY KEY (Id);
+
+    IF COL_LENGTH('dbo.TblHolidays', 'HolidayName') IS NULL
+    BEGIN
+        ALTER TABLE dbo.TblHolidays ADD HolidayName NVARCHAR(100) NULL;
+        UPDATE dbo.TblHolidays SET HolidayName = 'Holiday' WHERE HolidayName IS NULL;
+        ALTER TABLE dbo.TblHolidays ALTER COLUMN HolidayName NVARCHAR(100) NOT NULL;
+    END
+
+    IF COL_LENGTH('dbo.TblHolidays', 'Description') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD Description NVARCHAR(250) NULL;
+
+    IF COL_LENGTH('dbo.TblHolidays', 'IsActive') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD IsActive BIT NOT NULL CONSTRAINT DF_TblHolidays_IsActive DEFAULT (1);
+
+    IF COL_LENGTH('dbo.TblHolidays', 'CreatedAt') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD CreatedAt DATETIME NOT NULL CONSTRAINT DF_TblHolidays_CreatedAt DEFAULT (GETUTCDATE());
+
+    IF COL_LENGTH('dbo.TblHolidays', 'UpdatedAt') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD UpdatedAt DATETIME NULL;
+
+    IF COL_LENGTH('dbo.TblHolidays', 'IsDeleted') IS NULL
+        ALTER TABLE dbo.TblHolidays ADD IsDeleted BIT NOT NULL CONSTRAINT DF_TblHolidays_IsDeleted DEFAULT (0);
+END
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'UX_TblHolidays_Holiday_Active'
+      AND object_id = OBJECT_ID('dbo.TblHolidays')
+)
+    CREATE UNIQUE INDEX UX_TblHolidays_Holiday_Active
+        ON dbo.TblHolidays(Holiday, IsDeleted);
+";
+
+        string conn = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+        using (SqlConnection con = new SqlConnection(conn))
+        using (SqlCommand cmd = new SqlCommand(sql, con))
+        {
+            con.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
 }

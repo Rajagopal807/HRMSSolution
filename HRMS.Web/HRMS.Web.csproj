@@ -214,6 +214,7 @@
     <Compile Include="Controllers\AttendanceTransactionController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
+    <Compile Include="Controllers\HolidayController.cs" />
     <Compile Include="Controllers\LeaveApplicationController.cs" />
     <Compile Include="Controllers\LeaveTypeMasterController.cs" />
     <Compile Include="Controllers\ReportScreenController.cs" />
@@ -286,6 +287,9 @@
     <Content Include="Views\LeaveTypeMaster\Index.cshtml" />
     <Content Include="Views\LeaveApplication\Apply.cshtml" />
     <Content Include="Views\LeaveApplication\Pending.cshtml" />
+    <Content Include="Views\Holiday\Create.cshtml" />
+    <Content Include="Views\Holiday\Edit.cshtml" />
+    <Content Include="Views\Holiday\Index.cshtml" />
     <Content Include="Views\LeaveTypeMaster\Create.cshtml" />
     <Content Include="Views\LeaveTypeMaster\Edit.cshtml" />
     <Content Include="Views\Shared\_LeaveTypeForm.cshtml" />
@@ -293,6 +297,7 @@
     <Content Include="Views\TempCard\Create.cshtml" />
     <Content Include="Views\TempCard\Edit.cshtml" />
     <Content Include="Views\TempCard\Index.cshtml" />
+    <Content Include="Views\Shared\_HolidayForm.cshtml" />
     <Content Include="Views\Shared\_TempCardForm.cshtml" />
   </ItemGroup>
   <ItemGroup>

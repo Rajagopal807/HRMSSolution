@@ -42,6 +42,7 @@ namespace HRMS.Infrastructure.Data
         public DbSet<DailyTransactions> DailyTransactions { get; set; }
         public DbSet<LeaveTypeMaster> LeaveTypeMasters { get; set; }
         public DbSet<LeaveApplication> LeaveApplications { get; set; }
+        public DbSet<Holiday> Holidays { get; set; }
         public DbSet<TempCard> TempCards { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -97,6 +98,23 @@ namespace HRMS.Infrastructure.Data
                 .Property(a => a.LeaveTypeMasterId)
                 .IsRequired()
                 .HasMaxLength(2);
+
+            modelBuilder.Entity<Holiday>()
+                .Property(h => h.HolidayDate)
+                .HasColumnName("Holiday");
+
+            modelBuilder.Entity<Holiday>()
+                .Property(h => h.HolidayName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Holiday>()
+                .HasIndex(h => new
+                {
+                    h.HolidayDate,
+                    h.IsDeleted
+                })
+                .IsUnique();
 
             // ==============================
             // CORRECT UNIQUE INDEX
