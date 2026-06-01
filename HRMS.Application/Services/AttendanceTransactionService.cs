@@ -236,11 +236,11 @@ namespace HRMS.Application.Services
                 EmpId = dto.EmployeeId,
                 IOFlag = NormalizeIOFlag(dto.IOFlag),
                 ActualIOFlag = NormalizeIOFlag(dto.IOFlag),
-                OPFlag = "M",
+                OPFlag = "P",
                 TransTime = transTime,
                 AttendanceDate = attendanceDate,
                 PunchedTime = attendanceDate.Add(punchedTime),
-                Deleted = dto.IsDeleted ? "Y" : "N",
+                Deleted = dto.IsDeleted ? "T" : "F",
                 Remarks = dto.Remarks,
                 BadgeReaderNo = ParseNullableInt(dto.BranchNo),
                 CreatedAt = DateTime.UtcNow
