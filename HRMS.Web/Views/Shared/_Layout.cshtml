@@ -4,10 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title – AMS</title>
-    
+
     @Styles.Render("~/Content/layout")
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -124,7 +128,70 @@
             </span>
         </label>
     </div>
+    <div id="pageLoadingOverlay" class="page-loading-overlay" aria-live="polite" aria-busy="true" role="status">
+        <div class="page-loading-card">
+            <div class="page-loading-spinner" aria-hidden="true"></div>
+            <div class="page-loading-title">Loading</div>
+            <div class="page-loading-text">Please wait...</div>
+        </div>
+    </div>
     <script>
+        // Shared full-page loading overlay for navigation and form posts.
+        (function () {
+            var overlay = document.getElementById("pageLoadingOverlay");
+            var hideTimer = null;
+            var showTimer = null;
+
+            function showLoadingOverlay() {
+                if (!overlay) return;
+                clearTimeout(hideTimer);
+                clearTimeout(showTimer);
+                overlay.classList.add("is-visible");
+                document.body.classList.add("is-loading");
+
+                hideTimer = setTimeout(hideLoadingOverlay, 30000);
+            }
+
+            function hideLoadingOverlay() {
+                if (!overlay) return;
+                clearTimeout(hideTimer);
+                clearTimeout(showTimer);
+                overlay.classList.remove("is-visible");
+                document.body.classList.remove("is-loading");
+            }
+
+            window.showLoadingOverlay = showLoadingOverlay;
+            window.hideLoadingOverlay = hideLoadingOverlay;
+
+            window.addEventListener("pageshow", hideLoadingOverlay);
+            window.addEventListener("load", hideLoadingOverlay);
+
+            document.addEventListener("submit", function (evt) {
+                var form = evt.target;
+                if (!form || form.dataset.loadingOverlay === "false") return;
+
+                showTimer = setTimeout(function () {
+                    if (!evt.defaultPrevented) showLoadingOverlay();
+                }, 0);
+            });
+
+            document.addEventListener("click", function (evt) {
+                var link = evt.target.closest ? evt.target.closest("a[href]") : null;
+                if (!link || link.dataset.loadingOverlay === "false") return;
+                if (evt.defaultPrevented || evt.button !== 0 || evt.metaKey || evt.ctrlKey || evt.shiftKey || evt.altKey) return;
+                if (link.target && link.target !== "_self") return;
+                if (link.hasAttribute("download")) return;
+
+                var url = new URL(link.href, window.location.href);
+                if (url.origin !== window.location.origin) return;
+                if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return;
+
+                showTimer = setTimeout(showLoadingOverlay, 80);
+            });
+
+            window.addEventListener("beforeunload", showLoadingOverlay);
+        }());
+
         // Auto-dismiss toasts
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 4000);
 

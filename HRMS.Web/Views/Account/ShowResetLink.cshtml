@@ -40,7 +40,49 @@
         </div>
     </div>
 
+    <div id="pageLoadingOverlay" class="page-loading-overlay" aria-live="polite" aria-busy="true" role="status">
+        <div class="page-loading-card">
+            <div class="page-loading-spinner" aria-hidden="true"></div>
+            <div class="page-loading-title">Loading</div>
+            <div class="page-loading-text">Please wait...</div>
+        </div>
+    </div>
+
     <script>
+        (function () {
+            var overlay = document.getElementById("pageLoadingOverlay");
+            var hideTimer = null;
+
+            function showLoadingOverlay() {
+                if (!overlay) return;
+                clearTimeout(hideTimer);
+                overlay.classList.add("is-visible");
+                document.body.classList.add("is-loading");
+                hideTimer = setTimeout(hideLoadingOverlay, 30000);
+            }
+
+            function hideLoadingOverlay() {
+                if (!overlay) return;
+                clearTimeout(hideTimer);
+                overlay.classList.remove("is-visible");
+                document.body.classList.remove("is-loading");
+            }
+
+            window.addEventListener("pageshow", hideLoadingOverlay);
+            window.addEventListener("load", hideLoadingOverlay);
+            document.addEventListener("click", function (evt) {
+                var link = evt.target.closest ? evt.target.closest("a[href]") : null;
+                if (!link || evt.defaultPrevented || evt.button !== 0) return;
+                if (link.target && link.target !== "_self") return;
+
+                var url = new URL(link.href, window.location.href);
+                if (url.origin === window.location.origin) {
+                    setTimeout(showLoadingOverlay, 80);
+                }
+            });
+            window.addEventListener("beforeunload", showLoadingOverlay);
+        }());
+
         const html = document.documentElement;
         const toggle = document.getElementById("themeToggle");
         const icon = document.getElementById("themeIcon");
@@ -48,26 +90,28 @@
         function applyTheme(theme) {
             html.setAttribute("data-theme", theme);
 
-            // Sync toggle
-            toggle.checked = theme === "dark";
+            if (!toggle || !icon) return;
 
-            // FIX ICON LOGIC
             if (theme === "dark") {
-                icon.className = "bi bi-moon-fill"; // 🌙
+                toggle.checked = true;
+                icon.className = "bi bi-moon-fill";
             } else {
-                icon.className = "bi bi-sun-fill";  // ☀️
+                toggle.checked = false;
+                icon.className = "bi bi-sun-fill";
             }
         }
 
         const savedTheme = localStorage.getItem("theme") || "dark";
         applyTheme(savedTheme);
 
-        toggle.addEventListener("change", function () {
-            const newTheme = toggle.checked ? "dark" : "light";
+        if (toggle) {
+            toggle.addEventListener("change", function () {
+                const newTheme = toggle.checked ? "dark" : "light";
 
-            applyTheme(newTheme);
-            localStorage.setItem("theme", newTheme);
-        });
+                applyTheme(newTheme);
+                localStorage.setItem("theme", newTheme);
+            });
+        }
 
         function copyLink() {
             const input = document.querySelector("input");
