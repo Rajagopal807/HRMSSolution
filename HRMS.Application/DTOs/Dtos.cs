@@ -111,7 +111,8 @@ namespace HRMS.Application.DTOs
     /// </summary>
     public class AttendanceDayDto
     {
-        public int Day { get; set; }   // 1–31
+        public int Day { get; set; }
+        public DateTime Date { get; set; }
         public string FirstIn { get; set; }
         public string Lastout { get; set; }
 
@@ -146,13 +147,13 @@ namespace HRMS.Application.DTOs
         }
     }
 
-    /// <summary>One row in the attendance register — one employee, 31 day columns.</summary>
+    /// <summary>One row in the attendance register — one employee, one cell per selected date.</summary>
     public class AttendanceRowDto
     {
         public string EmployeeCode { get; set; }
         public string EmployeeName { get; set; }
 
-        /// <summary>Exactly 31 elements (index 0 = Day 1 … index 30 = Day 31).</summary>
+        /// <summary>One element per calendar date in the selected report period.</summary>
         public List<AttendanceDayDto> Days { get; set; } = new List<AttendanceDayDto>();
 
         /// <summary>Count of days where employee actually punched in.</summary>
@@ -176,6 +177,12 @@ namespace HRMS.Application.DTOs
 
         public List<AttendanceRowDto> Rows { get; set; } = new List<AttendanceRowDto>();
         public List<ReportLeaveTypeDto> LeaveTypes { get; set; } = new List<ReportLeaveTypeDto>();
+
+        /// <summary>Number of calendar days in the selected report period.</summary>
+        public int DaysInRange
+        {
+            get { return Convert.ToInt32((ToDate.Date.AddDays(1) - FromDate.Date).TotalDays); }
+        }
 
         /// <summary>Number of calendar days in the selected month (28–31).</summary>
         public int DaysInMonth
@@ -229,6 +236,11 @@ namespace HRMS.Application.DTOs
 
         public List<AttendanceGroupDto> Groups { get; set; }= new List<AttendanceGroupDto>();
         public List<ReportLeaveTypeDto> LeaveTypes { get; set; } = new List<ReportLeaveTypeDto>();
+
+        public int DaysInRange
+        {
+            get { return System.Convert.ToInt32((ToDate.Date.AddDays(1) - FromDate.Date).TotalDays); }
+        }
 
         public int DaysInMonth
         {

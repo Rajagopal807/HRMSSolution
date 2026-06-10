@@ -37,7 +37,10 @@ namespace HRMS.Infrastructure.Reports
         #region Employee Report
         public AttendanceReportDto GetReportData(DateTime from, DateTime to, List<string> selectedItems, string companyName = "Zeith Software Pvt Ltd.")
         {
+            from = from.Date;
+            to = to.Date;
             var logs = _uow.Attendace.GetByDateRange(from, to).ToList();
+            var employeeIds = ResolveEmployeeIds(selectedItems);
 
             var dto = new AttendanceReportDto
             {
@@ -48,87 +51,11 @@ namespace HRMS.Infrastructure.Reports
                 LeaveTypes = GetReportLeaveTypes()
             };
 
-            int daysInMonth = DateTime.DaysInMonth(from.Year, from.Month);
-
-
-
-            foreach (string item in selectedItems)
+            foreach (string item in employeeIds)
             {
                 var emp = _uow.Employees.GetByEmployeeID(item);
-
-                var empLogs = logs
-                    .Where(l => l.EmployeeId == emp.EmployeeId)
-                    .ToLookup(l => l.TDate.Day);
-
-                var row = new AttendanceRowDto
-                {
-                    EmployeeCode = emp.EmployeeId,
-                    EmployeeName = emp.EmployeeName
-                };
-
-                int workDays = 0;
-
-                for (int day = 1; day <= 31; day++)
-                {
-                    if (day > daysInMonth)
-                    {
-                        // Pad empty cells for months shorter than 31 days
-                        row.Days.Add(new AttendanceDayDto { Day = day, IsPadDay = true });
-                        continue;
-                    }
-
-                    var dayLogs = empLogs[day].ToList();
-
-                    if (!dayLogs.Any())
-                    {
-                        if (from == to && from.Day == day)
-                        {
-                            row.Days.Add(new AttendanceDayDto
-                            {
-                                Day = day,
-                                AttId = "00"
-                            });
-                        }
-
-                        if (from != to)
-                        {
-                            row.Days.Add(new AttendanceDayDto
-                            {
-                                Day = day,
-                                AttId = "00"
-                            });
-                        }
-
-                        continue;
-                    }
-
-                    var first = dayLogs.First();
-                    var last = dayLogs.Last();
-
-                    bool hasIn = !string.IsNullOrEmpty(first.FirstIn);
-                    bool hasOut = !string.IsNullOrEmpty(last.LastOut);
-
-                    if (hasIn) workDays++;
-
-                    AttendanceDayDto attendanceDayDto = new AttendanceDayDto();
-                    attendanceDayDto.Day = day;
-                    attendanceDayDto.FirstIn = !string.IsNullOrEmpty(first.FirstIn) ? DateTime.Parse(first.FirstIn).ToString("HH:mm") : "";
-                    attendanceDayDto.Lastout = !string.IsNullOrEmpty(last.LastOut) ? DateTime.Parse(last.LastOut).ToString("HH:mm") : "";
-                    attendanceDayDto.AttId = first.AttId;
-                    attendanceDayDto.ShiftId = first.ShiftId;
-
-                    if (from == to && from.Day == day)
-                    {
-                        row.Days.Add(attendanceDayDto);
-                    }
-
-                    if(from != to){
-                        row.Days.Add(attendanceDayDto);
-                    }
-                } 
-
-                row.WorkDays = workDays;
-                dto.Rows.Add(row);
+                if (emp == null) continue;
+                dto.Rows.Add(BuildRow(emp, logs, from, to));
             }
 
             return dto;
@@ -269,11 +196,13 @@ namespace HRMS.Infrastructure.Reports
             IList<Muster> allLogs,
             DateTime from, DateTime to)
         {
-            int daysInMonth = DateTime.DaysInMonth(from.Year, from.Month);
+            from = from.Date;
+            to = to.Date;
 
             var empLogs = allLogs
                 .Where(l => l.EmployeeId == emp.EmployeeId)
-                .ToLookup(l => l.TDate.Day);
+                .OrderBy(l => l.TDate)
+                .ToLookup(l => l.TDate.Date);
 
             var row = new AttendanceRowDto
             {
@@ -283,19 +212,18 @@ namespace HRMS.Infrastructure.Reports
 
             int workDays = 0;
 
-            for (int day = 1; day <= 31; day++)
+            for (var date = from; date <= to; date = date.AddDays(1))
             {
-                if (day > daysInMonth)
-                {
-                    row.Days.Add(new AttendanceDayDto { Day = day, IsPadDay = true });
-                    continue;
-                }
-
-                var dayLogs = empLogs[day].ToList();
+                var dayLogs = empLogs[date].ToList();
 
                 if (!dayLogs.Any())
                 {
-                    row.Days.Add(new AttendanceDayDto { Day = day, AttId = "00" });
+                    row.Days.Add(new AttendanceDayDto
+                    {
+                        Day = date.Day,
+                        Date = date,
+                        AttId = "00"
+                    });
                     continue;
                 }
 
@@ -306,15 +234,48 @@ namespace HRMS.Infrastructure.Reports
 
                 row.Days.Add(new AttendanceDayDto
                 {
-                    Day = day,
-                    FirstIn = first.FirstIn,
-                    Lastout = last.LastOut,
-                    AttId = first.AttId
+                    Day = date.Day,
+                    Date = date,
+                    FirstIn = FormatTime(first.FirstIn),
+                    Lastout = FormatTime(last.LastOut),
+                    AttId = first.AttId,
+                    ShiftId = first.ShiftId
                 });
             }
 
             row.WorkDays = workDays;
             return row;
+        }
+
+        private List<string> ResolveEmployeeIds(IList<string> selectedItems)
+        {
+            if (selectedItems != null && selectedItems.Any())
+            {
+                return selectedItems
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+
+            return _uow.Employees.GetActiveEmployees()
+                .OrderBy(e => e.EmployeeId)
+                .Select(e => e.EmployeeId)
+                .ToList();
+        }
+
+        private static string FormatTime(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+
+            DateTime parsedDate;
+            if (DateTime.TryParse(value, out parsedDate))
+                return parsedDate.ToString("HH:mm");
+
+            TimeSpan parsedTime;
+            if (TimeSpan.TryParse(value, out parsedTime))
+                return parsedTime.ToString(@"hh\:mm");
+
+            return value;
         }
 
         private List<ReportLeaveTypeDto> GetReportLeaveTypes()
@@ -396,17 +357,20 @@ namespace HRMS.Infrastructure.Reports
                     if (filter.Grouping == ReportGrouping.EmployeeWise)
                     {
                         bytes = _attendanceService.GenerateEmployeeExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
-                        fileName = string.Format("AttendanceRegister_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                        fileName = string.Format("AttendanceRegister_{0:ddMMMyyyy}_to_{1:ddMMMyyyy}.xlsx",
+                            filter.ResolvedFrom, filter.ResolvedTo);
                     }
                     else if (filter.Grouping == ReportGrouping.DepartmentWise)
                     {
                         bytes = _attendanceService.GenerateDepartmentExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
-                        fileName = string.Format("AttendanceRegister_DepartmentWise_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                        fileName = string.Format("AttendanceRegister_DepartmentWise_{0:ddMMMyyyy}_to_{1:ddMMMyyyy}.xlsx",
+                            filter.ResolvedFrom, filter.ResolvedTo);
                     }
                     else
                     {
                         bytes = _attendanceService.GenerateCadreExcel(filter.ResolvedFrom, filter.ResolvedTo, filter.SelectedItems);
-                        fileName = string.Format("AttendanceRegister_DesignationWise_{0:MMMMyyyy}.xlsx", filter.ResolvedFrom);
+                        fileName = string.Format("AttendanceRegister_DesignationWise_{0:ddMMMyyyy}_to_{1:ddMMMyyyy}.xlsx",
+                            filter.ResolvedFrom, filter.ResolvedTo);
                     }
                     return (bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 },

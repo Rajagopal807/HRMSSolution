@@ -17,7 +17,8 @@ namespace HRMS.Infrastructure.Reports
 
         public string GetFileName(AttendanceReportDto data)
         {
-            return string.Format("AttendanceRegister_{0:MMMMyyyy}.xlsx", data.FromDate);
+            return string.Format("AttendanceRegister_{0:ddMMMyyyy}_to_{1:ddMMMyyyy}.xlsx",
+                data.FromDate, data.ToDate);
         }
 
         public byte[] Generate(AttendanceReportDto data)
@@ -38,7 +39,7 @@ namespace HRMS.Infrastructure.Reports
         // ── Sheet Builder ─────────────────────────────────────────────────────
         private static void BuildSheet(IXLWorksheet ws, AttendanceReportDto data)
         {
-            int totalDays = Convert.ToInt32((data.ToDate.AddDays(1) - data.FromDate).TotalDays);
+            int totalDays = data.DaysInRange;
             int days = totalDays; //data.DaysInMonth;
             int totalCols = 2 + (days * 2); // EmpID + Name + 31 days * 2(In/Out)
 
@@ -103,13 +104,15 @@ namespace HRMS.Infrastructure.Reports
 
             // ── Day Headers
             int col = 3;
+            bool crossesMonth = data.FromDate.Month != data.ToDate.Month || data.FromDate.Year != data.ToDate.Year;
 
-            for (int d = 1; d <= days; d++)
+            for (int d = 0; d < days; d++)
             {
+                var date = data.FromDate.Date.AddDays(d);
                 var dayRange = ws.Range(headerRow, col, headerRow, col + 1);
                 dayRange.Merge();
 
-                SetHeader(ws.Cell(headerRow, col), d.ToString());
+                SetHeader(ws.Cell(headerRow, col), crossesMonth ? date.ToString("dd/MM") : date.Day.ToString());
 
                 // 🔥 FIX: avoid double line between header & subheader
                 dayRange.Style.Border.BottomBorder = XLBorderStyleValues.None;
@@ -175,6 +178,11 @@ namespace HRMS.Infrastructure.Reports
                 // Day columns 1–31
                 for (int d = 0; d < days; d++)
                 {
+                    if (d >= row.Days.Count)
+                    {
+                        continue;
+                    }
+
                     var dayDto = row.Days[d];
 
                     col = 3 + (d * 2);

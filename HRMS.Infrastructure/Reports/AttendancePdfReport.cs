@@ -33,7 +33,8 @@ namespace HRMS.Infrastructure.Reports
 
         public string GetFileName(AttendanceReportDto data)
         {
-            return string.Format("AttendanceRegister_{0:MMMMyyyy}.pdf", data.FromDate);
+            return string.Format("AttendanceRegister_{0:ddMMMyyyy}_to_{1:ddMMMyyyy}.pdf",
+                data.FromDate, data.ToDate);
         }
 
         public byte[] Generate(AttendanceReportDto data)
@@ -59,7 +60,7 @@ namespace HRMS.Infrastructure.Reports
         // ── Content ───────────────────────────────────────────────────────────
         private void BuildContent(Document doc, PdfWriter writer, AttendanceReportDto data)
         {
-            int totalDays = Convert.ToInt32((data.ToDate.AddDays(1) - data.FromDate).TotalDays);
+            int totalDays = data.DaysInRange;
             int days = totalDays;
 
             int totalCols = 2 + (totalDays * 2);
@@ -70,8 +71,8 @@ namespace HRMS.Infrastructure.Reports
             int colIndex = 2;
             for (int d = 0; d < totalDays; d++)
             {
-                widths[colIndex++] = 18f; // In
-                widths[colIndex++] = 18f; // Out
+                widths[colIndex++] = 20f; // In
+                widths[colIndex++] = 20f; // Out
             }
 
             var table = new PdfPTable(totalCols)
@@ -86,9 +87,12 @@ namespace HRMS.Infrastructure.Reports
             // ── Header Row ────────────────────────────────────────────────────
             AddHeaderCell(table, "Emp ID", 2);
             AddHeaderCell(table, "Employee Name", 2);
-            for (int d = 1; d <= days; d++)
+            bool crossesMonth = data.FromDate.Month != data.ToDate.Month || data.FromDate.Year != data.ToDate.Year;
+            for (int d = 0; d < days; d++)
             {
-                var cell = new PdfPCell(new Phrase(d.ToString(), _fontHeader))
+                var date = data.FromDate.Date.AddDays(d);
+                string label = crossesMonth ? date.ToString("dd/MM") : date.Day.ToString();
+                var cell = new PdfPCell(new Phrase(label, _fontHeader))
                 {
                     Colspan = 2,
                     BackgroundColor = _headerBg,
@@ -126,6 +130,13 @@ namespace HRMS.Infrastructure.Reports
 
                 for (int d = 0; d < days; d++)
                 {
+                    if (d >= row.Days.Count)
+                    {
+                        AddDataCell(table, "", _fontCell, rowBg, Element.ALIGN_CENTER);
+                        AddDataCell(table, "", _fontCell, rowBg, Element.ALIGN_CENTER);
+                        continue;
+                    }
+
                     var day = row.Days[d];
 
                     string inVal = "";

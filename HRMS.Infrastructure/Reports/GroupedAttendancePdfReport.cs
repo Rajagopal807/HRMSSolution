@@ -48,19 +48,19 @@ namespace HRMS.Infrastructure.Reports
         private static readonly BaseColor _borderDark = new BaseColor(140, 140, 140);
 
         // ── Column width constants ─────────────────────────────────────────────
-        // EmpID + Name + (31 days × 2 sub-cols)
-        // Total columns in table = 2 + 62 = 64
-        private const int TOTAL_COLS = 64;
+        // EmpID + Name + (selected dates × 2 sub-cols)
         private const float W_EMPID = 48f;
         private const float W_NAME = 70f;
         private const float W_IN_OUT = 14f;   // each In / Out sub-column
+
+        private static int TotalCols(int days) { return 2 + (days * 2); }
 
         public string ContentType => "application/pdf";
 
         public string GetFileName(GroupedAttendanceReportDto data)
         {
-            return string.Format("AttendanceRegister_{0}_{1:MMMMyyyy}.pdf",
-                data.GroupingLabel, data.FromDate);
+            return string.Format("AttendanceRegister_{0}_{1:ddMMMyyyy}_to_{2:ddMMMyyyy}.pdf",
+                data.GroupingLabel, data.FromDate, data.ToDate);
         }
 
         public byte[] Generate(GroupedAttendanceReportDto data)
@@ -83,7 +83,7 @@ namespace HRMS.Infrastructure.Reports
         // ── Content ───────────────────────────────────────────────────────────
         private void BuildContent(Document doc, GroupedAttendanceReportDto data)
         {
-            int days = data.DaysInMonth;
+            int days = data.DaysInRange;
             int grandWD = 0;
             int grandEmp = 0;
             bool alternate = false;
@@ -95,10 +95,10 @@ namespace HRMS.Infrastructure.Reports
                 var table = BuildTable(days);
 
                 // ── Group header row ──────────────────────────────────────────
-                AddGroupHeaderRow(table, group, data);
+                AddGroupHeaderRow(table, group, data, days);
 
                 // ── Two-row column header ─────────────────────────────────────
-                AddColumnHeaderRow1(table, days);  // Day numbers
+                AddColumnHeaderRow1(table, data, days);  // Day numbers
                 AddColumnHeaderRow2(table, days);  // In / Out labels
 
                 // ── Employee data rows ────────────────────────────────────────
@@ -111,7 +111,7 @@ namespace HRMS.Infrastructure.Reports
                 }
 
                 // ── Group subtotal ────────────────────────────────────────────
-                AddSubtotalRow(table, group);
+                AddSubtotalRow(table, group, days);
 
                 doc.Add(table);
 
@@ -120,8 +120,8 @@ namespace HRMS.Infrastructure.Reports
             }
 
             // ── Grand total ───────────────────────────────────────────────────
-            var grandTable = BuildTable(data.DaysInMonth);
-            AddGrandTotalRow(grandTable, data.Groups.Count, grandEmp, grandWD);
+            var grandTable = BuildTable(days);
+            AddGrandTotalRow(grandTable, data.Groups.Count, grandEmp, grandWD, days);
             doc.Add(grandTable);
 
             AddLeaveTypeFooter(doc, data);
@@ -130,7 +130,8 @@ namespace HRMS.Infrastructure.Reports
         // ── Table factory ─────────────────────────────────────────────────────
         private static PdfPTable BuildTable(int days)
         {
-            var table = new PdfPTable(TOTAL_COLS)
+            int totalCols = TotalCols(days);
+            var table = new PdfPTable(totalCols)
             {
                 WidthPercentage = 100f,
                 SpacingBefore = 0f,
@@ -139,10 +140,10 @@ namespace HRMS.Infrastructure.Reports
                 KeepTogether = false
             };
 
-            var widths = new float[TOTAL_COLS];
+            var widths = new float[totalCols];
             widths[0] = W_EMPID;
             widths[1] = W_NAME;
-            for (int i = 2; i < TOTAL_COLS; i++)
+            for (int i = 2; i < totalCols; i++)
                 widths[i] = W_IN_OUT;
 
             table.SetWidths(widths);
@@ -153,7 +154,7 @@ namespace HRMS.Infrastructure.Reports
         // Group header row — full width, dark navy background
         // ════════════════════════════════════════════════════════════════════════
         private void AddGroupHeaderRow(PdfPTable table,
-            AttendanceGroupDto group, GroupedAttendanceReportDto data)
+            AttendanceGroupDto group, GroupedAttendanceReportDto data, int days)
         {
             string text = string.Format("  {0}: {1}   ({2} Employee{3})",
                 data.GroupingLabel, group.GroupName,
@@ -161,7 +162,7 @@ namespace HRMS.Infrastructure.Reports
 
             var cell = new PdfPCell(new Phrase(text, _fGrpHdr))
             {
-                Colspan = TOTAL_COLS,
+                Colspan = TotalCols(days),
                 BackgroundColor = _bgGroupHdr,
                 Border = Rectangle.NO_BORDER,
                 Padding = 5f,
@@ -175,7 +176,7 @@ namespace HRMS.Infrastructure.Reports
         // ════════════════════════════════════════════════════════════════════════
         // Column header — Row 1: "Emp ID" | "Employee Name" | "1"(×2) | … | "31"(×2)
         // ════════════════════════════════════════════════════════════════════════
-        private void AddColumnHeaderRow1(PdfPTable table, int days)
+        private void AddColumnHeaderRow1(PdfPTable table, GroupedAttendanceReportDto data, int days)
         {
             // Emp ID — rowspan 2
             var empIdCell = MakeHCell("Emp ID", _fDayNum, _bgColHeader, 1, 2);
@@ -186,10 +187,12 @@ namespace HRMS.Infrastructure.Reports
             table.AddCell(nameCell);
 
             // Day numbers — each spans 2 columns (In + Out)
-            for (int d = 1; d <= 31; d++)
+            bool crossesMonth = data.FromDate.Month != data.ToDate.Month || data.FromDate.Year != data.ToDate.Year;
+            for (int d = 0; d < days; d++)
             {
-                string label = d <= days ? d.ToString() : "";
-                var bg = d <= days ? _bgColHeader : new BaseColor(235, 235, 235);
+                var date = data.FromDate.Date.AddDays(d);
+                string label = crossesMonth ? date.ToString("dd/MM") : date.Day.ToString();
+                var bg = _bgColHeader;
                 var cell = MakeHCell(label, _fDayNum, bg, 2, 1);
                 table.AddCell(cell);
             }
@@ -203,12 +206,12 @@ namespace HRMS.Infrastructure.Reports
             // EmpID and Name cells were already rowspan=2, so skip them here.
             // iTextSharp handles rowspan automatically — we only add the In/Out cells.
 
-            for (int d = 1; d <= 31; d++)
+            for (int d = 1; d <= days; d++)
             {
-                var bg = d <= days ? _bgInOut : new BaseColor(235, 235, 235);
+                var bg = _bgInOut;
 
                 // In
-                var inCell = new PdfPCell(new Phrase(d <= days ? "In" : "", _fInOut))
+                var inCell = new PdfPCell(new Phrase("In", _fInOut))
                 {
                     BackgroundColor = bg,
                     HorizontalAlignment = Element.ALIGN_CENTER,
@@ -221,7 +224,7 @@ namespace HRMS.Infrastructure.Reports
                 table.AddCell(inCell);
 
                 // Out
-                var outCell = new PdfPCell(new Phrase(d <= days ? "Out" : "", _fInOut))
+                var outCell = new PdfPCell(new Phrase("Out", _fInOut))
                 {
                     BackgroundColor = bg,
                     HorizontalAlignment = Element.ALIGN_CENTER,
@@ -257,8 +260,15 @@ namespace HRMS.Infrastructure.Reports
             table.AddCell(nameCell);
 
             // Day columns
-            for (int d = 0; d < 31; d++)
+            for (int d = 0; d < daysInMonth; d++)
             {
+                if (d >= row.Days.Count)
+                {
+                    table.AddCell(MakeDataCell("", _fTime, bg, Element.ALIGN_CENTER));
+                    table.AddCell(MakeDataCell("", _fTime, bg, Element.ALIGN_CENTER));
+                    continue;
+                }
+
                 var day = row.Days[d];
 
                 if (day.IsPadDay)
@@ -302,10 +312,10 @@ namespace HRMS.Infrastructure.Reports
 
                 // Normal In/Out times
                 string inStr = !string.IsNullOrEmpty(day.FirstIn)
-                    ? DateTime.Parse(day.FirstIn).ToString(@"hh\:mm")
+                    ? day.FirstIn
                     : "--";
                 string outStr = !string.IsNullOrEmpty(day.Lastout)
-                    ? DateTime.Parse(day.Lastout).ToString(@"hh\:mm")
+                    ? day.Lastout
                     : (!string.IsNullOrEmpty(day.FirstIn) ? "--:--" : "--");
 
                 // If absent (no in time, no special marker) → "--" in both
@@ -323,7 +333,7 @@ namespace HRMS.Infrastructure.Reports
         // ════════════════════════════════════════════════════════════════════════
         // Subtotal row
         // ════════════════════════════════════════════════════════════════════════
-        private void AddSubtotalRow(PdfPTable table, AttendanceGroupDto group)
+        private void AddSubtotalRow(PdfPTable table, AttendanceGroupDto group, int days)
         {
             string label = string.Format(
                 "  Subtotal — {0}    Employees: {1}    Total Work Days: {2}",
@@ -331,7 +341,7 @@ namespace HRMS.Infrastructure.Reports
 
             var cell = new PdfPCell(new Phrase(label, _fSubtotal))
             {
-                Colspan = TOTAL_COLS,
+                Colspan = TotalCols(days),
                 BackgroundColor = _bgSubtotal,
                 Border = Rectangle.BOX,
                 BorderColor = _borderDark,
@@ -348,7 +358,7 @@ namespace HRMS.Infrastructure.Reports
         // Grand total row
         // ════════════════════════════════════════════════════════════════════════
         private void AddGrandTotalRow(PdfPTable table,
-            int groupCount, int empCount, int totalWorkDays)
+            int groupCount, int empCount, int totalWorkDays, int days)
         {
             string label = string.Format(
                 "  Grand Total    Groups: {0}    Total Employees: {1} ",
@@ -356,7 +366,7 @@ namespace HRMS.Infrastructure.Reports
 
             var cell = new PdfPCell(new Phrase(label, _fGrandTotal))
             {
-                Colspan = TOTAL_COLS,
+                Colspan = TotalCols(days),
                 BackgroundColor = _bgGrandTotal,
                 Border = Rectangle.BOX,
                 BorderColor = _borderDark,

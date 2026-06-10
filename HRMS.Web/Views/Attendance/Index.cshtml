@@ -19,9 +19,53 @@
 <div class="card" style="max-width:640px;">
     <div class="card-header">
         <div class="card-title">Select Period</div>
-        <div class="card-sub">Choose the date range for the attendance register</div>
+        <div class="card-sub">Choose monthly or periodic dates for the attendance register</div>
     </div>
     <div class="card-body">
+        <div class="form-group">
+            <label class="form-label">Employee</label>
+            <select id="employeeId" class="form-ctrl" style="max-width:100%;width:100%;">
+                <option value="">All Employees</option>
+                @foreach (var emp in (IEnumerable<SelectListItem>)ViewBag.Employees)
+                {
+                    <option value="@emp.Value">@emp.Text</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Duration</label>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;">
+                <label style="display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px;cursor:pointer;">
+                    <input type="radio" name="durationMode" value="monthly" checked onchange="setDurationMode('monthly')" />
+                    Monthly
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px;cursor:pointer;">
+                    <input type="radio" name="durationMode" value="periodic" onchange="setDurationMode('periodic')" />
+                    Periodic
+                </label>
+            </div>
+        </div>
+        <div id="monthFields" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div class="form-group">
+                <label class="form-label">Month</label>
+                <select id="monthSelect" class="form-ctrl">
+                    @for (int month = 1; month <= 12; month++)
+                    {
+                        var selected = month == DateTime.Now.Month ? "selected" : "";
+                        <option value="@month" @selected>@(new DateTime(2000, month, 1).ToString("MMM"))</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Year</label>
+                <select id="yearSelect" class="form-ctrl">
+                    @for (int year = DateTime.Now.Year; year >= DateTime.Now.Year - 5; year--)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+            </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
             <div class="form-group">
                 <label class="form-label">From Date</label>
@@ -109,6 +153,29 @@
 
         document.getElementById('fromDate').value = fmt(firstDay);
         document.getElementById('toDate').value   = fmt(lastDay);
+        document.getElementById('monthSelect').value = String(mon + 1);
+        document.getElementById('yearSelect').value = String(year);
+    }
+
+    function setDurationMode(mode) {
+        var isMonthly = mode === 'monthly';
+        document.getElementById('monthFields').style.display = isMonthly ? 'grid' : 'none';
+
+        if (isMonthly) {
+            applySelectedMonth();
+        }
+    }
+
+    function applySelectedMonth() {
+        var month = parseInt(document.getElementById('monthSelect').value, 10);
+        var year = parseInt(document.getElementById('yearSelect').value, 10);
+        if (isNaN(month) || isNaN(year)) return;
+
+        var firstDay = new Date(year, month - 1, 1);
+        var lastDay = new Date(year, month, 0);
+
+        document.getElementById('fromDate').value = fmt(firstDay);
+        document.getElementById('toDate').value = fmt(lastDay);
     }
 
     function fmt(date) {
@@ -121,6 +188,7 @@
     function download(type) {
         var from = document.getElementById('fromDate').value;
         var to   = document.getElementById('toDate').value;
+        var employeeId = document.getElementById('employeeId').value;
 
         if (!from || !to) {
             alert('Please select both From and To dates.');
@@ -131,15 +199,23 @@
             return;
         }
 
-        var action = type === 'pdf' ? 'DownloadPdf' : 'DownloadExcel';
         var url = type === 'pdf' ? '@Url.Action("DownloadPdf", "Attendance")' : '@Url.Action("DownloadExcel", "Attendance")';
             url += '?from=' + from + '&to=' + to;
+        if (employeeId) {
+            url += '&employeeId=' + encodeURIComponent(employeeId);
+        }
 
+        if (window.showLoadingOverlay) window.showLoadingOverlay();
         window.location.href = url;
     }
 
+    document.getElementById('monthSelect').addEventListener('change', applySelectedMonth);
+    document.getElementById('yearSelect').addEventListener('change', applySelectedMonth);
+    applySelectedMonth();
+
     // Expose to inline onclick
     window.setMonth   = setMonth;
+    window.setDurationMode = setDurationMode;
     window.download   = download;
 
 }());
