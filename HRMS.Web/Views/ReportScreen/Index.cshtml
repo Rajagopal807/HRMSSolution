@@ -223,7 +223,7 @@
         &#9888;&nbsp;@TempData["Error"]
     </div>
 }*@
-@using (Html.BeginForm("Generate", "ReportScreen", FormMethod.Post, new { id = "reportForm" }))
+@using (Html.BeginForm("Generate", "ReportScreen", FormMethod.Post, new { id = "reportForm", data_loading_overlay = "false" }))
 {
     @Html.AntiForgeryToken()
 
@@ -548,8 +548,45 @@
         expInp.value = exportVal;
         container.appendChild(expInp);
 
+        var token = String(Date.now()) + Math.random().toString(16).slice(2);
+        var tokenInp = document.createElement('input');
+        tokenInp.type = 'hidden';
+        tokenInp.name = 'DownloadToken';
+        tokenInp.value = token;
+        container.appendChild(tokenInp);
+
+        if (window.showLoadingOverlay) window.showLoadingOverlay(0);
+        waitForReportDownload(token);
+
         return true;
     };
+
+    function waitForReportDownload(token) {
+        var startedAt = Date.now();
+        var timer = setInterval(function () {
+            if (hasCookieValue('reportDownloadToken', token)) {
+                clearInterval(timer);
+                clearReportDownloadCookie();
+                if (window.hideLoadingOverlay) window.hideLoadingOverlay();
+                return;
+            }
+
+            if (Date.now() - startedAt > 120000) {
+                clearInterval(timer);
+                if (window.hideLoadingOverlay) window.hideLoadingOverlay();
+            }
+        }, 500);
+    }
+
+    function hasCookieValue(name, value) {
+        return document.cookie.split(';').some(function (part) {
+            return part.trim() === name + '=' + value;
+        });
+    }
+
+    function clearReportDownloadCookie() {
+        document.cookie = 'reportDownloadToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
 
     // ── Keyboard shortcuts ────────────────────────────────────────────────────
     document.addEventListener('keydown', function (e) {

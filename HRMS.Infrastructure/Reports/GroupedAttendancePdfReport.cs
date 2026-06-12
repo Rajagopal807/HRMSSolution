@@ -52,8 +52,14 @@ namespace HRMS.Infrastructure.Reports
         private const float W_EMPID = 48f;
         private const float W_NAME = 70f;
         private const float W_IN_OUT = 14f;   // each In / Out sub-column
+        private const int BaseDayColumns = 31;
+        private const float LeftMargin = 20f;
+        private const float RightMargin = 20f;
+        private const float TopMargin = 45f;
+        private const float BottomMargin = 20f;
 
         private static int TotalCols(int days) { return 2 + (days * 2); }
+        private static float TableWidthWeight(int days) { return W_EMPID + W_NAME + (days * W_IN_OUT * 2); }
 
         public string ContentType => "application/pdf";
 
@@ -67,8 +73,8 @@ namespace HRMS.Infrastructure.Reports
         {
             using (var ms = new MemoryStream())
             {
-                var pageSize = new Rectangle(PageSize.A3.Height, PageSize.A3.Width);
-                var doc = new Document(pageSize, 20f, 20f, 45f, 20f);
+                var pageSize = GetPageSize(data.DaysInRange);
+                var doc = new Document(pageSize, LeftMargin, RightMargin, TopMargin, BottomMargin);
                 var writer = PdfWriter.GetInstance(doc, ms);
                 writer.PageEvent = new GroupedPageEvent(data);
 
@@ -78,6 +84,19 @@ namespace HRMS.Infrastructure.Reports
 
                 return ms.ToArray();
             }
+        }
+
+        private static Rectangle GetPageSize(int days)
+        {
+            var basePage = new Rectangle(PageSize.A3.Height, PageSize.A3.Width);
+            if (days <= BaseDayColumns) return basePage;
+
+            float baseTableWeight = TableWidthWeight(BaseDayColumns);
+            float requestedTableWeight = TableWidthWeight(days);
+            float baseAvailableWidth = basePage.Width - LeftMargin - RightMargin;
+            float requestedAvailableWidth = baseAvailableWidth * requestedTableWeight / baseTableWeight;
+
+            return new Rectangle(requestedAvailableWidth + LeftMargin + RightMargin, basePage.Height);
         }
 
         // ── Content ───────────────────────────────────────────────────────────
@@ -219,7 +238,8 @@ namespace HRMS.Infrastructure.Reports
                     Border = Rectangle.BOX,
                     BorderColor = _borderLight,
                     BorderWidth = 0.3f,
-                    Padding = 1.5f
+                    Padding = 1.5f,
+                    NoWrap = true
                 };
                 table.AddCell(inCell);
 
@@ -232,7 +252,8 @@ namespace HRMS.Infrastructure.Reports
                     Border = Rectangle.BOX,
                     BorderColor = _borderLight,
                     BorderWidth = 0.3f,
-                    Padding = 1.5f
+                    Padding = 1.5f,
+                    NoWrap = true
                 };
                 table.AddCell(outCell);
             }
@@ -255,7 +276,7 @@ namespace HRMS.Infrastructure.Reports
                 BorderColor = _borderLight,
                 BorderWidth = 0.3f,
                 Padding = 2f,
-                NoWrap = false
+                NoWrap = true
             };
             table.AddCell(nameCell);
 
@@ -281,7 +302,8 @@ namespace HRMS.Infrastructure.Reports
                         Border = Rectangle.BOX,
                         BorderColor = _borderLight,
                         BorderWidth = 0.3f,
-                        Padding = 1f
+                        Padding = 1f,
+                        NoWrap = true
                     };
                     table.AddCell(padCell);
                     continue;
@@ -304,7 +326,8 @@ namespace HRMS.Infrastructure.Reports
                         Border = Rectangle.BOX,
                         BorderColor = _borderLight,
                         BorderWidth = 0.3f,
-                        Padding = 1.5f
+                        Padding = 1.5f,
+                        NoWrap = true
                     };
                     table.AddCell(specCell);
                     continue;
@@ -397,7 +420,8 @@ namespace HRMS.Infrastructure.Reports
                 Border = Rectangle.BOX,
                 BorderColor = new BaseColor(150, 150, 150),
                 BorderWidth = 0.5f,
-                Padding = 2.5f
+                Padding = 2.5f,
+                NoWrap = true
             };
             return cell;
         }

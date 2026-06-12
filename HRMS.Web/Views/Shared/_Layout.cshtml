@@ -142,14 +142,16 @@
             var hideTimer = null;
             var showTimer = null;
 
-            function showLoadingOverlay() {
+            function showLoadingOverlay(autoHideMs) {
                 if (!overlay) return;
                 clearTimeout(hideTimer);
                 clearTimeout(showTimer);
                 overlay.classList.add("is-visible");
                 document.body.classList.add("is-loading");
 
-                hideTimer = setTimeout(hideLoadingOverlay, 30000);
+                if (autoHideMs !== 0) {
+                    hideTimer = setTimeout(hideLoadingOverlay, autoHideMs || 30000);
+                }
             }
 
             function hideLoadingOverlay() {

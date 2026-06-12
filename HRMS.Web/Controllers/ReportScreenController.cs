@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using System.Web.Mvc;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
@@ -72,6 +73,7 @@ namespace HRMS.Web.Controllers
                 var (bytes, contentType, fileName) =
                     _reportScreenService.Generate(filter);
 
+                MarkDownloadReady();
                 return File(bytes, contentType, fileName);
             }
             catch (NotImplementedException ex)
@@ -84,6 +86,18 @@ namespace HRMS.Web.Controllers
                 TempData["Error"] = "Report generation failed: " + ex.Message;
                 return RedirectToAction("Index");
             }
+        }
+
+        private void MarkDownloadReady()
+        {
+            var token = Request.Form["DownloadToken"];
+            if (string.IsNullOrWhiteSpace(token)) return;
+
+            Response.Cookies.Add(new HttpCookie("reportDownloadToken", token)
+            {
+                Path = "/",
+                Expires = DateTime.Now.AddMinutes(5)
+            });
         }
 
         // ── GET: /ReportScreen/GetItems?grouping=1 ────────────────────────────

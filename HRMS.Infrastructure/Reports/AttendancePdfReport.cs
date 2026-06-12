@@ -29,6 +29,15 @@ namespace HRMS.Infrastructure.Reports
         private static readonly BaseColor _headerBg = new BaseColor(220, 220, 220);
         private static readonly BaseColor _altRowBg = new BaseColor(245, 245, 245);
 
+        private const int BaseDayColumns = 31;
+        private const float LeftMargin = 20f;
+        private const float RightMargin = 20f;
+        private const float TopMargin = 60f;
+        private const float BottomMargin = 20f;
+        private const float EmpIdWidth = 40f;
+        private const float EmployeeNameWidth = 70f;
+        private const float PunchColumnWidth = 20f;
+
         public string ContentType => "application/pdf";
 
         public string GetFileName(AttendanceReportDto data)
@@ -41,9 +50,8 @@ namespace HRMS.Infrastructure.Reports
         {
             using (var ms = new MemoryStream())
             {
-                // A3 landscape for 31 day columns + ID + Name + WorkDays
-                var pageSize = new Rectangle(PageSize.A3.Height, PageSize.A3.Width); // landscape
-                var doc = new Document(pageSize, 20f, 20f, 60f, 20f);
+                var pageSize = GetPageSize(data.DaysInRange);
+                var doc = new Document(pageSize, LeftMargin, RightMargin, TopMargin, BottomMargin);
                 var writer = PdfWriter.GetInstance(doc, ms);
 
                 // Page event for header/footer on every page
@@ -57,6 +65,24 @@ namespace HRMS.Infrastructure.Reports
             }
         }
 
+        private static Rectangle GetPageSize(int days)
+        {
+            var basePage = new Rectangle(PageSize.A3.Height, PageSize.A3.Width);
+            if (days <= BaseDayColumns) return basePage;
+
+            float baseTableWeight = GetTableWidthWeight(BaseDayColumns);
+            float requestedTableWeight = GetTableWidthWeight(days);
+            float baseAvailableWidth = basePage.Width - LeftMargin - RightMargin;
+            float requestedAvailableWidth = baseAvailableWidth * requestedTableWeight / baseTableWeight;
+
+            return new Rectangle(requestedAvailableWidth + LeftMargin + RightMargin, basePage.Height);
+        }
+
+        private static float GetTableWidthWeight(int days)
+        {
+            return EmpIdWidth + EmployeeNameWidth + (days * PunchColumnWidth * 2);
+        }
+
         // ── Content ───────────────────────────────────────────────────────────
         private void BuildContent(Document doc, PdfWriter writer, AttendanceReportDto data)
         {
@@ -65,14 +91,14 @@ namespace HRMS.Infrastructure.Reports
 
             int totalCols = 2 + (totalDays * 2);
             float[] widths = new float[totalCols];
-            widths[0] = 40f;   // Emp ID
-            widths[1] = 70f;   // Employee Name
+            widths[0] = EmpIdWidth;
+            widths[1] = EmployeeNameWidth;
 
             int colIndex = 2;
             for (int d = 0; d < totalDays; d++)
             {
-                widths[colIndex++] = 20f; // In
-                widths[colIndex++] = 20f; // Out
+                widths[colIndex++] = PunchColumnWidth;
+                widths[colIndex++] = PunchColumnWidth;
             }
 
             var table = new PdfPTable(totalCols)
@@ -103,6 +129,7 @@ namespace HRMS.Infrastructure.Reports
                     BorderWidth = 0.5f,
                     Padding = 2.5f
                 };
+                cell.NoWrap = true;
                 table.AddCell(cell);
             }
 
@@ -161,7 +188,8 @@ namespace HRMS.Infrastructure.Reports
                             Border = Rectangle.BOX,
                             BorderColor = new BaseColor(160, 160, 160),
                             BorderWidth = 0.5f,
-                            Padding = 2.5f
+                            Padding = 2.5f,
+                            NoWrap = true
                         };
 
                         table.AddCell(attCell);
@@ -183,7 +211,8 @@ namespace HRMS.Infrastructure.Reports
                             Border = Rectangle.BOX,
                             BorderColor = new BaseColor(160, 160, 160),
                             BorderWidth = 0.5f,
-                            Padding = 2.5f
+                            Padding = 2.5f,
+                            NoWrap = true
                         };
 
                         table.AddCell(attCell);
@@ -269,6 +298,7 @@ namespace HRMS.Infrastructure.Reports
                     Padding = 2.5f
                 };
             }
+            cell.NoWrap = true;
 
             table.AddCell(cell);
         }
@@ -284,7 +314,8 @@ namespace HRMS.Infrastructure.Reports
                 Border = Rectangle.BOX,
                 BorderColor = new BaseColor(200, 200, 200),
                 BorderWidth = 0.3f,
-                Padding = 2f
+                Padding = 2f,
+                NoWrap = true
             };
             table.AddCell(cell);
         }
