@@ -13,3 +13,13 @@
 /.vs
 /HRMS.Web/App_Data/ErrorLog.txt
 /HRMS.Web/HRMS.Web.csproj.user
+/Autodownload_service_Latest/.vs
+/Autodownload_service_Latest/atnd
+/Autodownload_service_Latest/AutoDownloadService/.vs
+/Autodownload_service_Latest/AutoDownloadService/bin
+/Autodownload_service_Latest/AutoDownloadService/obj
+/Autodownload_service_Latest/AutoDownloadService/Script
+/Autodownload_service_Latest/DownloadLogUnitTest/.vs
+/Autodownload_service_Latest/DownloadLogUnitTest/bin
+/Autodownload_service_Latest/DownloadLogUnitTest/obj
+/Autodownload_service_Latest/packages

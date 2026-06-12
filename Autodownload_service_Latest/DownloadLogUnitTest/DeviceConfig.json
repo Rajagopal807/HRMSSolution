@@ -1,0 +1,14 @@
+{
+  "ZKDevice": {
+    "Devices": [
+      {
+        "Id": 1,
+        "Name": "Main Entrance",
+        "IpAddress": "172.16.10.111",
+        "Port": 4370,
+        "Password": 0,
+        "Enabled": true
+      }
+    ]
+  }
+}

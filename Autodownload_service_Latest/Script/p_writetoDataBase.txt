@@ -1,0 +1,210 @@
+USE [webstars]
+GO
+/****** Object:  StoredProcedure [dbo].[p_writetoDataBase]    Script Date: 11/19/2020 12:15:13 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER procedure [dbo].[p_writetoDataBase]
+	   @strline  varchar(40) ,
+ 	   @Sversion char(5),
+	   @returnWtDb smallint output
+as
+set @returnWtDb = 0
+	declare @strdate varchar(8), @strcode varchar(11), @strtime varchar(30), @strio varchar(1)
+	declare @strbr varchar(3), @tempdate datetime,@strdate1 datetime
+	declare @empname varchar(30), @Empid  varchar(11), @strSftFlg varchar(2), @text varchar(80)
+	declare @iret smallint, @dtTransTime datetime, @Strtemp varchar(20),@iErrFileNo smallint
+	declare @empid1 varchar(11), @Xdate as varchar(20),@iRet1 varchar(1)
+	declare @StrReason varchar(2),@strRemarks varchar(20),@StrTreatment varchar(1),@EmpType char(1)
+	Declare @i int
+	set @iErrFileNo = 1
+	set @sversion= ltrim(@sversion) 
+        set @strline = ltrim(@strline)
+        --Print @strline  + '  StrLine'
+        --Print @sversion  + ' Version '
+	If @sversion = '7'
+	   begin
+	   set @strdate = substring(@strLine,1,8)
+	   set @strCode = '0000' + Substring(@strLine, 9, 7) 
+	   set @strTime = substring(@strLine, 16, 4)         
+	   set @strIO = substring(@strLine, 20, 1)
+	   set @strBr = substring(@strLine, 21, 2)
+           end
+	Else If @sversion = '10'
+            begin 
+		    set @strSftFlg = substring(@strLine, 3, 2)
+		    set @strCode = '0' + substring(@strLine, 7, 10)   
+		    set @strdate = substring(@strLine, 18, 8)          
+		    set @strTime = substring(@strLine, 26, 4)
+		    set @strIO = substring(@strLine, 30, 1)
+		    set @strBr = substring(@strLine, 36, 2) 
+        end
+	Else if @sversion = '8' 
+		begin		
+			set @strSftFlg = substring(@strLine, 3, 2)
+			set @strCode = '0' + substring(@strLine, 7, 10) 
+			set @strdate = substring(@strLine, 18, 8)       
+			set @strTime = substring(@strLine, 26, 4)
+			set @strIO = substring(@strLine, 30,1)
+			set @strBr = substring(@strLine, 35, 2)
+		end
+	Else if @sversion = '10.22'
+		begin	
+			set @StrReason = substring(@strLine, 1, 2)
+			set @strSftFlg = substring(@strLine, 3, 2)
+			set @strCode = '0' + substring(@strLine, 8, 10)    
+			set @strdate = substring(@strLine, 19, 8)          
+			set @strTime = substring(@strLine, 27, 4)
+			set @strIO = substring(@strLine, 31, 1)
+			set @strBr = substring(@strLine, 36, 3)
+		end
+	  --Print @StrReason  	
+	  --Print @strSftFlg 
+	  --Print @strCode 
+	  --Print @strdate 
+	  --Print @strTime 
+      --Print @strIO  
+ 	  --Print @strBr  
+      --Print @sversion
+If @sversion = '8' Or @sversion = '10' Or @sversion = '10.22'
+	begin 
+		exec p_CheckSftFlg @strSftFlg,@iret output 
+		-- Error Number 1 Invalied Shift 
+		if @iret = 1 				
+         		begin 
+   		   set @returnWtDb = 1  
+	   	   return 
+	              end
+	end	
+--Print 'p_CheckSftFlg is ok'		 
+-- Error Number 2 Invalied EmpNo
+--Print @strcode
+--***************************************************
+--Code Modified by Karthikeyan.S on 19/Jan/2010
+--For Chemfab
+/*exec p_CheckCode @strcode,@iret Output 
+if @iret = 0 
+	begin
+	  set @returnWtDb = 2
+	  return
+	end	
+if @iret=2
+	begin
+		set @strcode =(select distinct(EmpId) from TblTempCards where TempCardNo = @strCode)  
+	end
+*/
+select @i = (select count(EmpId) from TblEmpMast where EmpId = @strCode)
+if @i > 0 
+begin
+	set @EmpType = 'E'
+end
+set @i = 0
+select @i = (select count(EmpId) from TblTempCards where TempCardNo = @strCode)  
+if @i > 0
+begin
+	set @EmpType = 'E'
+	set @strcode =(select distinct(EmpId) from TblTempCards where TempCardNo = @strCode)
+end
+set @i = 0
+select @i = (select count(VCardNo) from TblVisitorCards where VCardNo = @strCode)
+if @i > 0 
+begin
+	set @EmpType = 'V'
+end
+--Upto here
+--****************************************************
+--Print 'p_CheckCode is ok'		  
+-- Error Number 3 Invalied Date
+--Print @strdate
+exec p_CheckDate @strDate,@iRet output
+--Print @iret
+if @iret <>0 
+	begin 
+	  	set @returnWtDb = 3
+     	return
+	end
+--Print 'p_CheckDate is ok'		  		
+-- Error Number 4 Invalied Time
+Exec p_CheckTime @strTime,@iRet output 
+if @iret = 0 
+   begin 
+	   set @returnWtDb = 4
+	   return
+	 end		 
+--Print 'p_Checktime is ok'		  
+-- Error Number 5 Invalied I/O Flag
+--Print @strIO
+ Exec p_CheckIO @strIO,@iRet1 Output 
+if @iRet1 ='0' 
+	 begin 
+	 	set @returnWtDb = 5
+		--Print '321'
+		return
+	end
+set @strIO=@iRet1
+--Print '123'	
+	set @strtemp = substring(@strTime, 1, 2) + ':' + substring(@strTime, 3, 2)
+--	set @strtemp = @strdate + ' ' + @strtemp
+	set @strTemp = substring( @strdate,5,2)+ '/' +substring(@strdate,7,2)+ '/' + substring(@strdate,1,4)+' '+substring(@strTime, 1, 2) + ':' + substring(@strTime, 3, 2)
+	set @StrDate1 = convert(datetime,substring( @strdate,5,2)+ '/' +substring(@strdate,7,2)+ '/' + substring(@strdate,1,4)+' '+substring(@strTime, 1, 2) + ':' + substring(@strTime, 3, 2),101)
+    set @dtTransTime = @strdate1 --convert(datetime,@strtemp, 101)
+	
+
+set @strRemarks = ' ' --Not Valied Reason'
+set @StrTreatment = 'P'
+If @EmpType = 'E'
+Begin
+	--declare dupcur scroll cursor for select empid from tbldailytransactions where empid=@strcode and ioflag=@strio and convert(datetime,transtime,108)=convert(datetime,@dtTransTime,108) and convert(datetime,transtime,101)=convert(datetime,@dtTransTime,101)
+	declare dupcur scroll cursor for select empid from tbldailytransactions where empid=@strcode and convert(datetime,transtime,108)=convert(datetime,@dtTransTime,108) and convert(datetime,transtime,101)=convert(datetime,@dtTransTime,101) and IOFlag=@StrIO
+	--select * from tbldailytransactions where empid=@strcode and ioflag=@strio and convert(datetime,transtime,108)=convert(datetime,@dtTransTime,108) and convert(datetime,transtime,101)=convert(datetime,@dtTransTime,101)
+	open dupcur
+	fetch first from dupcur into @strcode 
+	if @@fetch_status=0
+	   begin	
+		    insert into TblError Values(@strcode,'Duplicate Punch')
+			--Print 'Not Ok'
+	   end		
+	else
+	begin
+	--Print 'chan'
+	 insert into TblDailyTransactions(EmpId,IOFlag,ActualIOFlag,OPFlag, PunchedTime,TransTime,BOutPassHrs,Remarks,BadgeReaderNo,Deleted,ReasonCode) --AttendanceDate,
+		values(@strcode ,@strIO,@strIO,@StrTreatment,convert(datetime,@dtTransTime,108),convert(datetime,@dtTransTime,108),0,@strRemarks,@strBr,'F',@StrReason)  --Null,
+	end
+	deallocate dupcur
+End --End of If @EmpType = 'E'
+Else if @EmpType = 'V'
+Begin
+	declare dupcur scroll cursor for select VCardNo from tblVisitortransactions where VCardNo=@strcode and convert(datetime,transtime,108)=convert(datetime,@dtTransTime,108) and convert(datetime,transtime,101)=convert(datetime,@dtTransTime,101) and IOFlag=@StrIO
+	open dupcur
+	fetch first from dupcur into @strcode 
+	if @@fetch_status=0
+	   begin	
+		    insert into TblError Values(@strcode,'Duplicate Punch')
+			--Print 'Not Ok'
+	   end		
+	else
+	begin
+	--Print 'chan'
+	 insert into TblVisitorTransactions(VCardNo,IOFlag,ActualIOFlag,OPFlag, PunchedTime,TransTime,AttendanceDate,BOutPassHrs,Remarks,BadgeReaderNo,Deleted,ReasonCode) 
+		values(@strcode ,@strIO,@strIO,@StrTreatment,convert(datetime,@dtTransTime,108),convert(datetime,@dtTransTime,108),convert(varchar,@dtTransTime,101),0,@strRemarks,@strBr,'F',@StrReason)  
+	end
+	deallocate dupcur
+End	--End of Else if @EmpType = 'V'
+set @returnWtDb =0
+return
+--exec ComputeAttendanceFor @strcode,convert(varchar(11),@dtTransTime,101),convert(varchar(11),@dtTransTime,101),0
+--declare  @returnWtDb1 smallint 
+--exec p_writetoDataBase '00000100000000109 202010311826O0001102','10.22', @returnWtDb1 output
+--print @returnWtDb1
+--select * from tbldailytransactions where attendancedate=convert(datetime,'06/02/2004',101) and empid='00000000320'
+
+
+
+
+
+
+
+

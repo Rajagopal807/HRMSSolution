@@ -1,0 +1,210 @@
+﻿using ComputationService.Interface;
+using ComputationService.Utils;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.ServiceProcess;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ComputationService
+{
+    public partial class computationservice : ServiceBase
+    {
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
+        private IMessageLogger _logger;
+        private Thread _thread;
+        private clsConnectionClass conn = new clsConnectionClass();
+        private List<ManualResetEvent> _resetEvents;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationToken _cancellationToken;
+
+        public computationservice()
+        {
+            log4net.GlobalContext.Properties["pid"] = Process.GetCurrentProcess().Id;
+            _logger = new Filelogger("ComputationService");
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+            _resetEvents = new List<ManualResetEvent>();
+
+            InitializeComponent();
+
+            if (!System.Diagnostics.EventLog.SourceExists("ComputationService"))
+            {
+                System.Diagnostics.EventLog.CreateEventSource(
+                    "ComputationServiceSource", "ComputationServiceLog");
+            }
+            eventLog1.Source = "ComputationServiceSource";
+            eventLog1.Log = "ComputationServiceLog";
+
+            AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
+        }
+
+        private void OnAppDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            eventLog1.WriteEntry($"Unhandled Exception occured. {e.ToString()}");
+        }
+
+        protected override void OnStart(string[] args)
+        {
+
+            //if (args.Contains("\\d"))
+            {
+#if DEBUG
+                RequestAdditionalTime(30000);
+                System.Diagnostics.Debugger.Launch();
+#endif
+            }
+            eventLog1.WriteEntry("Starting  Service");
+            ServiceStatus serviceStatus = new ServiceStatus();
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_START_PENDING;
+            serviceStatus.dwWaitHint = 100000;
+            SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+            _logger.Log("Starting  Service....");
+
+            _thread = new Thread(ThreadProc);
+            _thread.Name = "ComputationService";
+            _thread.IsBackground = true;
+            _thread.Start();
+
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
+            SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+            _logger.Log("Service Started...");
+
+        }
+
+        public void ThreadProc()
+        {
+            // we're going to wait 5 minutes between calls to StartService, so 
+            int interval = 300000;
+            int elapsed = 0;
+            // because we don't want to use 100% of the CPU, we will be 
+            // sleeping for 1 second between checks to see if it's time to 
+            // call GetEmployees
+            int waitTime = 1000; // 1 second
+            try
+            {
+                // do this loop forever (or until the service is stopped)
+                while (true)
+                {
+                    // if enough time has passed
+                    if (interval >= elapsed)
+                    {
+                        // reset how much time has passed to zero
+                        elapsed = 0;
+                        // call GetEmployees
+                        StartService();
+                    }
+                    // Sleep for 1 second
+                    Thread.Sleep(waitTime);
+                    // indicate that 1 additional second has passed
+                    elapsed += waitTime;
+                }
+            }
+            catch (ThreadAbortException)
+            {
+                // we want to eat the excetion because we don't care if the 
+                // thread has aborted since we probably did it on purpose by 
+                // stopping the service.
+            }
+        }
+
+        protected void StartService()
+        {
+            SqlCommand compute = new SqlCommand();
+            try
+            {
+                conn.cnn.Open();
+                compute = new SqlCommand("ComputeAttendanceServiceProc", conn.cnn);
+                compute.CommandTimeout = 0;
+                compute.Parameters.AddWithValue("@fromDate", SqlDbType.DateTime).Value = DateTime.Parse("2020-07-01");
+                compute.Parameters.AddWithValue("@toDate", SqlDbType.DateTime).Value = DateTime.Parse("2020-07-02");
+                compute.CommandType = CommandType.StoredProcedure;
+                compute.ExecuteNonQuery();
+            }
+            catch (Exception exception)
+            {
+                _logger.Error("Error while inserting the Data", exception);
+                OnStop();
+            }
+
+        }
+
+        protected override void OnStop()
+        {
+            try
+            {
+                eventLog1.WriteEntry("Stopping Service.");
+                // Update the service state to Start Pending.  
+                ServiceStatus serviceStatus = new ServiceStatus();
+                serviceStatus.dwCurrentState = ServiceState.SERVICE_STOP_PENDING;
+                serviceStatus.dwWaitHint = 100000;
+                SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+                _logger.Log("Stopping Service...");
+
+                StopService();
+
+                // Update the service state to Running.  
+                serviceStatus.dwCurrentState = ServiceState.SERVICE_STOPPED;
+                SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+                _logger.Log("Service Stopped...");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error("Error while Stoping Service", exception);
+            }
+        }
+
+        protected void StopService()
+        {
+            try
+            {
+                _shutDown.Set();
+                if (!_thread.Join(3000)) //give the thread 3 seconds to stop
+                {
+                    _thread.Abort();
+                }
+
+            }
+            catch (ThreadAbortException)
+            {
+                Thread.ResetAbort();
+            }
+            catch(Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+
+        }
+
+        public enum ServiceState
+        {
+            SERVICE_STOPPED = 0x00000001,
+            SERVICE_START_PENDING = 0x00000002,
+            SERVICE_STOP_PENDING = 0x00000003,
+            SERVICE_RUNNING = 0x00000004,
+            SERVICE_CONTINUE_PENDING = 0x00000005,
+            SERVICE_PAUSE_PENDING = 0x00000006,
+            SERVICE_PAUSED = 0x00000007,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ServiceStatus
+        {
+            public int dwServiceType;
+            public ServiceState dwCurrentState;
+            public int dwControlsAccepted;
+            public int dwWin32ExitCode;
+            public int dwServiceSpecificExitCode;
+            public int dwCheckPoint;
+            public int dwWaitHint;
+        };
+    }
+}
