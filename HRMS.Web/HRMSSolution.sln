@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.36617.4
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37328.6 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRMS.Web", "HRMS.Web.csproj", "{12F50D2E-4C94-4741-AB6A-5D4FA09837A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRMS.Web", "HRMS.Web.csproj", "{B6822952-56BF-4121-8B3D-0C3B8DEB1D5B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRMS.Application", "..\HRMS.Application\HRMS.Application.csproj", "{50EAB460-E4EC-416F-A15E-E6E2E4117CED}"
 EndProject
@@ -19,10 +19,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{12F50D2E-4C94-4741-AB6A-5D4FA09837A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12F50D2E-4C94-4741-AB6A-5D4FA09837A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12F50D2E-4C94-4741-AB6A-5D4FA09837A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12F50D2E-4C94-4741-AB6A-5D4FA09837A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6822952-56BF-4121-8B3D-0C3B8DEB1D5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6822952-56BF-4121-8B3D-0C3B8DEB1D5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6822952-56BF-4121-8B3D-0C3B8DEB1D5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6822952-56BF-4121-8B3D-0C3B8DEB1D5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{50EAB460-E4EC-416F-A15E-E6E2E4117CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{50EAB460-E4EC-416F-A15E-E6E2E4117CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50EAB460-E4EC-416F-A15E-E6E2E4117CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
