@@ -61,6 +61,9 @@
                     <a href="@Url.Action("Index","AttendanceTransaction")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="AttendanceTransaction"?"active":"")">
                         <span class="sb-icon">&#9201;</span> Attendance Transactions
                     </a>
+                    <a href="@Url.Action("Index","LiveAttendance")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="LiveAttendance"?"active":"")">
+                        <span class="sb-icon"><i class="bi bi-broadcast"></i></span> Live Attendance
+                    </a>
                     <a href="@Url.Action("Index","TempCard")" class="sb-link @(ViewContext.RouteData.Values["controller"].ToString()=="TempCard"?"active":"")">
                         <span class="sb-icon">&#128179;</span> Temp Cards
                     </a>

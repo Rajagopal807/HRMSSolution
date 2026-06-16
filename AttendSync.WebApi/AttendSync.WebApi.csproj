@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>false</UseWindowsForms>
+    <Platforms>x86;x64</Platforms>  <!-- ZKTeco COM is 32/64-bit specific -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <COMReference Include="zkemkeeper">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>fe9ded34-e159-408e-8490-b720a5e632c7</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.*" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+    <!--
+      Add the ZKTeco COM interop DLL after running:
+        tlbimp.exe zkemkeeper.dll /out:zkemkeeper.Interop.dll
+      Then reference it here:
+    -->
+    <!-- <Reference Include="zkemkeeper"><HintPath>..\lib\zkemkeeper.Interop.dll</HintPath></Reference> -->
+  </ItemGroup>
+
+</Project>
