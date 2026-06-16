@@ -217,6 +217,7 @@
     <Compile Include="Controllers\HolidayController.cs" />
     <Compile Include="Controllers\LeaveApplicationController.cs" />
     <Compile Include="Controllers\LeaveTypeMasterController.cs" />
+    <Compile Include="Controllers\LiveAttendanceController.cs" />
     <Compile Include="Controllers\ReportScreenController.cs" />
     <Compile Include="Controllers\TempCardController.cs" />
     <Compile Include="Filters\PageExceptionFilterAttribute.cs" />
@@ -287,6 +288,7 @@
     <Content Include="Views\LeaveTypeMaster\Index.cshtml" />
     <Content Include="Views\LeaveApplication\Apply.cshtml" />
     <Content Include="Views\LeaveApplication\Pending.cshtml" />
+    <Content Include="Views\LiveAttendance\Index.cshtml" />
     <Content Include="Views\Holiday\Create.cshtml" />
     <Content Include="Views\Holiday\Edit.cshtml" />
     <Content Include="Views\Holiday\Index.cshtml" />

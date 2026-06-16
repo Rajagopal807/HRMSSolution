@@ -3,7 +3,7 @@
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Rajgopal\WorkSpace\Dev\Utilities\Others\AttendSyncWebApiRelease\AttndWebApi</_PublishTargetUrl>
-    <History>True|2026-06-16T05:02:39.0517870Z||;True|2026-06-16T10:31:31.6177400+05:30||;</History>
+    <History>True|2026-06-16T07:48:40.4743683Z||;False|2026-06-16T13:18:29.0999141+05:30||;False|2026-06-16T13:18:20.1656609+05:30||;True|2026-06-16T11:17:58.7986994+05:30||;False|2026-06-16T11:17:31.5127764+05:30||;True|2026-06-16T10:32:39.0517870+05:30||;True|2026-06-16T10:31:31.6177400+05:30||;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>
