@@ -99,6 +99,14 @@
             <div class="topbar">
                 <span class="topbar-title">@ViewBag.Title</span>
                 <div class="topbar-right">
+                    @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+                    {
+                        <a href="@Url.Action("Index", "LiveAttendance")" class="live-badge" id="liveAttendanceBadge" data-state="connecting" title="Live Attendance feed">
+                            <span class="live-badge-dot" aria-hidden="true"></span>
+                            <span class="live-badge-label" id="liveAttendanceBadgeLabel">Live</span>
+                            <span class="live-badge-count" id="liveAttendanceBadgeCount" hidden>0</span>
+                        </a>
+                    }
                     <span style="font-size:12px;color:var(--muted);">@DateTime.Now.ToString("ddd, dd MMM yyyy")</span>
                 </div>
             </div>
@@ -199,6 +207,111 @@
 
         // Auto-dismiss toasts
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 4000);
+
+        @if (User.IsInRole("Admin") || User.IsInRole("HRManager"))
+        {
+            <text>
+        // Global live-attendance feed: connects once per tab and keeps receiving
+        // punch events no matter which page the user is currently viewing.
+        // The LiveAttendance/Index view reads from window.LiveAttendanceFeed
+        // instead of opening its own connection, so navigating away and back
+        // never drops or restarts the stream.
+        (function () {
+            var realtimeUrl = "@System.Web.HttpUtility.JavaScriptStringEncode(System.Configuration.ConfigurationManager.AppSettings["AttendSyncRealtimeUrl"] ?? "http://localhost:65147/api/attendance/realtime")";
+            var maxBuffer = 200;
+            var source = null;
+            var listeners = [];
+            var state = "connecting";
+            var lastEventAt = null;
+            var buffer = [];
+            var unseenCount = 0;
+
+            var badge = document.getElementById("liveAttendanceBadge");
+            var badgeLabel = document.getElementById("liveAttendanceBadgeLabel");
+            var badgeCount = document.getElementById("liveAttendanceBadgeCount");
+
+            function connect() {
+                if (source) { source.close(); source = null; }
+
+                if (!window.EventSource || !realtimeUrl) {
+                    setState("error");
+                    return;
+                }
+
+                setState("connecting");
+                source = new EventSource(realtimeUrl);
+
+                source.onopen = function () { setState("open"); };
+                source.onerror = function () { setState("error"); };
+                source.onmessage = function (evt) {
+                    var data;
+                    try { data = JSON.parse(evt.data); }
+                    catch (err) { return; }
+
+                    lastEventAt = new Date();
+                    buffer.unshift(data);
+                    buffer = buffer.slice(0, maxBuffer);
+                    setState("open");
+
+                    // Only badge-count punches while the user is away from the
+                    // Live Attendance page itself; that page clears it on view.
+                    if (!document.body.classList.contains("on-live-attendance-page")) {
+                        unseenCount += 1;
+                        renderBadgeCount();
+                    }
+
+                    listeners.forEach(function (fn) {
+                        try { fn(data); } catch (err) { /* listener errors don't break the feed */ }
+                    });
+                };
+            }
+
+            function setState(next) {
+                state = next;
+                if (!badge) return;
+                badge.setAttribute("data-state", next);
+                badgeLabel.textContent = next === "open" ? "Live" : next === "connecting" ? "Connecting" : "Offline";
+            }
+
+            function renderBadgeCount() {
+                if (!badgeCount) return;
+                if (unseenCount > 0) {
+                    badgeCount.hidden = false;
+                    badgeCount.textContent = unseenCount > 99 ? "99+" : String(unseenCount);
+                } else {
+                    badgeCount.hidden = true;
+                }
+            }
+
+            window.LiveAttendanceFeed = {
+                // Returns currently connected/connecting/error state.
+                getState: function () { return state; },
+                getLastEventAt: function () { return lastEventAt; },
+                // Most-recent-first array of punch events received this tab session.
+                getBuffer: function () { return buffer.slice(); },
+                // Registers fn(punch) for every new punch; returns an unsubscribe fn.
+                subscribe: function (fn) {
+                    listeners.push(fn);
+                    return function () {
+                        var idx = listeners.indexOf(fn);
+                        if (idx !== -1) listeners.splice(idx, 1);
+                    };
+                },
+                // Called by the Live Attendance page when the user views it.
+                clearUnseen: function () {
+                    unseenCount = 0;
+                    renderBadgeCount();
+                },
+                reconnect: connect
+            };
+
+            connect();
+            window.addEventListener("beforeunload", function () {
+                if (source) source.close();
+            });
+        }());
+            </text>
+        }
 
         //Session Idle Time Out CHecking
         setInterval(function () {

@@ -9,6 +9,7 @@ namespace HRMS.Web.Controllers
 {
     [Authorize]
     [RoleAuthorize("Admin", "HRManager")]
+    [ExemptFromIdleTimeout]
     public class LiveAttendanceController : Controller
     {
         public ActionResult Index()

@@ -78,7 +78,7 @@ public static class IpHelper
 
             return HostIPAddress;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return "";
         }

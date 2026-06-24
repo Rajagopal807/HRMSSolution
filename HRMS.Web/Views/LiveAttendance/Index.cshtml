@@ -134,15 +134,14 @@
 @section scripts {
     <script>
         (function () {
-            var realtimeUrl = @Html.Raw(HttpUtility.JavaScriptStringEncode(realtimeUrl, true));
             var resolveEmployeeUrl = @Html.Raw(HttpUtility.JavaScriptStringEncode(resolveEmployeeUrl, true));
-            var source = null;
             var punches = [];
             var employees = {};
             var employeeLookupCache = {};
             var totalReceived = 0;
             var nextPunchId = 1;
             var maxRows = 100;
+            var unsubscribe = null;
 
             var state = document.getElementById("connectionState");
             var title = document.getElementById("connectionTitle");
@@ -159,51 +158,60 @@
             var latestTimestamp = document.getElementById("latestTimestamp");
             var latestDirection = document.getElementById("latestDirection");
 
-            document.getElementById("reconnectBtn").addEventListener("click", connect);
+            document.getElementById("reconnectBtn").addEventListener("click", reconnect);
             document.getElementById("clearFeedBtn").addEventListener("click", clearFeed);
-            window.addEventListener("beforeunload", closeSource);
 
-            connect();
+            // Mark this page as "currently viewing live attendance" so the
+            // global topbar badge (in _Layout.cshtml) doesn't accumulate an
+            // unseen-punch count while the user is already looking at it.
+            document.body.classList.add("on-live-attendance-page");
+            window.addEventListener("beforeunload", function () {
+                document.body.classList.remove("on-live-attendance-page");
+                if (unsubscribe) unsubscribe();
+            });
 
-            function connect() {
-                closeSource();
+            attachToGlobalFeed();
 
-                if (!window.EventSource) {
-                    setStatus("error", "Browser does not support live streams");
+            function attachToGlobalFeed() {
+                if (!window.LiveAttendanceFeed) {
+                    // Global feed script (in the shared layout) hasn't initialized
+                    // yet, or the user's role doesn't have it enabled. Retry briefly
+                    // in case this fires before the layout script runs.
+                    setStatus("error", "Live feed is not available");
+                    setTimeout(function () {
+                        if (window.LiveAttendanceFeed) attachToGlobalFeed();
+                    }, 300);
                     return;
                 }
 
-                if (!realtimeUrl) {
-                    setStatus("error", "AttendSync realtime URL is not configured");
-                    return;
+                window.LiveAttendanceFeed.clearUnseen();
+                setStatus(window.LiveAttendanceFeed.getState(), describeState(window.LiveAttendanceFeed.getState()));
+
+                // Hydrate with whatever the global feed already buffered, in case
+                // it received punches while the user was on a different page.
+                var backlog = window.LiveAttendanceFeed.getBuffer();
+                for (var i = backlog.length - 1; i >= 0; i--) {
+                    addPunch(backlog[i], false);
                 }
 
-                setStatus("connecting", "Connecting");
-                source = new EventSource(realtimeUrl);
+                var lastEventAt = window.LiveAttendanceFeed.getLastEventAt();
+                if (lastEventAt) lastEventTime.textContent = formatTime(lastEventAt);
 
-                source.onopen = function () {
+                unsubscribe = window.LiveAttendanceFeed.subscribe(function (evt) {
+                    addPunch(evt, true);
                     setStatus("open", "Connected");
-                };
-
-                source.onerror = function () {
-                    setStatus("error", "Connection interrupted");
-                };
-
-                source.onmessage = function (event) {
-                    try {
-                        addPunch(JSON.parse(event.data));
-                        setStatus("open", "Connected");
-                    } catch (err) {
-                        setStatus("error", "Invalid event payload");
-                    }
-                };
+                });
             }
 
-            function closeSource() {
-                if (source) {
-                    source.close();
-                    source = null;
+            function reconnect() {
+                if (window.LiveAttendanceFeed) {
+                    window.LiveAttendanceFeed.reconnect();
+                    setStatus(window.LiveAttendanceFeed.getState(), describeState(window.LiveAttendanceFeed.getState()));
                 }
+            }
+
+            function describeState(s) {
+                return s === "open" ? "Connected" : s === "connecting" ? "Connecting" : "Connection interrupted";
             }
 
             function setStatus(kind, text) {
@@ -211,7 +219,7 @@
                 title.textContent = text;
             }
 
-            function addPunch(evt) {
+            function addPunch(evt, isLive) {
                 var punch = normalizePunch(evt);
                 totalReceived += 1;
                 punches.unshift(punch);
@@ -221,7 +229,7 @@
                 renderTable();
                 totalPunches.textContent = String(totalReceived);
                 lastDirection.textContent = punch.direction || "-";
-                lastEventTime.textContent = formatTime(new Date());
+                if (isLive) lastEventTime.textContent = formatTime(new Date());
 
                 resolvePunchEmployee(punch);
             }
