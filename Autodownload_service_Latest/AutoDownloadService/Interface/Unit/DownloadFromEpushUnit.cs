@@ -62,23 +62,29 @@ namespace AutodownloadService.Interface.Unit
             {
                 // Code to download data from device and add to rawData list
                 // Read all logs into device buffer first
-                _zKEM.ReadAllGLogData(device.Id);
+                //_zKEM.ReadAllGLogData(device.Id);
 
                 // SSR_GetGeneralLogData iterates through buffered records
                 string enrollNumber = "";
                 int verifyMode = 0, inOutMode = 0, year = 0, month = 0, day = 0,
                     hour = 0, minute = 0, second = 0, workCode = 0;
 
-                while (_zKEM.SSR_GetGeneralLogData(device.Id, out enrollNumber, out verifyMode, out inOutMode, out year, out month, out day, out hour, out minute, out second, ref workCode))
+                bool hasMoreRecords = _zKEM.ReadNewGLogData(device.Id);
+                if (hasMoreRecords)
                 {
-                    RawDatum rawDatum = new RawDatum();
-                    rawDatum.Userid = CommonUtil.AddZero(enrollNumber);
-                    rawDatum.LogDate = new DateTime(year, month, day, hour, minute, second).ToString("yyyy-MM-dd HH:mm");
-                    rawDatum.Direction = inOutMode == 0 ? "IN" : "OUT";
-                    rawDatum.DeviceId = device.Id.ToString();
-                    rawDatum.C4 = workCode;
-                    rawData.Add(rawDatum);
+                    while (_zKEM.SSR_GetGeneralLogData(device.Id, out enrollNumber, out verifyMode, out inOutMode, out year, out month, out day, out hour, out minute, out second, ref workCode))
+                    {
+                        RawDatum rawDatum = new RawDatum();
+                        rawDatum.Userid = CommonUtil.AddZero(enrollNumber);
+                        rawDatum.LogDate = new DateTime(year, month, day, hour, minute, second).ToString("yyyy-MM-dd HH:mm");
+                        rawDatum.Direction = inOutMode == 0 ? "IN" : "OUT";
+                        rawDatum.DeviceId = device.Id.ToString();
+                        rawDatum.C4 = workCode;
+                        rawData.Add(rawDatum);
+                        _zKEM.ReadMark = true; // Mark record as read to prevent re-reading in future sessions
+                    }
                 }
+
 
                 if(device.ClearDeviceAfterSync)
                 {
