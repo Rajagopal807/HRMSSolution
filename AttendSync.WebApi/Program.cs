@@ -28,7 +28,7 @@ builder.Services.AddSwaggerGen(c =>
         Title       = "AttendSync Biometric Reader API",
         Version     = "v1",
         Description =
-            "REST interface for ZKTeco / Anviz biometric attendance devices. " +
+            "REST interface for ZKTeco biometric attendance devices. " +
             "Wraps the CZKEM COM SDK with a clean HTTP layer and SSE real-time push.",
         Contact = new OpenApiContact { Name = "AttendSync" },
     });

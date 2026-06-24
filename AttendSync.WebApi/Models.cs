@@ -47,6 +47,7 @@ public class DeviceConfig
     public int    TimeoutSecs { get; set; } = 30;
     public string Password    { get; set; } = string.Empty;
     public string Brand       { get; set; } = "ZKTeco";
+    public string PhotoPath   { get; set; } = string.Empty; // optional path to save downloaded photos
 }
 
 public class DateRangeRequest
@@ -98,4 +99,13 @@ public class RealtimePunchEvent
     public int      VerifyMode { get; set; }
     public int      WorkCode   { get; set; }
     public string   Source     { get; set; } = string.Empty;
+}
+public class PhotoDownloadResult
+{
+    public string PhotoName { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public string LocalPath { get; set; } = string.Empty;
+    public long FileSizeBytes { get; set; }
+    public int ErrorCode { get; set; }
+    public string Message { get; set; } = string.Empty;
 }

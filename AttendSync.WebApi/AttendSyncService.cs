@@ -5,8 +5,10 @@
 // ╚══════════════════════════════════════════════════════════════════╝
 
 using AttendSync.WebApi.Models;
+using System;
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
 // Channel<T> shim so the file compiles without extra imports
 using System.Threading.Channels;
@@ -169,6 +171,20 @@ public sealed class AttendSyncService : IDisposable
         return StartRealtime(cfg);
     }
 
+    public (bool ok, string error) ConnectDeviceFromConfiguredDevice()
+    {
+        var cfg = _configuration.GetSection("DeviceConfig").Get<DeviceConfig>();
+        if (cfg == null || string.IsNullOrWhiteSpace(cfg.IpAddress))
+        {
+            if (_connected && _cfg != null)
+                return Connect(_cfg);
+
+            return (false, "DeviceConfig is missing. Configure DeviceConfig in appsettings.json or call /api/device/connect first.");
+        }
+
+        return Connect(cfg);
+    }
+
     /// <summary>
     /// Loads COM, connects to the device if needed, and registers all realtime events.
     /// </summary>
@@ -223,6 +239,7 @@ public sealed class AttendSyncService : IDisposable
 
         string fw = string.Empty;
         int admin = 0, records = 0, users = 0;
+        
 
         /* ── Uncomment when COM reference is available ──────────────────────*/
         var zkem = _zkem!;
@@ -240,16 +257,25 @@ public sealed class AttendSyncService : IDisposable
             EnrolledUsers   = users,
         };
        /* ─────────────────────────────────────────────────────────────────── */
+    }
 
-        // Stub — replace with real COM calls above
-        //return new DeviceInfo
-        //{
-        //    SerialNumber    = "STUB-SN-001",
-        //    FirmwareVersion = "Ver 6.60 Apr 17 2023",
-        //    DeviceType      = 72,
-        //    StoredRecords   = 0,
-        //    EnrolledUsers   = 0,
-        //};
+    // ── Device Photo ────────────────────────────────────────────────────────────
+    /// <summary>Reads the full attendance log from the device buffer.</summary>
+    public async Task<List<PhotoDownloadResult>> DownloadPhotoAsync(
+        IProgress<int>? progress = null,
+        CancellationToken ct = default)
+    {
+        EnsureConnected();
+        _downloading = true;
+
+        try
+        {
+            return await Task.Run(() => ReadAllPhoto(progress, ct), ct);
+        }
+        finally
+        {
+            _downloading = false;
+        }
     }
 
     // ── Attendance download ────────────────────────────────────────────────────
@@ -328,7 +354,7 @@ public sealed class AttendSyncService : IDisposable
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────
-
+    
     private List<AttendanceRecord> ReadAttendance(
         DateTime? from, DateTime? to,
         IProgress<int>? progress,

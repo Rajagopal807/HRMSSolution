@@ -200,7 +200,7 @@ public class AttendanceController : ControllerBase
         {
             // Keep-alive ping every 20 s
             using var pingTimer = new PeriodicTimer(TimeSpan.FromSeconds(20));
-            var pingTask = Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!ct.IsCancellationRequested)
                 {
